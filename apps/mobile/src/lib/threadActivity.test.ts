@@ -1427,7 +1427,7 @@ describe("buildThreadFeed", () => {
         ...base("list", "2026-09-19T00:00:01.000Z", 1),
         type: "dynamic_tool",
         title: "Custom provider title",
-        toolName: "Yantrix-code.yantrix_project_list",
+        toolName: "Yantrix.yantrix_project_list",
         input: {},
         output: { projects: [] },
       },

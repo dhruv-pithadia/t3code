@@ -2360,7 +2360,7 @@ describe("MessagesTimeline", () => {
     );
 
     // The Yantrix wordmark replaces the generic tool icon for Yantrix MCP calls.
-    expect(markup).toContain('viewBox="15.5309 37 94.3941 56.96"');
+    expect(markup).toContain('viewBox="33 37 62 57"');
     expect(markup).toContain("Read a Yantrix thread");
     expect(markup).not.toContain("mcp__yantrix__yantrix_thread_read");
   });

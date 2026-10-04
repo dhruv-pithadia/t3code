@@ -55,6 +55,10 @@
       // electron-builder from this workspace, outside its package scripts.
       "ignoreDependencies": ["playwright-core", "electron-builder"],
     },
+    "apps/marketing": {
+      // Astro emits a bare cookie import in its prerenderer; it must resolve locally.
+      "ignoreDependencies": ["cookie"],
+    },
     "apps/web": {
       // Vitest loads this through the per-file @vitest-environment directive.
       "ignoreDependencies": ["jsdom"],

@@ -51,11 +51,11 @@ function makeProject(
     locator: {
       source: "git-remote",
       remoteName: "origin",
-      remoteUrl: "git@github.com:YantrixTools/Yantrix.git",
+      remoteUrl: "git@github.com:Yantrix/Yantrix.git",
     },
     provider: "github",
-    displayName: "YantrixTools/Yantrix",
-    owner: "YantrixTools",
+    displayName: "Yantrix/Yantrix",
+    owner: "Yantrix",
     name: "Yantrix",
   },
 ): OrchestrationProjectShell {
@@ -200,13 +200,13 @@ describe("pull request toolkit handlers", () => {
     Effect.gen(function* () {
       const harness = yield* makeHarness();
       const result = yield* harness.call("link_pull_request", {
-        url: "https://github.com/YantrixTools/Yantrix/pull/123/files",
+        url: "https://github.com/Yantrix/Yantrix/pull/123/files",
       });
       expect(result).toEqual({
         host: "github.com",
         repository: "yantrix/yantrix",
         number: 123,
-        url: "https://github.com/YantrixTools/Yantrix/pull/123/files",
+        url: "https://github.com/Yantrix/Yantrix/pull/123/files",
         alreadyLinked: false,
       });
       expect(yield* Ref.get(harness.commands)).toMatchObject([
@@ -278,7 +278,7 @@ describe("pull request toolkit handlers", () => {
     Effect.gen(function* () {
       const harness = yield* makeHarness();
       const result = yield* harness.call("link_pull_request", {
-        repository: "YantrixTools/Other",
+        repository: "Yantrix/Other",
         number: 7,
       });
       expect(result).toEqual({

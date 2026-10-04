@@ -2031,7 +2031,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
           commandId: CommandId.make(`branch-pr-link-${index}`),
           threadId,
           host: "GitHub.com",
-          repository: "dhruv-pithadia/yantrixcode",
+          repository: "dhruv-pithadia/yantrix",
           number,
           url: `https://github.com/dhruv-pithadia/yantrix/pull/${number}`,
           source: "manual",
@@ -2086,7 +2086,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         branch: null,
         worktreePath: null,
       });
-      const key = { host: "GitHub.com", repository: "dhruv-pithadia/yantrixcode" };
+      const key = { host: "GitHub.com", repository: "dhruv-pithadia/yantrix" };
       for (const number of [1, 2]) {
         yield* orchestrator.dispatch({
           type: "thread.pull-request.link",

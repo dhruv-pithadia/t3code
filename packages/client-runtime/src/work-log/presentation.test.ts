@@ -312,12 +312,12 @@ describe("resolveWorkEntryToolPresentation", () => {
     ["yantrix_thread_send_attachments", "Sending attachments", "Sent attachments"],
     ["run_scheduled_task_now", "Running a scheduled task", "Requested a run of a scheduled task"],
   ])("labels %s through its lifecycle", (tool, running, completed) => {
-    expect(resolveWorkEntryToolPresentation({ label: `Yantrix-code.${tool}` })?.displayName).toBe(
+    expect(resolveWorkEntryToolPresentation({ label: `Yantrix.${tool}` })?.displayName).toBe(
       running,
     );
     expect(
       resolveWorkEntryToolPresentation({
-        label: `Yantrix-code.${tool}`,
+        label: `Yantrix.${tool}`,
         toolLifecycleStatus: "completed",
       })?.displayName,
     ).toBe(completed);
@@ -345,7 +345,7 @@ describe("resolveWorkEntryToolPresentation", () => {
     });
     const failed = {
       ...entry,
-      toolData: { toolName: "Yantrix-code.yantrix_project_clone", rawOutput: { isError: true } },
+      toolData: { toolName: "Yantrix.yantrix_project_clone", rawOutput: { isError: true } },
     };
     expect(summarizeToolGroup([entry, failed])).toEqual({
       summary: "Cloned 1 repository",
@@ -370,7 +370,7 @@ describe("resolveWorkEntryToolPresentation", () => {
       id: "clone",
       createdAt: "2026-09-19T00:00:00.000Z",
       tone: "tool",
-      label: "Yantrix-code.yantrix_project_clone",
+      label: "Yantrix.yantrix_project_clone",
       toolLifecycleStatus: "inProgress",
       itemType: "dynamic_tool",
       toolData: { output: { isError: true } },
@@ -382,7 +382,7 @@ describe("resolveWorkEntryToolPresentation", () => {
     expect(workEntryIndicatesToolSuccess(entry)).toBe(false);
     const childFailure = {
       ...entry,
-      label: "Yantrix-code.task_status",
+      label: "Yantrix.task_status",
       toolLifecycleStatus: "completed" as const,
       toolData: { output: { taskId: "child", status: "failed", summary: "command not found" } },
     };
@@ -393,7 +393,7 @@ describe("resolveWorkEntryToolPresentation", () => {
     "mcp__yantrix__preview_click",
     "mcp__yantrix__preview_click",
     "mcp__yantrix__preview_click",
-    "Yantrix-code.preview_click",
+    "Yantrix.preview_click",
     "yantrix · preview_click completed",
     "yantrix/preview_click",
     "preview_click",
@@ -437,14 +437,14 @@ describe("resolveWorkEntryToolPresentation", () => {
   ] as const)("describes the tool's own %s state", (toolLifecycleStatus, displayName) => {
     expect(
       resolveWorkEntryToolPresentation({
-        label: "Yantrix-code.preview_click",
+        label: "Yantrix.preview_click",
         toolLifecycleStatus: toolLifecycleStatus as WorkLogToolLifecycleStatus,
       }),
     ).toEqual({ displayName, icon: "browser" });
   });
 
   it("uses the summary's state only when the provider omitted a lifecycle status", () => {
-    const entry = { label: "Yantrix-code.preview_click" };
+    const entry = { label: "Yantrix.preview_click" };
     expect(resolveWorkEntryToolPresentation(entry, "inProgress")?.displayName).toBe(
       "Clicking in the preview browser",
     );
@@ -826,7 +826,7 @@ describe("pull request tool presentation", () => {
   it.each([
     "mcp__yantrix__link_pull_request",
     "mcp__yantrix__link_pull_request",
-    "Yantrix-code · link_pull_request",
+    "Yantrix · link_pull_request",
     "yantrix/link_pull_request",
     "link_pull_request",
   ])("recognizes the native linking tool: %s", (label) => {
@@ -882,7 +882,7 @@ describe("pull request tool presentation", () => {
     const link: WorkLogPresentationEntry = {
       id: "link",
       createdAt: "2026-09-10T00:00:00.000Z",
-      label: "Yantrix-code · link_pull_request",
+      label: "Yantrix · link_pull_request",
       tone: "tool",
       itemType: "dynamic_tool",
       toolLifecycleStatus: "completed",
@@ -890,14 +890,14 @@ describe("pull request tool presentation", () => {
     };
     const list: WorkLogPresentationEntry = {
       ...link,
-      label: "Yantrix-code · list_thread_pull_requests",
+      label: "Yantrix · list_thread_pull_requests",
     };
     expect(summarizeToolGroup([link, link, list]).summary).toBe(
       "Linked 2 pull requests and checked linked pull requests",
     );
-    expect(
-      summarizeToolGroup([{ ...link, label: "Yantrix-code · unlink_pull_request" }]).summary,
-    ).toBe("Unlinked 1 pull request");
+    expect(summarizeToolGroup([{ ...link, label: "Yantrix · unlink_pull_request" }]).summary).toBe(
+      "Unlinked 1 pull request",
+    );
     expect(toolGroupSummaryKind([link, link, list])).toBe("pull-request");
     expect(summarizeToolGroup([list, list]).summary).toBe("Checked linked pull requests 2 times");
     expect(

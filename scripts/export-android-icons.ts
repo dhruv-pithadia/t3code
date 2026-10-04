@@ -37,6 +37,11 @@ const WORDMARK_FRACTION = 0.4;
 // Icon Composer positions layers on a 1024pt canvas, with translation relative to center.
 const COMPOSER_CANVAS_PT = 1024;
 const SVG_DENSITY = 300;
+// Flat white silhouettes: the themed (monochrome) launcher icon and the status bar icon.
+// The notification icon is drawn larger because the system tints it without any framing.
+const MONOCHROME_FRACTION = 0.5;
+const NOTIFICATION_CANVAS = 96;
+const NOTIFICATION_FRACTION = 0.62;
 const OUTPUT_DIRECTORY = "apps/mobile/assets";
 // Production has no background artwork, so its splash composes onto the adaptive color.
 const PRODUCTION_BACKGROUND_COLOR = "#000000";
@@ -46,8 +51,8 @@ export class AndroidIconRenderError extends Schema.TaggedError<AndroidIconRender
   { layer: Schema.String, cause: Schema.Defect() },
 ) {}
 
-const wordmarkTransform = (size: number) => {
-  const scale = (size * WORDMARK_FRACTION) / TEXT.width;
+const wordmarkTransform = (size: number, fraction = WORDMARK_FRACTION) => {
+  const scale = (size * fraction) / TEXT.width;
   const tx = (size - TEXT.width * scale) / 2 - TEXT.x * scale;
   const ty = (size - TEXT.height * scale) / 2 - TEXT.y * scale;
   return `translate(${tx.toFixed(3)} ${ty.toFixed(3)}) scale(${scale.toFixed(4)})`;
@@ -106,12 +111,13 @@ const readLayerSource = Effect.fn("androidIcons.readLayerSource")(function* (
 const renderForeground = Effect.fn("androidIcons.renderForeground")(function* (
   repositoryRoot: string,
   size: number,
+  fraction = WORDMARK_FRACTION,
 ) {
   const text = yield* readLayerSource(repositoryRoot, "prod", "text.svg");
   const paths = text.match(/<path[^>]*\/>/g) ?? [];
   return yield* rasterize(
     "foreground",
-    canvasSvg(size, `<g transform="${wordmarkTransform(size)}">${paths.join("")}</g>`),
+    canvasSvg(size, `<g transform="${wordmarkTransform(size, fraction)}">${paths.join("")}</g>`),
     size,
   );
 });
@@ -219,6 +225,14 @@ const exportAndroidIcons = Effect.gen(function* () {
     [
       "android-icon-background-nightly.png",
       yield* renderNightlyBackground(repositoryRoot, ADAPTIVE_CANVAS),
+    ],
+    [
+      "android-icon-mark.png",
+      yield* renderForeground(repositoryRoot, ADAPTIVE_CANVAS, MONOCHROME_FRACTION),
+    ],
+    [
+      "android-notification-icon.png",
+      yield* renderForeground(repositoryRoot, NOTIFICATION_CANVAS, NOTIFICATION_FRACTION),
     ],
     ["android-splash-icon-dev.png", yield* renderSplashIcon(repositoryRoot, "dev")],
     ["android-splash-icon-nightly.png", yield* renderSplashIcon(repositoryRoot, "nightly")],

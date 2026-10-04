@@ -42,7 +42,7 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
   it.effect("refreshes the Git root only when requested", () => {
     const calls: Array<ReadonlyArray<string>> = [];
     let rootPath = "/repo";
-    let remoteUrl = "git@github.com:YantrixTools/yantrix.git";
+    let remoteUrl = "git@github.com:Yantrix/yantrix.git";
     let refinements = 0;
     let refinementFails = false;
     const processRunner = Layer.succeed(ProcessRunner.ProcessRunner, {
@@ -142,7 +142,7 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
               ? failed
                 ? ""
                 : "/repo\n"
-              : "origin\tgit@github.com:YantrixTools/yantrix.git (fetch)\n",
+              : "origin\tgit@github.com:Yantrix/yantrix.git (fetch)\n",
             stderr: failed ? "temporary Git failure" : "",
             code: ChildProcessSpawner.ExitCode(failed ? 1 : 0),
             timedOut: false,
@@ -182,7 +182,7 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
       });
 
       yield* git(cwd, ["init"]);
-      yield* git(cwd, ["remote", "add", "origin", "git@github.com:YantrixTools/yantrix.git"]);
+      yield* git(cwd, ["remote", "add", "origin", "git@github.com:Yantrix/yantrix.git"]);
 
       const resolver = yield* RepositoryIdentityResolver.RepositoryIdentityResolver;
       const identity = yield* resolver.resolve(cwd);
@@ -213,7 +213,7 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
 
       yield* fileSystem.makeDirectory(nestedWorkspace, { recursive: true });
       yield* git(repoRoot, ["init"]);
-      yield* git(repoRoot, ["remote", "add", "origin", "git@github.com:YantrixTools/yantrix.git"]);
+      yield* git(repoRoot, ["remote", "add", "origin", "git@github.com:Yantrix/yantrix.git"]);
 
       const resolver = yield* RepositoryIdentityResolver.RepositoryIdentityResolver;
       const identity = yield* resolver.resolve(nestedWorkspace);
@@ -262,12 +262,7 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
         yield* git(cwd, ["init"]);
         yield* git(cwd, ["remote", "add", "origin", "git@github.com:julius/yantrix.git"]);
         if (change === "replace") {
-          yield* git(cwd, [
-            "remote",
-            "add",
-            "upstream",
-            "git@github.com:YantrixTools/previous.git",
-          ]);
+          yield* git(cwd, ["remote", "add", "upstream", "git@github.com:Yantrix/previous.git"]);
         }
 
         const resolver = yield* RepositoryIdentityResolver.RepositoryIdentityResolver;
@@ -280,7 +275,7 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
           "remote",
           change === "add" ? "add" : "set-url",
           "upstream",
-          "git@github.com:YantrixTools/yantrix.git",
+          "git@github.com:Yantrix/yantrix.git",
         ]);
         expect(yield* resolver.resolve(cwd)).toEqual(initialIdentity);
         const identity = yield* resolver.resolve(cwd, { refresh: true });
@@ -301,12 +296,7 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
       });
 
       yield* git(cwd, ["init"]);
-      yield* git(cwd, [
-        "remote",
-        "add",
-        "origin",
-        "git@gitlab.com:YantrixTools/platform/yantrix.git",
-      ]);
+      yield* git(cwd, ["remote", "add", "origin", "git@gitlab.com:Yantrix/platform/yantrix.git"]);
 
       const resolver = yield* RepositoryIdentityResolver.RepositoryIdentityResolver;
       const identity = yield* resolver.resolve(cwd);
@@ -334,7 +324,7 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
         const initialIdentity = yield* resolver.resolve(cwd);
         expect(initialIdentity).toBeNull();
 
-        yield* git(cwd, ["remote", "add", "origin", "git@github.com:YantrixTools/yantrix.git"]);
+        yield* git(cwd, ["remote", "add", "origin", "git@github.com:Yantrix/yantrix.git"]);
 
         for (const _attempt of [1, 2, 3]) {
           const cachedIdentity = yield* resolver.resolve(cwd);
@@ -368,19 +358,14 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
       });
 
       yield* git(cwd, ["init"]);
-      yield* git(cwd, ["remote", "add", "origin", "git@github.com:YantrixTools/yantrix.git"]);
+      yield* git(cwd, ["remote", "add", "origin", "git@github.com:Yantrix/yantrix.git"]);
 
       const resolver = yield* RepositoryIdentityResolver.RepositoryIdentityResolver;
       const initialIdentity = yield* resolver.resolve(cwd);
       expect(initialIdentity).not.toBeNull();
       expect(initialIdentity?.canonicalKey).toBe("github.com/yantrix/yantrix");
 
-      yield* git(cwd, [
-        "remote",
-        "set-url",
-        "origin",
-        "git@github.com:YantrixTools/yantrix-next.git",
-      ]);
+      yield* git(cwd, ["remote", "set-url", "origin", "git@github.com:Yantrix/yantrix-next.git"]);
 
       const cachedIdentity = yield* resolver.resolve(cwd);
       expect(cachedIdentity).not.toBeNull();

@@ -9,7 +9,7 @@ import {
 
 describe("parseChangeRequestUrl", () => {
   it("reads a GitHub pull request, lower-casing the repository", () => {
-    expect(parseChangeRequestUrl("https://github.com/YantrixTools/Yantrix/pull/123")).toEqual({
+    expect(parseChangeRequestUrl("https://github.com/Yantrix/Yantrix/pull/123")).toEqual({
       host: "github.com",
       repository: "yantrix/yantrix",
       number: 123,

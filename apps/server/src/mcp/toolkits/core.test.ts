@@ -65,7 +65,7 @@ it("publishes unique tool names with reference-free object-root inputs", () => {
         definition?.labels.every((label) => label.trim().length > 0),
         tool.name,
       ).toBe(true);
-      for (const name of [tool.name, `mcp__yantrix__${tool.name}`, `Yantrix-code.${tool.name}`]) {
+      for (const name of [tool.name, `mcp__yantrix__${tool.name}`, `Yantrix.${tool.name}`]) {
         expect(resolveYantrixMcpToolPresentation(name)?.logo, name).toBe("yantrix");
         expect(resolveYantrixMcpToolSummaryAction(name), name).not.toBeNull();
       }

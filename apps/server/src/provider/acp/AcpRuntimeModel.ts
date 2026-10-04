@@ -1089,7 +1089,7 @@ function acpMcpFallbackInput(value: string | undefined): Record<string, unknown>
  * Yantrix tool inventory, so the separator match can stay loose.
  */
 const YANTRIX_MCP_TITLE_CALL =
-  /^(?:mcp[-_]{1,2})?yantrix[-_ ]?code[-_.:/ ]{1,3}(?<tool>[A-Za-z0-9][A-Za-z0-9_.-]*)(?::.*)?$/i;
+  /^(?:mcp[-_]{1,2})?yantrix[-_.:/ ]{1,3}(?<tool>[A-Za-z0-9][A-Za-z0-9_.-]*)(?::.*)?$/i;
 
 /**
  * Gemini CLI titles injected MCP calls "<tool> (<server> MCP Server)" and
@@ -1097,7 +1097,7 @@ const YANTRIX_MCP_TITLE_CALL =
  * tool-first as "<tool>_yantrix".
  */
 const YANTRIX_MCP_TITLE_SUFFIX_CALL =
-  /^(?<tool>[A-Za-z0-9][A-Za-z0-9_.-]*?)(?: \(yantrix[-_ ]?code MCP Server\)(?::|$)|[-_.]yantrix[-_ ]?code$)/i;
+  /^(?<tool>[A-Za-z0-9][A-Za-z0-9_.-]*?)(?: \(yantrix MCP Server\)(?::|$)|[-_.]yantrix$)/i;
 
 /**
  * glm-acp-agent and Kimi CLI register injected MCP tools under their bare
@@ -1147,7 +1147,7 @@ export function extractMcpToolCallIdentity(
   // its toolName identifies the call even under future prefix formats.
   const metaServerId = typeof meta?.serverId === "string" ? meta.serverId.trim() : "";
   const metaToolName = typeof meta?.toolName === "string" ? meta.toolName.trim() : "";
-  if (/^yantrix[-_ ]?code$/i.test(metaServerId) && metaToolName.length > 0) {
+  if (/^yantrix$/i.test(metaServerId) && metaToolName.length > 0) {
     for (const knownTool of YANTRIX_MCP_TOOL_NAMES) {
       const boundary = metaToolName.length - knownTool.length - 1;
       if (
@@ -1165,8 +1165,8 @@ export function extractMcpToolCallIdentity(
   const gooseExtension =
     typeof gooseToolCall?.extensionName === "string" ? gooseToolCall.extensionName.trim() : "";
   const assertsForeignOrigin =
-    (metaServerId.length > 0 && !/^yantrix[-_ ]?code$/i.test(metaServerId)) ||
-    (gooseExtension.length > 0 && !/^yantrix[-_ ]?code$/i.test(gooseExtension));
+    (metaServerId.length > 0 && !/^yantrix$/i.test(metaServerId)) ||
+    (gooseExtension.length > 0 && !/^yantrix$/i.test(gooseExtension));
   if (assertsForeignOrigin) {
     return undefined;
   }

@@ -231,7 +231,7 @@ describe("shouldOpenPullRequestExternally", () => {
 
 describe("parseChangeRequestUrl", () => {
   it("reads a GitHub pull request", () => {
-    expect(parseChangeRequestUrl("https://github.com/YantrixTools/Yantrix/pull/123")).toEqual({
+    expect(parseChangeRequestUrl("https://github.com/Yantrix/Yantrix/pull/123")).toEqual({
       host: "github.com",
       repository: "yantrix/yantrix",
       number: 123,
@@ -509,9 +509,7 @@ describe("findProjectForChangeRequest", () => {
     //
     // Derived from the SSH remote the way the server derives it rather than written out, so the
     // day that normalization stops reaching the web spelling this fails here too.
-    const canonicalKey = normalizeGitRemoteUrl(
-      "git@ssh.dev.azure.com:v3/YantrixTools/Platform/Yantrix",
-    );
+    const canonicalKey = normalizeGitRemoteUrl("git@ssh.dev.azure.com:v3/Yantrix/Platform/Yantrix");
     const projects = [
       project({
         canonicalKey,

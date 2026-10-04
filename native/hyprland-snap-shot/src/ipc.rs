@@ -204,11 +204,22 @@ mod tests {
                 .unwrap()
                 .is_none()
         );
-        assert!(destination(vec![window(1, "Yantrix"), window(1, "Yantrix")], 1, "Yantrix").is_err());
         assert!(
-            destination(vec![window(2, "Yantrix"), window(1, "Yantrix")], 1, "Yantrix")
-                .unwrap()
-                .is_some()
+            destination(
+                vec![window(1, "Yantrix"), window(1, "Yantrix")],
+                1,
+                "Yantrix"
+            )
+            .is_err()
+        );
+        assert!(
+            destination(
+                vec![window(2, "Yantrix"), window(1, "Yantrix")],
+                1,
+                "Yantrix"
+            )
+            .unwrap()
+            .is_some()
         );
     }
     #[test]

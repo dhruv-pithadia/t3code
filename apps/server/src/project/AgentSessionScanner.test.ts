@@ -159,7 +159,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const olderWorkspace = yield* makeTempDir("yantrix-workspace-older-");
         const newerWorkspace = yield* makeTempDir("yantrix-workspace-newer-");
 
@@ -209,7 +209,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const otherWorkspace = yield* makeTempDir("yantrix-workspace-other-");
 
@@ -264,7 +264,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
           const path = yield* Path.Path;
           const fileSystem = yield* FileSystem.FileSystem;
           const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-          const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+          const codexHomePath = yield* makeTempDir("yantrixx-home-");
           const transcriptPath =
             source === "claudeAgent"
               ? path.join(claudeHomePath, "projects", "-slug", "session.jsonl")
@@ -296,7 +296,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
           const path = yield* Path.Path;
           const fileSystem = yield* FileSystem.FileSystem;
           const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-          const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+          const codexHomePath = yield* makeTempDir("yantrixx-home-");
           const discoveryRoot =
             source === "claudeAgent"
               ? path.join(claudeHomePath, "projects")
@@ -334,7 +334,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
 
         yield* writeTranscript({
@@ -381,7 +381,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const path = yield* Path.Path;
         const fileSystem = yield* FileSystem.FileSystem;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const linkParent = yield* makeTempDir("yantrix-scanner-links-");
         const workspaceAlias = path.join(linkParent, "workspace-alias");
@@ -413,7 +413,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const path = yield* Path.Path;
         const fileSystem = yield* FileSystem.FileSystem;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const linkParent = yield* makeTempDir("yantrix-scanner-links-");
         const workspaceAlias = path.join(linkParent, "workspace-alias");
@@ -445,7 +445,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const path = yield* Path.Path;
         const fileSystem = yield* FileSystem.FileSystem;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const workspaceAlias = path.join(
           path.dirname(workspace),
@@ -493,7 +493,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const path = yield* Path.Path;
         const fileSystem = yield* FileSystem.FileSystem;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const backingUpper = yield* makeTempDir("yantrix-backing-upper-");
         const backingLower = yield* makeTempDir("yantrix-backing-lower-");
         const aliasParent = yield* makeTempDir("yantrix-case-aliases-");
@@ -537,9 +537,9 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-legacy-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-legacy-");
+        const codexHomePath = yield* makeTempDir("yantrixx-legacy-");
         const claudeInstanceHome = yield* makeTempDir("yantrix-claude-instance-");
-        const codexInstanceHome = yield* makeTempDir("yantrix-codex-instance-");
+        const codexInstanceHome = yield* makeTempDir("yantrixx-instance-");
         const legacyWorkspace = yield* makeTempDir("yantrix-workspace-legacy-");
         const claudeWorkspace = yield* makeTempDir("yantrix-workspace-claude-");
         const codexWorkspace = yield* makeTempDir("yantrix-workspace-codex-");
@@ -593,8 +593,8 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
-        const otherCodexHome = yield* makeTempDir("yantrix-codex-other-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
+        const otherCodexHome = yield* makeTempDir("yantrixx-other-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const otherWorkspace = yield* makeTempDir("yantrix-workspace-other-");
 
@@ -636,9 +636,9 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-legacy-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-legacy-");
+        const codexHomePath = yield* makeTempDir("yantrixx-legacy-");
         const claudeEnvironmentHome = yield* makeTempDir("yantrix-claude-env-");
-        const codexEnvironmentHome = yield* makeTempDir("yantrix-codex-env-");
+        const codexEnvironmentHome = yield* makeTempDir("yantrixx-env-");
         const claudeWorkspace = yield* makeTempDir("yantrix-workspace-claude-");
         const codexWorkspace = yield* makeTempDir("yantrix-workspace-codex-");
 
@@ -690,7 +690,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
 
         yield* writeTranscript({
@@ -718,9 +718,9 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
-        const envelopeDisabledHome = yield* makeTempDir("yantrix-codex-disabled-envelope-");
-        const configDisabledHome = yield* makeTempDir("yantrix-codex-disabled-config-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
+        const envelopeDisabledHome = yield* makeTempDir("yantrixx-disabled-envelope-");
+        const configDisabledHome = yield* makeTempDir("yantrixx-disabled-config-");
         const envelopeWorkspace = yield* makeTempDir("yantrix-workspace-disabled-envelope-");
         const configWorkspace = yield* makeTempDir("yantrix-workspace-disabled-config-");
 
@@ -759,7 +759,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
 
         yield* writeTranscript({
@@ -778,7 +778,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
 
         yield* writeTranscript({
           filePath: path.join(claudeHomePath, "projects", "-slug", "a.jsonl"),
@@ -796,7 +796,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const configBaseDir = yield* makeTempDir("yantrix-scanner-base-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
 
@@ -823,7 +823,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const fileSystem = yield* FileSystem.FileSystem;
 
         const worktreeCwd = path.join(claudeHomePath, ".yantrix", "worktrees", "yantrix", "wt-1");
@@ -845,7 +845,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const path = yield* Path.Path;
         const fileSystem = yield* FileSystem.FileSystem;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         // The exclusions key off the real home directory, so these fixtures
         // must live there. Each run owns a uniquely named subtree and removes
         // only that subtree, never the shared Codex or Downloads parents.
@@ -892,7 +892,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const path = yield* Path.Path;
         const fileSystem = yield* FileSystem.FileSystem;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const repo = yield* makeTempDir("yantrix-workspace-repo-");
         const worktree = yield* makeTempDir("yantrix-workspace-worktree-");
         const plain = yield* makeTempDir("yantrix-workspace-plain-");
@@ -958,7 +958,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         Effect.gen(function* () {
           const path = yield* Path.Path;
           const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-          const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+          const codexHomePath = yield* makeTempDir("yantrixx-home-");
           const configBaseDir = yield* makeTempDir("yantrix-scanner-base-");
           const fileSystem = yield* FileSystem.FileSystem;
 
@@ -983,7 +983,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const configBaseDir = yield* makeTempDir("yantrix-scanner-base-");
         const linkParent = yield* makeTempDir("yantrix-scanner-links-");
         const fileSystem = yield* FileSystem.FileSystem;
@@ -1010,7 +1010,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
 
         // Claude transcripts often open with records that have no cwd.
@@ -1031,7 +1031,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const record = claudeSessionLine(workspace).split("\n")[0]!;
         const prefix = '{"padding":"';
@@ -1055,7 +1055,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const history = `{"type":"file-history-snapshot","data":"${"x".repeat(32 * 1024)}"}\n`;
 
@@ -1300,7 +1300,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
       Effect.gen(function* () {
         const path = yield* Path.Path;
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
 
         yield* writeTranscript({
@@ -1407,7 +1407,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const otherWorkspace = yield* makeTempDir("yantrix-workspace-other-");
 
@@ -1496,7 +1496,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const workspaceAlias = path.join(
           path.dirname(workspace),
@@ -1543,8 +1543,8 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
-        const customHome = yield* makeTempDir("yantrix-codex-custom-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
+        const customHome = yield* makeTempDir("yantrixx-custom-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
 
         yield* writeTranscript({
@@ -1584,7 +1584,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const contents = [
           encodeTranscriptRecord({
@@ -1941,7 +1941,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const transcript = `${[
           encodeTranscriptRecord({
@@ -1987,7 +1987,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const missingPath = path.join(codexHomePath, "missing.jsonl");
         const transcriptPaths = {
@@ -2059,7 +2059,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const nonFilePath = yield* makeTempDir("yantrix-non-file-");
         const transcriptPath = path.join(
@@ -2118,7 +2118,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         yield* writeTranscript({
           filePath: path.join(
@@ -2162,7 +2162,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const transcriptPath = path.join(
           codexHomePath,
@@ -2233,7 +2233,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const transcriptPath = path.join(
           codexHomePath,
@@ -2292,7 +2292,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
         const makeCodexTranscript = (sessionId: string, text: string) =>
           [
@@ -2376,7 +2376,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const configBaseDir = yield* makeTempDir("yantrix-scanner-base-");
         const workspace = path.join(configBaseDir, "worktrees", "yantrix", "managed-worktree");
         yield* fileSystem.makeDirectory(workspace, { recursive: true });
@@ -2420,8 +2420,8 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
-        const sharedHome = yield* makeTempDir("yantrix-codex-shared-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
+        const sharedHome = yield* makeTempDir("yantrixx-shared-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
 
         yield* writeTranscript({
@@ -2469,8 +2469,8 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
-        const sharedHome = yield* makeTempDir("yantrix-codex-shared-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
+        const sharedHome = yield* makeTempDir("yantrixx-shared-");
         const workspace = yield* makeTempDir("yantrix-workspace-");
 
         yield* writeTranscript({
@@ -2515,7 +2515,7 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
         const nowMs = Date.parse("2026-08-24T12:00:00.000Z");
         yield* TestClock.setTime(nowMs);
         const claudeHomePath = yield* makeTempDir("yantrix-claude-home-");
-        const codexHomePath = yield* makeTempDir("yantrix-codex-home-");
+        const codexHomePath = yield* makeTempDir("yantrixx-home-");
         const oldWorkspace = yield* makeTempDir("yantrix-workspace-old-");
         const recentWorkspace = yield* makeTempDir("yantrix-workspace-recent-");
         const recentHome = yield* makeTempDir("yantrix-claude-recent-home-");

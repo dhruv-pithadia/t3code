@@ -136,7 +136,7 @@ describe("work entry labels", () => {
   ] as const)("uses the same friendly %s label in both views", (toolLifecycleStatus, label) => {
     const browserEntry = {
       ...entry,
-      toolTitle: "Yantrix-code.preview_click",
+      toolTitle: "Yantrix.preview_click",
       detail: '{"ok":true}',
       toolLifecycleStatus,
     };
@@ -147,7 +147,7 @@ describe("work entry labels", () => {
   });
 
   it("uses the active summary state for legacy tools without a lifecycle status", () => {
-    const browserEntry = { ...entry, toolTitle: "Yantrix-code.preview_click" };
+    const browserEntry = { ...entry, toolTitle: "Yantrix.preview_click" };
     expect(liveWorkEntryLabel(browserEntry, undefined, true)).toBe(
       "Clicking in the preview browser",
     );
@@ -159,7 +159,7 @@ describe("work entry labels", () => {
   it("keeps the latest live activity in the present tense after the call completes", () => {
     const browserEntry = {
       ...entry,
-      toolTitle: "Yantrix-code.preview_click",
+      toolTitle: "Yantrix.preview_click",
       toolLifecycleStatus: "completed" as const,
     };
     expect(liveWorkEntryLabel(browserEntry, undefined, true)).toBe(
@@ -735,7 +735,7 @@ describe("deriveMessagesTimelineRows", () => {
         id: TurnItemId.make("list"),
         status: "completed",
         title: "Custom provider title",
-        toolName: "Yantrix-code.yantrix_project_list",
+        toolName: "Yantrix.yantrix_project_list",
         input: {},
         output: { projects: [] },
       },

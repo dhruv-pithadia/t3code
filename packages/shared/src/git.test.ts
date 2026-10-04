@@ -14,22 +14,22 @@ import {
 
 describe("normalizeGitRemoteUrl", () => {
   it("canonicalizes equivalent GitHub remotes across protocol variants", () => {
-    expect(normalizeGitRemoteUrl("git@github.com:YantrixTools/Yantrix.git")).toBe(
+    expect(normalizeGitRemoteUrl("git@github.com:Yantrix/Yantrix.git")).toBe(
       "github.com/yantrix/yantrix",
     );
-    expect(normalizeGitRemoteUrl("https://github.com/YantrixTools/Yantrix.git")).toBe(
+    expect(normalizeGitRemoteUrl("https://github.com/Yantrix/Yantrix.git")).toBe(
       "github.com/yantrix/yantrix",
     );
-    expect(normalizeGitRemoteUrl("ssh://git@github.com/YantrixTools/Yantrix")).toBe(
+    expect(normalizeGitRemoteUrl("ssh://git@github.com/Yantrix/Yantrix")).toBe(
       "github.com/yantrix/yantrix",
     );
   });
 
   it("preserves nested group paths for providers like GitLab", () => {
-    expect(normalizeGitRemoteUrl("git@gitlab.com:YantrixTools/platform/Yantrix.git")).toBe(
+    expect(normalizeGitRemoteUrl("git@gitlab.com:Yantrix/platform/Yantrix.git")).toBe(
       "gitlab.com/yantrix/platform/yantrix",
     );
-    expect(normalizeGitRemoteUrl("https://gitlab.com/YantrixTools/platform/Yantrix.git")).toBe(
+    expect(normalizeGitRemoteUrl("https://gitlab.com/Yantrix/platform/Yantrix.git")).toBe(
       "gitlab.com/yantrix/platform/yantrix",
     );
   });
@@ -53,37 +53,33 @@ describe("normalizeGitRemoteUrl", () => {
   });
 
   it("gives an Azure DevOps repository the same key over SSH as over HTTPS", () => {
-    expect(normalizeGitRemoteUrl("git@ssh.dev.azure.com:v3/YantrixTools/Platform/Yantrix")).toBe(
+    expect(normalizeGitRemoteUrl("git@ssh.dev.azure.com:v3/Yantrix/Platform/Yantrix")).toBe(
       "dev.azure.com/yantrix/platform/_git/yantrix",
     );
     expect(
-      normalizeGitRemoteUrl("ssh://git@ssh.dev.azure.com:22/v3/YantrixTools/Platform/Yantrix"),
+      normalizeGitRemoteUrl("ssh://git@ssh.dev.azure.com:22/v3/Yantrix/Platform/Yantrix"),
     ).toBe("dev.azure.com/yantrix/platform/_git/yantrix");
     expect(
-      normalizeGitRemoteUrl(
-        "https://YantrixTools@dev.azure.com/YantrixTools/Platform/_git/Yantrix",
-      ),
+      normalizeGitRemoteUrl("https://Yantrix@dev.azure.com/Yantrix/Platform/_git/Yantrix"),
     ).toBe("dev.azure.com/yantrix/platform/_git/yantrix");
   });
 
   it("puts the organization back in the host on the name dev.azure.com replaced", () => {
     expect(
-      normalizeGitRemoteUrl(
-        "YantrixTools@vs-ssh.visualstudio.com:v3/YantrixTools/Platform/Yantrix",
-      ),
+      normalizeGitRemoteUrl("Yantrix@vs-ssh.visualstudio.com:v3/Yantrix/Platform/Yantrix"),
     ).toBe("yantrix.visualstudio.com/platform/_git/yantrix");
-    expect(
-      normalizeGitRemoteUrl("https://YantrixTools.visualstudio.com/Platform/_git/Yantrix"),
-    ).toBe("yantrix.visualstudio.com/platform/_git/yantrix");
+    expect(normalizeGitRemoteUrl("https://Yantrix.visualstudio.com/Platform/_git/Yantrix")).toBe(
+      "yantrix.visualstudio.com/platform/_git/yantrix",
+    );
   });
 
   it("leaves an Azure SSH host it cannot read as the path it was given", () => {
     // Not `v3`, and not four segments: rewriting either would invent a repository that the web
     // spelling has no name for, so the remote stands as it arrived.
-    expect(normalizeGitRemoteUrl("git@ssh.dev.azure.com:v4/YantrixTools/Platform/Yantrix")).toBe(
+    expect(normalizeGitRemoteUrl("git@ssh.dev.azure.com:v4/Yantrix/Platform/Yantrix")).toBe(
       "ssh.dev.azure.com/v4/yantrix/platform/yantrix",
     );
-    expect(normalizeGitRemoteUrl("git@ssh.dev.azure.com:v3/YantrixTools/Yantrix")).toBe(
+    expect(normalizeGitRemoteUrl("git@ssh.dev.azure.com:v3/Yantrix/Yantrix")).toBe(
       "ssh.dev.azure.com/v3/yantrix/yantrix",
     );
   });
@@ -158,16 +154,14 @@ describe("parseOriginUrlFromGitConfig", () => {
 describe("parseGitHubRepositoryNameWithOwnerFromRemoteUrl", () => {
   it("extracts the owner and repository from common GitHub remote shapes", () => {
     expect(
-      parseGitHubRepositoryNameWithOwnerFromRemoteUrl("git@github.com:YantrixTools/Yantrix.git"),
-    ).toBe("YantrixTools/Yantrix");
+      parseGitHubRepositoryNameWithOwnerFromRemoteUrl("git@github.com:Yantrix/Yantrix.git"),
+    ).toBe("Yantrix/Yantrix");
     expect(
-      parseGitHubRepositoryNameWithOwnerFromRemoteUrl(
-        "https://github.com/YantrixTools/Yantrix.git",
-      ),
-    ).toBe("YantrixTools/Yantrix");
+      parseGitHubRepositoryNameWithOwnerFromRemoteUrl("https://github.com/Yantrix/Yantrix.git"),
+    ).toBe("Yantrix/Yantrix");
     expect(
-      parseGitHubRepositoryNameWithOwnerFromRemoteUrl("ssh://github.com/YantrixTools/Yantrix.git"),
-    ).toBe("YantrixTools/Yantrix");
+      parseGitHubRepositoryNameWithOwnerFromRemoteUrl("ssh://github.com/Yantrix/Yantrix.git"),
+    ).toBe("Yantrix/Yantrix");
   });
 });
 

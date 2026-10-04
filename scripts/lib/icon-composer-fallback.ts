@@ -1,3 +1,4 @@
+// @effect-diagnostics nodeBuiltinImport:off - Build-time asset renderer runs outside the Effect runtime.
 // Portable renderer for the Icon Composer projects in assets/*/app-icon.icon.
 //
 // Icon Composer 2 (`ictool`) is only available on macOS machines with a recent Xcode or the
@@ -5,9 +6,7 @@
 // composited bottom to top at their Icon Composer positions on a 1024pt canvas. Glass,
 // translucency, and specular effects are not reproduced, so the output is flat artwork.
 
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import sharp from "sharp";
+import sharp, { type OverlayOptions } from "sharp";
 
 const COMPOSER_CANVAS_PT = 1024;
 const SVG_DENSITY = 300;
@@ -15,6 +14,12 @@ const SVG_DENSITY = 300;
 const MACOS_BODY_PT = 824;
 const MACOS_CORNER_RADIUS_PT = 184;
 const MACOS_SHADOW = { offsetY: 12, blur: 12 };
+
+/** An Icon Composer project's `icon.json` and layer SVGs, keyed by file name, read by the caller. */
+export interface IconComposerSource {
+  readonly iconJson: string;
+  readonly assets: Readonly<Record<string, string>>;
+}
 
 interface IconComposerLayer {
   readonly "image-name": string;
@@ -52,12 +57,10 @@ const svgDimensions = (svg: string) => {
 
 /** Renders a full-bleed square icon, the equivalent of an Icon Composer iOS export. */
 export async function renderIconComposerProject(
-  projectPath: string,
+  source: IconComposerSource,
   size: number,
 ): Promise<Buffer> {
-  const project: IconComposerProject = JSON.parse(
-    await readFile(join(projectPath, "icon.json"), "utf8"),
-  );
+  const project: IconComposerProject = JSON.parse(source.iconJson);
   const pixelsPerPoint = size / COMPOSER_CANVAS_PT;
   const fill = project.fill?.solid ?? project.fill?.["automatic-gradient"];
 
@@ -67,11 +70,11 @@ export async function renderIconComposerProject(
     .filter((layer) => !layer.hidden)
     .toReversed();
 
-  const overlays: sharp.OverlayOptions[] = [];
+  const overlays: OverlayOptions[] = [];
   for (const layer of layers) {
     // Layer sources clip to a 10pt rounded rectangle for the iOS silhouette. The system (or
     // the macOS mask below) applies the real corners, so the layer must bleed to the edge.
-    const svg = (await readFile(join(projectPath, "Assets", layer["image-name"]), "utf8")).replace(
+    const svg = (source.assets[layer["image-name"]] ?? "").replace(
       /<rect width="128" height="128" rx="10"\/>/,
       '<rect width="128" height="128"/>',
     );
@@ -122,14 +125,14 @@ export async function renderIconComposerProject(
 
 /** Renders the classic macOS (pre-Tahoe) icon: rounded body inside the safe area plus shadow. */
 export async function renderIconComposerMacOsProject(
-  projectPath: string,
+  source: IconComposerSource,
   size: number,
 ): Promise<Buffer> {
   const pixelsPerPoint = size / COMPOSER_CANVAS_PT;
   const body = Math.round(MACOS_BODY_PT * pixelsPerPoint);
   const inset = Math.round((size - body) / 2);
   const radius = MACOS_CORNER_RADIUS_PT * pixelsPerPoint;
-  const art = await renderIconComposerProject(projectPath, body);
+  const art = await renderIconComposerProject(source, body);
 
   const roundedMask = Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${body}" height="${body}"><rect width="${body}" height="${body}" rx="${radius}" fill="#fff"/></svg>`,

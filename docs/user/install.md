@@ -58,13 +58,13 @@ update it with `git pull` and a rebuild.
 Download a release from [GitHub Releases](https://github.com/dhruv-pithadia/yantrix/releases),
 or use a package manager:
 
-| Platform           | Install                               |
-| ------------------ | ------------------------------------- |
-| Windows            | `winget install YantrixTools.Yantrix` |
-| macOS              | `brew install --cask yantrix`         |
-| Debian, Ubuntu     | `sudo apt install ./Yantrix-*.deb`    |
-| Arch Linux         | `yay -S yantrix-bin`                  |
-| Arch Linux nightly | `yay -S yantrix-nightly-bin`          |
+| Platform           | Install                            |
+| ------------------ | ---------------------------------- |
+| Windows            | `winget install Yantrix.Yantrix`   |
+| macOS              | `brew install --cask yantrix`      |
+| Debian, Ubuntu     | `sudo apt install ./Yantrix-*.deb` |
+| Arch Linux         | `yay -S yantrix-bin`               |
+| Arch Linux nightly | `yay -S yantrix-nightly-bin`       |
 
 The `.deb` updates itself like the other desktop builds. It asks for your
 password to install each update. If your desktop has no password prompt, the

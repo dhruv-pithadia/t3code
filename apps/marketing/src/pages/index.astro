@@ -1,6 +1,6 @@
 ---
 import { getImage } from "astro:assets";
-import desktopScreenshot from "../assets/app-desktop.webp";
+import desktopScreenshot from "../assets/yantrix-desktop.png";
 import Layout from "../layouts/Layout.astro";
 import {
   ANDROID_PLAY_STORE_URL,
@@ -99,7 +99,7 @@ const mobileEndorsementRows = [
                 src={desktopScreenshot.src}
                 srcset={`${screenshot.srcSet.attribute}, ${desktopScreenshot.src} ${desktopScreenshot.width}w`}
                 sizes="(max-width: 960px) min(864px, calc(100vw - 20px)), min(1180px, calc(100vw - 60px))"
-                alt="Yantrix with a settled thread beside its pull request diff"
+                alt="Yantrix general settings in the desktop layout"
                 width={desktopScreenshot.width}
                 height={desktopScreenshot.height}
                 loading="eager"
