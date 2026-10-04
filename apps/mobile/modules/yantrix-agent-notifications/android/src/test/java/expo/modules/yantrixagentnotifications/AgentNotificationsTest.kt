@@ -193,7 +193,10 @@ class AgentNotificationsTest {
     val alert = manager.activeNotifications.single()
     assertEquals("5 agents finished", alert.notification.extras.getString(Notification.EXTRA_TITLE))
     assertEquals(titles, alert.notification.extras.getString(Notification.EXTRA_BIG_TEXT))
-    assertEquals("yantrix-dev://", shadowOf(alert.notification.contentIntent).savedIntent.dataString)
+    assertEquals(
+      "yantrix-dev://",
+      shadowOf(alert.notification.contentIntent).savedIntent.dataString
+    )
   }
 
   @Test
@@ -568,7 +571,9 @@ class AgentNotificationsTest {
   fun alertsAndActivityUseVersionAppropriatePriorityAndPromotion() {
     AgentNotifications.receive(context, update("work", true))
     val alert = manager.activeNotifications.single { it.tag == "yantrix-agent-alert" }.notification
-    val card = manager.activeNotifications.single { it.tag == "yantrix-agent-activity" }.notification
+    val card = manager.activeNotifications.single {
+      it.tag == "yantrix-agent-activity"
+    }.notification
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
       assertEquals(Notification.PRIORITY_HIGH, alert.priority)
       assertTrue(alert.defaults and Notification.DEFAULT_SOUND != 0)

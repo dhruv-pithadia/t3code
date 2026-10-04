@@ -91,7 +91,10 @@ class YantrixComposerEditorModule : Module() {
       Prop("lineHeight") { view: YantrixComposerEditorView, lineHeight: Double ->
         view.setLineHeight(lineHeight.toFloat())
       }
-      Prop("contentInsetVertical") { view: YantrixComposerEditorView, contentInsetVertical: Double ->
+      Prop("contentInsetVertical") {
+          view: YantrixComposerEditorView,
+          contentInsetVertical: Double
+        ->
         view.setContentInsetVertical(contentInsetVertical.toInt())
       }
 
