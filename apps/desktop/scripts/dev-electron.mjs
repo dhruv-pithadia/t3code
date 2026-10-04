@@ -90,6 +90,8 @@ function killChildTreeByPid(pid, signal) {
 }
 
 function cleanupStaleDevApps() {
+  // The fork only stops children captured by this runner, never path-matched processes.
+  if (process.env.T3CODE_DESKTOP_APP_DATA_DIR) return;
   if (hostPlatform === "win32") {
     return;
   }

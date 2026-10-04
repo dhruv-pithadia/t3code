@@ -21,6 +21,10 @@ describe("electron development launcher", () => {
       VITE_DEV_SERVER_URL: "http://127.0.0.1:8526",
       T3CODE_PORT: "16566",
       T3CODE_HOME: "/tmp/t3",
+      T3CODE_DESKTOP_APP_DATA_DIR: "/tmp/fork-profile",
+      T3CODE_DESKTOP_APP_NAME: "Independent Agent Workspace",
+      T3CODE_DESKTOP_SKIP_PROTOCOL_REGISTRATION: "1",
+      T3CODE_DISABLE_AUTO_UPDATE: "true",
       T3CODE_OTLP_PROTOCOL: "http/protobuf",
     });
 
@@ -32,6 +36,9 @@ describe("electron development launcher", () => {
       environmentScript,
       "if [ -z \"${T3CODE_OTLP_PROTOCOL:-}\" ]; then export T3CODE_OTLP_PROTOCOL='http/protobuf'; fi",
     );
+    assert.include(environmentScript, "T3CODE_DESKTOP_APP_DATA_DIR='/tmp/fork-profile'");
+    assert.include(environmentScript, "T3CODE_DESKTOP_SKIP_PROTOCOL_REGISTRATION='1'");
+    assert.include(environmentScript, "T3CODE_DISABLE_AUTO_UPDATE='true'");
     assert.notInclude(environmentScript, "\nexport VITE_DEV_SERVER_URL=");
   });
 
