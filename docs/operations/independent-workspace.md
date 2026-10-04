@@ -2,7 +2,8 @@
 
 This public fork starts from T3 Code. The supported isolated entry points are `vp run dev`
 (web) and `vp run dev:desktop` (Electron on macOS). Run them from the task worktree after `vp i`.
-Use `--dry-run` to inspect paths and selected ports without starting services.
+Use `--dry-run` to inspect paths and selected ports without starting services. Run one mode
+at a time per worktree because web and desktop share that worktree's backend state.
 
 Both launchers bind the backend to loopback, select ports from the checkout path, disable
 app updates, and use checkout-local `.t3/workspace-runtime/userdata` for backend state.
