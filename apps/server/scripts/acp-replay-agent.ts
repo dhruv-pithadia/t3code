@@ -57,8 +57,9 @@ const pendingClientRequestIds = new Map<string, string | number>();
 const pendingAgentRequestMethods = new Map<string, string>();
 
 function writeStatus(failure?: unknown): void {
+  const temporaryPath = `${replayStatusPath}.tmp`;
   NodeFS.writeFileSync(
-    replayStatusPath,
+    temporaryPath,
     JSON.stringify({
       scenario: transcript.scenario,
       cursor,
@@ -67,6 +68,7 @@ function writeStatus(failure?: unknown): void {
     }),
     "utf8",
   );
+  NodeFS.renameSync(temporaryPath, replayStatusPath);
 }
 
 function stableStringify(value: unknown): string {
@@ -184,10 +186,13 @@ function materializeInbound(value: unknown): unknown {
   );
 }
 
+// Persist each frame before sending it: a client can stop the child as soon as
+// it receives the final reply, including while a later synchronous write runs.
 function emitInbound(recorded: LogicalFrame): void {
   const frame = materializeInbound(recorded) as LogicalFrame;
   switch (frame.kind) {
     case "notification":
+      advance();
       send({
         jsonrpc: "2.0",
         method: frame.method,
@@ -198,6 +203,7 @@ function emitInbound(recorded: LogicalFrame): void {
       const id = nextAgentRequestId;
       nextAgentRequestId += 1;
       pendingAgentRequestMethods.set(String(id), frame.method);
+      advance();
       send({
         jsonrpc: "2.0",
         id,
@@ -214,6 +220,7 @@ function emitInbound(recorded: LogicalFrame): void {
         return;
       }
       pendingClientRequestIds.delete(frame.method);
+      advance();
       send({
         jsonrpc: "2.0",
         id,
@@ -248,7 +255,6 @@ function flushInbound(): void {
     }
     emitInbound(frame);
     if (stopped) return;
-    advance();
   }
 }
 
