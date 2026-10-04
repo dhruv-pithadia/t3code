@@ -15,11 +15,17 @@ const repoRoot = NodePath.resolve(desktopDir, "..", "..");
 const devBundleIdSuffix = NodePath.basename(repoRoot)
   .toLowerCase()
   .replaceAll(/[^a-z0-9]+/g, "");
-const APP_DISPLAY_NAME = isDevelopment ? "T3 Code (Dev)" : "T3 Code (Alpha)";
-const APP_BUNDLE_ID = isDevelopment
-  ? `com.t3tools.t3code.dev.${devBundleIdSuffix || "local"}`
-  : "com.t3tools.t3code";
-const APP_PROTOCOL_SCHEMES = isDevelopment ? ["t3code-dev"] : ["t3code"];
+const appBaseName = process.env.T3CODE_DESKTOP_APP_NAME?.trim() || "T3 Code";
+const APP_DISPLAY_NAME = `${appBaseName} (${isDevelopment ? "Dev" : "Alpha"})`;
+const skipProtocolRegistration = process.env.T3CODE_DESKTOP_SKIP_PROTOCOL_REGISTRATION === "1";
+const APP_BUNDLE_ID =
+  process.env.T3CODE_DESKTOP_APP_USER_MODEL_ID?.trim() ||
+  (isDevelopment ? `com.t3tools.t3code.dev.${devBundleIdSuffix || "local"}` : "com.t3tools.t3code");
+const APP_PROTOCOL_SCHEMES = skipProtocolRegistration
+  ? []
+  : isDevelopment
+    ? ["t3code-dev"]
+    : ["t3code"];
 const LAUNCHER_VERSION = 19;
 const developmentMacIconPngPath = NodePath.join(
   repoRoot,
@@ -113,6 +119,13 @@ export function makeDevelopmentEnvironmentScript(environment) {
     ["VITE_DEV_SERVER_URL", environment.VITE_DEV_SERVER_URL],
     ["T3CODE_PORT", environment.T3CODE_PORT],
     ["T3CODE_HOME", environment.T3CODE_HOME],
+    ["T3CODE_DESKTOP_APP_DATA_DIR", environment.T3CODE_DESKTOP_APP_DATA_DIR],
+    ["T3CODE_DESKTOP_APP_NAME", environment.T3CODE_DESKTOP_APP_NAME],
+    [
+      "T3CODE_DESKTOP_SKIP_PROTOCOL_REGISTRATION",
+      environment.T3CODE_DESKTOP_SKIP_PROTOCOL_REGISTRATION,
+    ],
+    ["T3CODE_DISABLE_AUTO_UPDATE", environment.T3CODE_DISABLE_AUTO_UPDATE],
     ["T3CODE_COMMIT_HASH", environment.T3CODE_COMMIT_HASH],
     ["T3CODE_OTLP_TRACES_URL", environment.T3CODE_OTLP_TRACES_URL],
     ["T3CODE_OTLP_EXPORT_INTERVAL_MS", environment.T3CODE_OTLP_EXPORT_INTERVAL_MS],
@@ -177,6 +190,7 @@ export function writeDevelopmentLauncherScript(targetBinaryPath, electronBinaryP
 }
 
 function registerMacLauncherBundle(appBundlePath) {
+  if (skipProtocolRegistration) return;
   runChecked(
     "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister",
     ["-f", appBundlePath],

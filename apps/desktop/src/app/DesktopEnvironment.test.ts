@@ -7,6 +7,7 @@ import * as Option from "effect/Option";
 
 import * as DesktopEnvironment from "./DesktopEnvironment.ts";
 import * as DesktopConfig from "./DesktopConfig.ts";
+import { resolveUserDataPath } from "./DesktopUserData.ts";
 
 const defaultInput = {
   dirname: "/repo/apps/desktop/dist-electron",
@@ -40,6 +41,27 @@ const makeEnvironment = (
   DesktopEnvironment.DesktopEnvironment.pipe(Effect.provide(makeEnvironmentLayer(overrides, env)));
 
 describe("DesktopEnvironment", () => {
+  it.effect("isolates fork desktop storage and identity from the installed app", () =>
+    Effect.gen(function* () {
+      const environment = yield* makeEnvironment(
+        {},
+        {
+          T3CODE_HOME: "/checkout/.t3/workspace-runtime",
+          T3CODE_DESKTOP_APP_DATA_DIR: "/checkout/.t3/workspace-electron",
+          T3CODE_DESKTOP_APP_NAME: "Independent Agent Workspace",
+          T3CODE_DESKTOP_APP_USER_MODEL_ID: "dev.dhruvpithadia.independentworkspace",
+          VITE_DEV_SERVER_URL: "http://127.0.0.1:7777",
+        },
+      );
+      assert.equal(environment.stateDir, "/checkout/.t3/workspace-runtime/userdata");
+      assert.equal(environment.appDataDirectory, "/checkout/.t3/workspace-electron");
+      assert.equal(environment.displayName, "Independent Agent Workspace (Dev)");
+      assert.equal(environment.appUserModelId, "dev.dhruvpithadia.independentworkspace");
+      const profile = yield* resolveUserDataPath(environment);
+      assert.equal(profile, "/checkout/.t3/workspace-electron/t3code-dev");
+    }).pipe(Effect.provide(NodeServices.layer)),
+  );
+
   it.effect("derives state paths and development identity inside Effect", () =>
     Effect.gen(function* () {
       const environment = yield* makeEnvironment(

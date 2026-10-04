@@ -52,22 +52,29 @@ describe("highlightSourceFile", () => {
     const highlighter = await import("./shikiReviewHighlighter");
     const source = "const answer: number = 42;";
 
-    const highlighted = await highlighter.highlightSourceFile({
-      path: "example.ts",
-      contents: source,
-      theme: "dark",
-    });
+    // Exact token equality tests syntax, not Shiki's 500 ms wall-clock budget.
+    // Cold regex compilation can exhaust that budget on a busy CI runner.
+    const clock = vi.spyOn(Date, "now").mockReturnValue(0);
+    try {
+      const highlighted = await highlighter.highlightSourceFile({
+        path: "example.ts",
+        contents: source,
+        theme: "dark",
+      });
 
-    expect(
-      highlighted
-        .flat()
-        .map((token) => token.content)
-        .join(""),
-    ).toBe(source);
-    expect(highlighted.flat().some((token) => token.color !== null)).toBe(true);
-    expect(
-      await highlighter.highlightCodeSnippet({ code: source, language: "ts", theme: "dark" }),
-    ).toEqual(highlighted);
+      expect(
+        highlighted
+          .flat()
+          .map((token) => token.content)
+          .join(""),
+      ).toBe(source);
+      expect(highlighted.flat().some((token) => token.color !== null)).toBe(true);
+      expect(
+        await highlighter.highlightCodeSnippet({ code: source, language: "ts", theme: "dark" }),
+      ).toEqual(highlighted);
+    } finally {
+      clock.mockRestore();
+    }
   });
 });
 

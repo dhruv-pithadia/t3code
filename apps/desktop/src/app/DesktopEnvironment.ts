@@ -107,14 +107,15 @@ function resolveDesktopAppStageLabel(input: {
 }
 
 export function resolveDesktopAppBranding(input: {
+  readonly baseName?: string | undefined;
   readonly isDevelopment: boolean;
   readonly appVersion: string;
 }): DesktopAppBranding {
   const stageLabel = resolveDesktopAppStageLabel(input);
   return {
-    baseName: APP_BASE_NAME,
+    baseName: input.baseName ?? APP_BASE_NAME,
     stageLabel,
-    displayName: `${APP_BASE_NAME} (${stageLabel})`,
+    displayName: `${input.baseName ?? APP_BASE_NAME} (${stageLabel})`,
   };
 }
 
@@ -156,7 +157,7 @@ const make = Effect.fn("desktop.environment.make")(function* (
   const homeDirectory = input.homeDirectory;
   const devServerUrl = config.devServerUrl;
   const isDevelopment = Option.isSome(devServerUrl);
-  const appDataDirectory =
+  const defaultAppDataDirectory =
     input.platform === "win32"
       ? Option.getOrElse(config.appDataDirectory, () =>
           path.join(homeDirectory, "AppData", "Roaming"),
@@ -164,6 +165,10 @@ const make = Effect.fn("desktop.environment.make")(function* (
       : input.platform === "darwin"
         ? path.join(homeDirectory, "Library", "Application Support")
         : Option.getOrElse(config.xdgConfigHome, () => path.join(homeDirectory, ".config"));
+  const appDataDirectory = Option.getOrElse(
+    config.isolatedAppDataDirectory,
+    () => defaultAppDataDirectory,
+  );
   const baseDir = resolveDesktopBaseDir({
     homeDirectory,
     joinPath: path.join,
@@ -176,6 +181,7 @@ const make = Effect.fn("desktop.environment.make")(function* (
       ? path.join(input.resourcesPath, "server.asar")
       : appRoot;
   const branding = resolveDesktopAppBranding({
+    baseName: Option.getOrUndefined(config.appNameOverride),
     isDevelopment,
     appVersion: input.appVersion,
   });
