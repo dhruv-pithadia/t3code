@@ -1,6 +1,6 @@
 import { type StaticScreenProps, useNavigation } from "@react-navigation/native";
 import { useAtomValue } from "@effect/atom-react";
-import type { ChatAttachment, EnvironmentId, RunId, ThreadId } from "@t3tools/contracts";
+import type { ChatAttachment, EnvironmentId, RunId, ThreadId } from "@yantrix/contracts";
 import { Image } from "expo-image";
 import * as Haptics from "expo-haptics";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -394,7 +394,7 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
                         onPress={() => void act(run.id, "steer")}
                         className="h-8 shrink-0 justify-center rounded-full bg-primary px-3 active:opacity-70 disabled:opacity-40"
                       >
-                        <Text className="font-t3-medium text-xs text-primary-foreground">
+                        <Text className="font-yantrix-medium text-xs text-primary-foreground">
                           Steer
                         </Text>
                       </Pressable>
@@ -515,7 +515,7 @@ function QueueRowSwipeable(props: {
           style={{ width: REMOVE_ACTION_WIDTH }}
         >
           <SymbolView name="trash" size={16} tintColorClassName="accent-danger-foreground" />
-          <Text className="pt-1 text-2xs font-t3-medium text-danger-foreground">Remove</Text>
+          <Text className="pt-1 text-2xs font-yantrix-medium text-danger-foreground">Remove</Text>
         </Pressable>
       )}
     >

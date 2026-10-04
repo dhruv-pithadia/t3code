@@ -1,9 +1,9 @@
 import type {
   EnvironmentPresentation,
   PreparedConnection,
-} from "@t3tools/client-runtime/connection";
-import { connectionCatalogDisplayUrl } from "@t3tools/client-runtime/connection";
-import type { EnvironmentId, ServerConfig } from "@t3tools/contracts";
+} from "@yantrix/client-runtime/connection";
+import { connectionCatalogDisplayUrl } from "@yantrix/client-runtime/connection";
+import type { EnvironmentId, ServerConfig } from "@yantrix/contracts";
 import * as Option from "effect/Option";
 import { Atom } from "effect/unstable/reactivity";
 

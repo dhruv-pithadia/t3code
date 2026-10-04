@@ -1,23 +1,23 @@
-import { findErrorTraceId } from "@t3tools/client-runtime/errors";
+import { findErrorTraceId } from "@yantrix/client-runtime/errors";
 import {
   type EnvironmentConnectionPresentation,
   RelayConnectionRegistration,
   RelayConnectionTarget,
   orchestrationProtocolCompatibilityError,
-} from "@t3tools/client-runtime/connection";
+} from "@yantrix/client-runtime/connection";
 import {
   isAtomCommandInterrupted,
   squashAtomCommandFailure,
-} from "@t3tools/client-runtime/state/runtime";
+} from "@yantrix/client-runtime/state/runtime";
 import {
   type EnvironmentId,
   resolveEnvironmentMachineKind,
   type ServerConfig,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import type {
   RelayClientEnvironmentRecord,
   RelayEnvironmentStatusResponse,
-} from "@t3tools/contracts/relay";
+} from "@yantrix/contracts/relay";
 import * as Option from "effect/Option";
 import { type ReactNode, useCallback, useEffect, useEffectEvent, useState } from "react";
 
@@ -67,7 +67,7 @@ function RemoteEnvironmentRowsSkeleton() {
 }
 
 /**
- * The user's T3 Connect environments from relay discovery, each with a
+ * The user's Yantrix Connect environments from relay discovery, each with a
  * Connect button. The primary environment is always excluded; already-saved
  * environments are hidden unless `showSavedEnvironments` renders them with
  * their live connection state (used by onboarding, where the full device mesh
@@ -154,7 +154,7 @@ export function CloudEnvironmentConnectRows({
       toastManager.add({
         type: "success",
         title: "Environment added",
-        description: `Connecting to ${environment.label} through T3 Connect.`,
+        description: `Connecting to ${environment.label} through Yantrix Connect.`,
       });
       return true;
     }
@@ -163,9 +163,9 @@ export function CloudEnvironmentConnectRows({
     }
     const cause = squashAtomCommandFailure(result);
     const message =
-      cause instanceof Error ? cause.message : "Could not connect the T3 Connect environment.";
+      cause instanceof Error ? cause.message : "Could not connect the Yantrix Connect environment.";
     const traceId = findErrorTraceId(cause);
-    console.error("[t3-connect] Could not connect environment", { message, traceId, cause });
+    console.error("[yantrix-connect] Could not connect environment", { message, traceId, cause });
     toastManager.add({
       type: "error",
       title: "Could not connect environment",
@@ -281,7 +281,7 @@ export function CloudEnvironmentConnectRows({
       return (
         <div className={ITEM_ROW_CLASSNAME}>
           <p className="text-sm font-medium text-destructive">
-            Could not load T3 Connect environments
+            Could not load Yantrix Connect environments
           </p>
           <p className="mt-1 text-xs text-muted-foreground">{discoveryProblem}</p>
           <Button
@@ -339,17 +339,17 @@ export function CloudEnvironmentConnectRows({
             : "bg-muted-foreground/35";
     const statusText =
       unsupported && !savedEnvironment
-        ? "T3 Connect · Not added · Client not supported"
+        ? "Yantrix Connect · Not added · Client not supported"
         : savedConnection
           ? savedConnection.statusText
           : availability === "online"
-            ? "T3 Connect · Not added · Relay online"
+            ? "Yantrix Connect · Not added · Relay online"
             : availability === "offline"
-              ? "T3 Connect · Not added · Relay offline"
+              ? "Yantrix Connect · Not added · Relay offline"
               : availability === "checking"
-                ? "T3 Connect · Not added · Checking relay status…"
+                ? "Yantrix Connect · Not added · Checking relay status…"
                 : (Option.getOrNull(error)?.message ??
-                  "T3 Connect · Not added · Relay status unavailable");
+                  "Yantrix Connect · Not added · Relay status unavailable");
     if (selection) {
       return (
         <label

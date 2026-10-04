@@ -1,14 +1,14 @@
 {
-  "name": "t3",
+  "name": "yantrix",
   "version": "0.0.45",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pingdotgg/t3code",
+    "url": "https://github.com/dhruv-pithadia/yantrix",
     "directory": "apps/server"
   },
   "bin": {
-    "t3": "./dist/bin.mjs"
+    "yantrix": "./dist/bin.mjs"
   },
   "files": [
     "dist"
@@ -50,14 +50,14 @@
   },
   "devDependencies": {
     "@effect/vitest": "catalog:",
-    "@t3tools/contracts": "workspace:*",
-    "@t3tools/shared": "workspace:*",
-    "@t3tools/ssh": "workspace:*",
-    "@t3tools/tailscale": "workspace:*",
-    "@t3tools/web": "workspace:*",
     "@types/node": "catalog:",
     "@types/proper-lockfile": "^4.1.4",
     "@types/yauzl": "^3.4.0",
+    "@yantrix/contracts": "workspace:*",
+    "@yantrix/shared": "workspace:*",
+    "@yantrix/ssh": "workspace:*",
+    "@yantrix/tailscale": "workspace:*",
+    "@yantrix/web": "workspace:*",
     "effect-acp": "workspace:*",
     "effect-codex-app-server": "workspace:*",
     "vite-plus": "catalog:"

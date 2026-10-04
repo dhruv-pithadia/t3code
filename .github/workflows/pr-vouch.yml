@@ -61,11 +61,13 @@ jobs:
               user: pull.user.login,
             }));
             core.setOutput("targets", JSON.stringify(targets));
+    if: ${{ vars.YANTRIX_ENABLE_EXTERNAL_WORKFLOWS == 'true' }}
 
   label:
     name: Label PR ${{ matrix.target.number }}
     needs: collect-targets
-    if: ${{ needs.collect-targets.outputs.targets != '[]' }}
+    if: ${{ vars.YANTRIX_ENABLE_EXTERNAL_WORKFLOWS == 'true' &&
+      (needs.collect-targets.outputs.targets != '[]') }}
     runs-on: ubuntu-24.04
     concurrency:
       group: pr-vouch-${{ matrix.target.number }}

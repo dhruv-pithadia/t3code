@@ -1,5 +1,5 @@
 {
-  "name": "@t3tools/marketing",
+  "name": "@yantrix/marketing",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,8 +11,9 @@
     "typecheck": "astro check"
   },
   "dependencies": {
-    "@t3tools/shared": "workspace:*",
+    "@yantrix/shared": "workspace:*",
     "astro": "^7.2.8",
+    "cookie": "^2.0.1",
     "sharp": "0.35.4"
   },
   "devDependencies": {

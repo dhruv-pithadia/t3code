@@ -1,5 +1,5 @@
-import { filterComposerPullRequestMatches } from "@t3tools/shared/composerPullRequestMatches";
-import type { VcsRefTarget } from "@t3tools/client-runtime/state/vcs";
+import { filterComposerPullRequestMatches } from "@yantrix/shared/composerPullRequestMatches";
+import type { VcsRefTarget } from "@yantrix/client-runtime/state/vcs";
 import type {
   EnvironmentId,
   OrchestrationV2ProjectedTurnItem,
@@ -7,15 +7,15 @@ import type {
   ThreadId,
   VcsListRefsResult,
   VcsRef,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import {
   createThreadSearchResultsAtomFamily,
   makeThreadSearchKey,
   type EnvironmentThreadSearchMatch,
-} from "@t3tools/client-runtime/state/thread-search";
+} from "@yantrix/client-runtime/state/thread-search";
 import { useAtomValue } from "@effect/atom-react";
 import * as Cause from "effect/Cause";
-import { turnItemDetailRevision } from "@t3tools/client-runtime/work-log/item-detail";
+import { turnItemDetailRevision } from "@yantrix/client-runtime/work-log/item-detail";
 import * as Option from "effect/Option";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
 import { useCallback, useEffect, useMemo, useState } from "react";

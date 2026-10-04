@@ -5,15 +5,15 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { View } from "react-native";
 
 import { hasCloudPublicConfig } from "../cloud/publicConfig";
-import { T3ConnectProfilePage } from "../cloud/T3ConnectProfilePage";
+import { YantrixConnectProfilePage } from "../cloud/YantrixConnectProfilePage";
 
 // Custom rows in Clerk's native profile. Mirrors the web UserButton pages.
 const USER_PROFILE_CUSTOM_PAGES = [
   {
-    path: "t3-connect",
-    label: "T3 Connect",
+    path: "yantrix-connect",
+    label: "Yantrix Connect",
     icon: "globe",
-    content: <T3ConnectProfilePage />,
+    content: <YantrixConnectProfilePage />,
   },
 ] satisfies UserProfileCustomPage[];
 

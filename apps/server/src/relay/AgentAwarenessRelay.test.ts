@@ -13,8 +13,8 @@ import {
   RunId,
   ThreadId,
   TurnItemId,
-} from "@t3tools/contracts";
-import { RelayAgentActivityState } from "@t3tools/contracts/relay";
+} from "@yantrix/contracts";
+import { RelayAgentActivityState } from "@yantrix/contracts/relay";
 import * as DateTime from "effect/DateTime";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -932,7 +932,7 @@ describe("startup catch-up", { concurrent: false }, () => {
       yield* TestClock.adjust("10 minutes");
       assert.equal(catchUp.shellSnapshotReads, 0);
 
-      // `t3 connect publish` writes the opt-in without waking this process.
+      // `yantrix connect publish` writes the opt-in without waking this process.
       yield* enablePublishing(secrets);
       yield* TestClock.adjust("5 seconds");
       assert.equal(catchUp.shellSnapshotReads, 1);

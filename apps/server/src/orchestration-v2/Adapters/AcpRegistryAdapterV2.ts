@@ -7,9 +7,9 @@ import {
   AcpRegistrySettings,
   defaultInstanceIdForDriver,
   ProviderDriverKind,
-} from "@t3tools/contracts";
-import { HostProcessEnvironment } from "@t3tools/shared/hostProcess";
-import { resolveSelfInvocation, type SelfInvocation } from "@t3tools/shared/nodeRuntime";
+} from "@yantrix/contracts";
+import { HostProcessEnvironment } from "@yantrix/shared/hostProcess";
+import { resolveSelfInvocation, type SelfInvocation } from "@yantrix/shared/nodeRuntime";
 import * as Crypto from "effect/Crypto";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";

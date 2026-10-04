@@ -1,8 +1,8 @@
 import { useNavigation } from "@react-navigation/native";
-import type { MediaActionId } from "@t3tools/client-runtime/media-actions";
-import type { MediaReference } from "@t3tools/client-runtime/media-reference";
-import type { AssetResource, EnvironmentId, ThreadId } from "@t3tools/contracts";
-import { normalizeNativeMarkdownUrl } from "@t3tools/mobile-markdown-text/links";
+import type { MediaActionId } from "@yantrix/client-runtime/media-actions";
+import type { MediaReference } from "@yantrix/client-runtime/media-reference";
+import type { AssetResource, EnvironmentId, ThreadId } from "@yantrix/contracts";
+import { normalizeNativeMarkdownUrl } from "@yantrix/mobile-markdown-text/links";
 import { useEffect, useRef, useState } from "react";
 import { Alert } from "react-native";
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vite-plus/test";
-import { EnvironmentId } from "@t3tools/contracts";
+import { EnvironmentId } from "@yantrix/contracts";
 
 import {
   filterAvailableSettingsSearchItems,
@@ -169,7 +169,7 @@ describe("searchSettings", () => {
       "cursor-keychain-usage",
       "source-control-writer-model",
       "source-control-writing-style",
-      "t3-connect",
+      "yantrix-connect",
       "tailscale-https",
       "wsl-backend",
       "auto-settle-inactive-threads",
@@ -213,7 +213,7 @@ describe("searchSettings", () => {
       localEnvironmentDisabled: true,
     }).map((item) => item.id);
     expect(remoteOnly).toContain("local-environment");
-    expect(remoteOnly).not.toContain("t3-connect");
+    expect(remoteOnly).not.toContain("yantrix-connect");
     expect(remoteOnly).not.toContain("publish-agent-activity");
     expect(remoteOnly).not.toContain("wsl-backend");
     // Browsers without access:write still render CloudLinkRow for their host.

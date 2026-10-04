@@ -1,8 +1,8 @@
 import { ConnectionTraceId } from "./ConnectionTraceId";
 import { SymbolView } from "../../components/AppSymbol";
-import { connectionStatusText } from "@t3tools/client-runtime/connection";
-import type { AtomCommandResult } from "@t3tools/client-runtime/state/runtime";
-import { type EnvironmentId, resolveEnvironmentMachineKind } from "@t3tools/contracts";
+import { connectionStatusText } from "@yantrix/client-runtime/connection";
+import type { AtomCommandResult } from "@yantrix/client-runtime/state/runtime";
+import { type EnvironmentId, resolveEnvironmentMachineKind } from "@yantrix/contracts";
 import { useAtomValue } from "@effect/atom-react";
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/unstable/reactivity";
@@ -99,7 +99,7 @@ export function ConnectionEnvironmentRow(props: {
               tintColorClassName="accent-foreground-muted"
             />
             <Text
-              className="min-w-0 flex-shrink text-base font-t3-bold leading-snug text-foreground"
+              className="min-w-0 flex-shrink text-base font-yantrix-bold leading-snug text-foreground"
               numberOfLines={1}
             >
               {props.environment.environmentLabel}
@@ -156,7 +156,7 @@ export function ConnectionEnvironmentRow(props: {
         >
           {props.environment.isRelayManaged ? (
             <Text className="text-sm text-foreground-muted">
-              Managed by T3 Connect. Tunnel details update automatically.
+              Managed by Yantrix Connect. Tunnel details update automatically.
             </Text>
           ) : (
             <>
@@ -222,7 +222,7 @@ export function ConnectionEnvironmentRow(props: {
                     tintColorClassName="accent-primary-foreground"
                     type="monochrome"
                   />
-                  <Text className="text-xs font-t3-bold tracking-[0.8px] uppercase text-primary-foreground">
+                  <Text className="text-xs font-yantrix-bold tracking-[0.8px] uppercase text-primary-foreground">
                     Save
                   </Text>
                 </Pressable>

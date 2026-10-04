@@ -2,7 +2,7 @@
 
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import * as NodeServices from "@effect/platform-node/NodeServices";
-import { HostProcessEnvironment } from "@t3tools/shared/hostProcess";
+import { HostProcessEnvironment } from "@yantrix/shared/hostProcess";
 import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -14,6 +14,10 @@ import { Command, Flag } from "effect/unstable/cli";
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
 
 import { BRAND_ASSET_PATHS, DEVELOPMENT_PUBLIC_ICON_OVERRIDES } from "./lib/brand-assets.ts";
+import {
+  renderIconComposerMacOsProject,
+  renderIconComposerProject,
+} from "./lib/icon-composer-fallback.ts";
 import { encodePngIco, readPngDimensions, WINDOWS_ICON_SIZES } from "./lib/icon-export.ts";
 
 const DESIGN_GENERATION = 26;
@@ -547,8 +551,24 @@ const renderIcon = Effect.fn("iconExport.renderIcon")(function* (
   return buffer;
 });
 
+// Renders with sharp when Icon Composer 2 is unavailable. See lib/icon-composer-fallback.ts.
+const renderFallbackIcon = (sourcePath: string, size: number, macos: boolean) =>
+  Effect.tryPromise({
+    try: () =>
+      macos
+        ? renderIconComposerMacOsProject(sourcePath, size)
+        : renderIconComposerProject(sourcePath, size),
+    catch: (cause) =>
+      new IconExportRenditionError({
+        sourcePath,
+        outputPath: "(in memory)",
+        expectedSize: size,
+        cause,
+      }),
+  });
+
 const renderVariant = Effect.fn("iconExport.renderVariant")(function* (
-  toolPath: string,
+  toolPath: string | undefined,
   repositoryRoot: string,
   temporaryDirectory: string,
   variant: IconVariant,
@@ -580,7 +600,10 @@ const renderVariant = Effect.fn("iconExport.renderVariant")(function* (
     if (cached) return cached;
 
     const outputPath = path.join(temporaryDirectory, `${variant.label}-${platform}-${size}.png`);
-    const contents = yield* renderIcon(toolPath, sourcePath, outputPath, platform, size);
+    const contents =
+      toolPath === undefined
+        ? yield* renderFallbackIcon(sourcePath, size, false)
+        : yield* renderIcon(toolPath, sourcePath, outputPath, platform, size);
     renditionCache.set(cacheKey, contents);
     return contents;
   });
@@ -596,7 +619,14 @@ const renderVariant = Effect.fn("iconExport.renderVariant")(function* (
     catch: (cause) => new IconExportEncodingError({ variant: variant.label, cause }),
   });
 
+  // Icon Composer's CLI cannot export the macOS pre-Tahoe preset; only the fallback can.
+  const macos =
+    toolPath === undefined
+      ? [[variant.outputs.macos, yield* renderFallbackIcon(sourcePath, 1024, true)] as const]
+      : [];
+
   return new Map<string, Buffer>([
+    ...macos,
     [variant.outputs.ios, ios],
     [variant.outputs.universal, ios],
     [variant.outputs.appleTouch, yield* render("iOS", 180)],
@@ -647,7 +677,7 @@ const writeAtomically = Effect.fn("iconExport.writeAtomically")(function* (
   const temporaryPath = yield* fs
     .makeTempFileScoped({
       directory: targetDirectory,
-      prefix: ".t3-icon-export-",
+      prefix: ".yantrix-icon-export-",
       suffix: ".tmp",
     })
     .pipe(
@@ -718,10 +748,17 @@ const isCurrent = Effect.fn("iconExport.isCurrent")(function* (
 export const exportBrandIcons = Effect.fn("exportBrandIcons")(function* (checkOnly: boolean) {
   const fs = yield* FileSystem.FileSystem;
   const repositoryRoot = yield* RepositoryRoot;
-  const tool = yield* resolveIconComposerTool();
+  const tool = yield* resolveIconComposerTool().pipe(
+    Effect.map(Option.some),
+    Effect.catchTag("IconExportToolResolutionError", (error) =>
+      error.reason === "not-found"
+        ? Effect.succeed(Option.none<IconComposerTool>())
+        : Effect.fail(error),
+    ),
+  );
   const temporaryDirectory = yield* fs
     .makeTempDirectoryScoped({
-      prefix: "t3-icon-export-",
+      prefix: "yantrix-icon-export-",
     })
     .pipe(
       Effect.mapError(
@@ -734,14 +771,19 @@ export const exportBrandIcons = Effect.fn("exportBrandIcons")(function* (checkOn
       ),
     );
   yield* Console.log(
-    `Exporting icons with Icon Composer ${tool.version}, design generation ${DESIGN_GENERATION}.`,
+    Option.match(tool, {
+      onNone: () =>
+        "Icon Composer 2 was not found; rendering flat artwork from the layer SVGs with sharp.",
+      onSome: (found) =>
+        `Exporting icons with Icon Composer ${found.version}, design generation ${DESIGN_GENERATION}.`,
+    }),
   );
 
   const generated = new Map<string, Buffer>();
   for (const variant of ICON_VARIANTS) {
     yield* Console.log(`Rendering ${variant.label} from ${variant.source}...`);
     const variantAssets = yield* renderVariant(
-      tool.path,
+      Option.getOrUndefined(tool)?.path,
       repositoryRoot,
       temporaryDirectory,
       variant,
@@ -774,7 +816,7 @@ export const exportBrandIcons = Effect.fn("exportBrandIcons")(function* (checkOn
       });
     }
     yield* Console.log(`All ${generated.size} generated icon assets are current.`);
-    yield* logManualMacOsExportInstructions();
+    if (Option.isSome(tool)) yield* logManualMacOsExportInstructions();
     return;
   }
 
@@ -784,7 +826,7 @@ export const exportBrandIcons = Effect.fn("exportBrandIcons")(function* (checkOn
     { concurrency: 1, discard: true },
   );
   yield* Console.log(`Updated ${generated.size} generated icon assets.`);
-  yield* logManualMacOsExportInstructions();
+  if (Option.isSome(tool)) yield* logManualMacOsExportInstructions();
 });
 
 export const exportBrandIconsCommand = Command.make(

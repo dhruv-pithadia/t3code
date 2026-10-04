@@ -1,0 +1,4 @@
+interface:
+  display_name: "Test Yantrix Mobile"
+  short_description: "Test iOS and Android in Yantrix's Device panel"
+  default_prompt: "Use $test-yantrix-mobile to verify the affected native mobile flow through Yantrix's Device panel and AgentDevice."

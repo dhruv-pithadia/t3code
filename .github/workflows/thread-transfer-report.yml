@@ -13,10 +13,13 @@ permissions:
 jobs:
   publish:
     name: Publish PR comment
-    if: github.event.workflow_run.event == 'pull_request'
+    if: ${{ vars.YANTRIX_ENABLE_EXTERNAL_WORKFLOWS == 'true' &&
+      (github.event.workflow_run.event == 'pull_request') }}
     runs-on: ubuntu-24.04
     concurrency:
-      group: thread-transfer-report-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
+      group: thread-transfer-report-${{
+        github.event.workflow_run.pull_requests[0].number ||
+        github.event.workflow_run.id }}
       cancel-in-progress: true
     steps:
       # workflow_run has a write-capable token even for fork PRs. Only load the
@@ -39,7 +42,8 @@ jobs:
             await reporter.resolve({ github, context, core });
 
       - name: Download PR result
-        if: steps.resolve.outputs.publish == 'true' && steps.resolve.outputs.pr_artifact == 'true'
+        if: steps.resolve.outputs.publish == 'true' && steps.resolve.outputs.pr_artifact
+          == 'true'
         uses: actions/download-artifact@v8
         with:
           name: thread-transfer-results
@@ -48,7 +52,8 @@ jobs:
           run-id: ${{ steps.resolve.outputs.pr_run_id }}
 
       - name: Download main baseline
-        if: steps.resolve.outputs.publish == 'true' && steps.resolve.outputs.baseline_artifact == 'true'
+        if: steps.resolve.outputs.publish == 'true' &&
+          steps.resolve.outputs.baseline_artifact == 'true'
         uses: actions/download-artifact@v8
         with:
           name: thread-transfer-results

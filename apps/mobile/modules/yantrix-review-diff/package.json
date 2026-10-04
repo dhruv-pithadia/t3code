@@ -1,0 +1,17 @@
+{
+  "name": "@yantrix/mobile-review-diff-native",
+  "version": "0.0.0",
+  "private": true,
+  "expo-module": {
+    "ios": {
+      "modules": [
+        "YantrixReviewDiffModule"
+      ]
+    },
+    "android": {
+      "modules": [
+        "expo.modules.yantrixreviewdiff.YantrixReviewDiffModule"
+      ]
+    }
+  }
+}

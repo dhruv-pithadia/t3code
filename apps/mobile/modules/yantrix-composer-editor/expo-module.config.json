@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["YantrixComposerEditorModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.yantrixcomposereditor.YantrixComposerEditorModule"]
+  }
+}

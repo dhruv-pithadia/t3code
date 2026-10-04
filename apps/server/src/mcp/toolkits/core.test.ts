@@ -6,7 +6,7 @@ import {
   EnvironmentId,
   ProviderInstanceId,
   ThreadId,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
@@ -30,10 +30,10 @@ import { WorktreeToolkit } from "./worktree/tools.ts";
 import { DeviceToolkit } from "./device/tools.ts";
 import { PullRequestsToolkit } from "./pullRequests/tools.ts";
 import {
-  resolveT3McpToolDefinition,
-  resolveT3McpToolPresentation,
-  resolveT3McpToolSummaryAction,
-} from "@t3tools/shared/t3McpToolPresentation";
+  resolveYantrixMcpToolDefinition,
+  resolveYantrixMcpToolPresentation,
+  resolveYantrixMcpToolSummaryAction,
+} from "@yantrix/shared/yantrixMcpToolPresentation";
 
 const decodeMcpAttachmentInput = Schema.decodeUnknownEffect(McpAttachmentInput);
 
@@ -59,20 +59,20 @@ it("publishes unique tool names with reference-free object-root inputs", () => {
       // The published tool catalog must also work with providers without $ref support.
       expect(JSON.stringify(schema), tool.name).not.toContain('"$ref"');
       // Every published tool must have labels for its lifecycle, branding, and a summary.
-      const definition = resolveT3McpToolDefinition(tool.name);
+      const definition = resolveYantrixMcpToolDefinition(tool.name);
       expect(definition, tool.name).not.toBeNull();
       expect(
         definition?.labels.every((label) => label.trim().length > 0),
         tool.name,
       ).toBe(true);
-      for (const name of [tool.name, `mcp__t3-code__${tool.name}`, `T3-code.${tool.name}`]) {
-        expect(resolveT3McpToolPresentation(name)?.logo, name).toBe("t3-code");
-        expect(resolveT3McpToolSummaryAction(name), name).not.toBeNull();
+      for (const name of [tool.name, `mcp__yantrix__${tool.name}`, `Yantrix-code.${tool.name}`]) {
+        expect(resolveYantrixMcpToolPresentation(name)?.logo, name).toBe("yantrix");
+        expect(resolveYantrixMcpToolSummaryAction(name), name).not.toBeNull();
       }
     }
   }
-  expect(names.has("t3_thread_launch")).toBe(true);
-  expect(names.has("t3_thread_start")).toBe(false);
+  expect(names.has("yantrix_thread_launch")).toBe(true);
+  expect(names.has("yantrix_thread_start")).toBe(false);
 });
 
 const threadId = ThreadId.make("mcp-core-thread");
@@ -100,9 +100,9 @@ const client = McpSchema.McpServerClient.of({
 it.effect("checks capability before accessing services through the production registration", () =>
   Effect.gen(function* () {
     const server = yield* McpServer.McpServer;
-    expect(server.tools.some(({ tool }) => tool.name === "t3_thread_organize")).toBe(true);
+    expect(server.tools.some(({ tool }) => tool.name === "yantrix_thread_organize")).toBe(true);
     const result = yield* server
-      .callTool({ name: "t3_thread_organize", arguments: { action: "pin" } })
+      .callTool({ name: "yantrix_thread_organize", arguments: { action: "pin" } })
       .pipe(
         Effect.provideService(McpInvocationContext.McpInvocationContext, {
           ...scope,
@@ -126,7 +126,7 @@ it.effect("returns a bounded public failure without serializing storage causes",
   Effect.gen(function* () {
     const server = yield* McpServer.McpServer;
     const result = yield* server
-      .callTool({ name: "t3_thread_organize", arguments: { action: "pin" } })
+      .callTool({ name: "yantrix_thread_organize", arguments: { action: "pin" } })
       .pipe(
         Effect.provideService(McpInvocationContext.McpInvocationContext, scope),
         Effect.provideService(McpSchema.McpServerClient, client),

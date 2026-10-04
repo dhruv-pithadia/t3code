@@ -1,0 +1,12 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["YantrixNativeControlsModule", "YantrixKeyboardCommandsModule"]
+  },
+  "android": {
+    "modules": [
+      "expo.modules.yantrixnativecontrols.YantrixNativeControlsModule",
+      "expo.modules.yantrixnativecontrols.YantrixKeyboardCommandsModule"
+    ]
+  }
+}

@@ -1,10 +1,10 @@
-import { isWorkspaceImagePreviewPath } from "@t3tools/shared/filePreview";
+import { isWorkspaceImagePreviewPath } from "@yantrix/shared/filePreview";
 import type {
   ToolActivityIcon,
   ToolActivityNativeAppReference,
   ToolActivitySource,
   ToolActivitySurface,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 
 export interface ExtractedToolActivityPresentation {
   readonly viewedImagePath?: string;

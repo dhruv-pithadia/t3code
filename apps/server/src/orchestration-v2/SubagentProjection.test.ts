@@ -13,7 +13,7 @@ import {
   ProviderInstanceId,
   ProviderThreadId,
   ThreadId,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import * as DateTime from "effect/DateTime";
 
 import {

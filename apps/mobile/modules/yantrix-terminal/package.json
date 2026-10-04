@@ -1,0 +1,17 @@
+{
+  "name": "@yantrix/mobile-terminal-native",
+  "version": "0.0.0",
+  "private": true,
+  "expo-module": {
+    "ios": {
+      "modules": [
+        "YantrixTerminalModule"
+      ]
+    },
+    "android": {
+      "modules": [
+        "expo.modules.yantrixterminal.YantrixTerminalModule"
+      ]
+    }
+  }
+}

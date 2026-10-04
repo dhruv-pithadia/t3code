@@ -6,7 +6,7 @@ import type {
   ResourceTelemetryHistoryBucket,
   ResourceTelemetryProcess,
   ResourceTelemetryProcessSummary,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import * as DateTime from "effect/DateTime";
 import * as Option from "effect/Option";
 
@@ -236,9 +236,9 @@ export function buildResourceTelemetryHistory(
     );
     aggregateSamples.push({
       sampledAtMs: snapshot.sampledAtUnixMs,
-      cpuPercent: merged.groups.allT3.currentCpuPercent,
-      rssBytes: merged.groups.allT3.currentRssBytes,
-      processCount: merged.groups.allT3.processCount,
+      cpuPercent: merged.groups.allYantrix.currentCpuPercent,
+      rssBytes: merged.groups.allYantrix.currentRssBytes,
+      processCount: merged.groups.allYantrix.processCount,
       ioReadBytes: deltas.reduce((total, process) => total + process.ioReadBytes, 0),
       ioWriteBytes: deltas.reduce((total, process) => total + process.ioWriteBytes, 0),
     });

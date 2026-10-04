@@ -2,7 +2,7 @@ import {
   ProviderSetupError,
   type ProviderInstanceId,
   type ProviderSessionId,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Stream from "effect/Stream";
@@ -29,7 +29,7 @@ export const makeProviderAuthService = Effect.gen(function* () {
         instanceId,
         operation,
         detail: instance
-          ? "This provider does not support sign-in in T3 Code."
+          ? "This provider does not support sign-in in Yantrix."
           : "This provider instance is no longer available.",
       });
     }

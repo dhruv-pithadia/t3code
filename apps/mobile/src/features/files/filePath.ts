@@ -1,7 +1,7 @@
 import {
   isWorkspaceAudioPreviewPath,
   isWorkspaceVideoPreviewPath,
-} from "@t3tools/shared/filePreview";
+} from "@yantrix/shared/filePreview";
 
 export interface FileBreadcrumb {
   readonly label: string;

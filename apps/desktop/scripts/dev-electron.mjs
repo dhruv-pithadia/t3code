@@ -49,8 +49,8 @@ const watchedDirectories = [
 const forcedShutdownTimeoutMs = 1_500;
 const restartDebounceMs = 120;
 const childTreeGracePeriodMs = 1_200;
-const remoteDebuggingPort = process.env.T3CODE_DESKTOP_REMOTE_DEBUGGING_PORT?.trim();
-// oxlint-disable-next-line t3code/no-global-process-runtime -- Standalone dev script has no Effect runtime.
+const remoteDebuggingPort = process.env.YANTRIX_DESKTOP_REMOTE_DEBUGGING_PORT?.trim();
+// oxlint-disable-next-line yantrix/no-global-process-runtime -- Standalone dev script has no Effect runtime.
 const hostPlatform = NodeOS.platform();
 
 NodeChildProcess.execFileSync(
@@ -70,8 +70,8 @@ const childEnv = { ...process.env };
 delete childEnv.ELECTRON_RUN_AS_NODE;
 const devProtocolClient = resolveDevProtocolClient();
 if (devProtocolClient) {
-  childEnv.T3CODE_DESKTOP_APP_USER_MODEL_ID = devProtocolClient.appBundleId;
-  childEnv.T3CODE_DESKTOP_PROTOCOL_REGISTRATION_MANAGED = "1";
+  childEnv.YANTRIX_DESKTOP_APP_USER_MODEL_ID = devProtocolClient.appBundleId;
+  childEnv.YANTRIX_DESKTOP_PROTOCOL_REGISTRATION_MANAGED = "1";
 }
 
 let shuttingDown = false;
@@ -91,12 +91,12 @@ function killChildTreeByPid(pid, signal) {
 
 function cleanupStaleDevApps() {
   // The fork only stops children captured by this runner, never path-matched processes.
-  if (process.env.T3CODE_DESKTOP_APP_DATA_DIR) return;
+  if (process.env.YANTRIX_DESKTOP_APP_DATA_DIR) return;
   if (hostPlatform === "win32") {
     return;
   }
 
-  NodeChildProcess.spawnSync("pkill", ["-f", "--", `--t3code-dev-root=${desktopDir}`], {
+  NodeChildProcess.spawnSync("pkill", ["-f", "--", `--yantrix-dev-root=${desktopDir}`], {
     stdio: "ignore",
   });
 }
@@ -111,7 +111,7 @@ function startApp() {
     : [];
   const launchArgs = devProtocolClient
     ? electronArgs
-    : [...electronArgs, `--t3code-dev-root=${desktopDir}`, "dist-electron/main.cjs"];
+    : [...electronArgs, `--yantrix-dev-root=${desktopDir}`, "dist-electron/main.cjs"];
   const electronCommand = resolveElectronLaunchCommand(launchArgs);
   const app = NodeChildProcess.spawn(electronCommand.electronPath, electronCommand.args, {
     cwd: desktopDir,

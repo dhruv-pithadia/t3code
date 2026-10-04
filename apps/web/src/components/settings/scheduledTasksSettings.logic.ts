@@ -7,12 +7,12 @@ import {
   type RuntimeMode,
   type ProviderInteractionMode,
   type ServerSettings,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 
 import {
   resolveProjectSettings,
   type LegacyProjectSettingsFields,
-} from "@t3tools/shared/projectSettings";
+} from "@yantrix/shared/projectSettings";
 import type { ProviderInstanceEntry } from "../../providerInstances";
 
 import type { ResolvedSettingsScope } from "./settingsScope";

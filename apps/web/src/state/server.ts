@@ -8,11 +8,11 @@ import {
   type ServerLifecycleWelcomePayload,
   type ServerProvider,
   type ServerSettings,
-} from "@t3tools/contracts";
-import { createServerEnvironmentAtoms } from "@t3tools/client-runtime/state/server";
-import { createOutdatedServerUpdateCommand } from "@t3tools/client-runtime/state/outdatedServerUpdate";
-import { createEnvironmentServerConfigsAtom } from "@t3tools/client-runtime/state/shell";
-import { mergeWithDefaultKeybindings } from "@t3tools/shared/keybindings";
+} from "@yantrix/contracts";
+import { createServerEnvironmentAtoms } from "@yantrix/client-runtime/state/server";
+import { createOutdatedServerUpdateCommand } from "@yantrix/client-runtime/state/outdatedServerUpdate";
+import { createEnvironmentServerConfigsAtom } from "@yantrix/client-runtime/state/shell";
+import { mergeWithDefaultKeybindings } from "@yantrix/shared/keybindings";
 import * as Option from "effect/Option";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
 

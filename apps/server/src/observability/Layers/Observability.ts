@@ -1,10 +1,10 @@
-import { httpHeaderRedactionLayer } from "@t3tools/shared/httpObservability";
+import { httpHeaderRedactionLayer } from "@yantrix/shared/httpObservability";
 import {
   makeLocalFileTracer,
   makeTraceSink,
   otlpSerializationLayer,
-} from "@t3tools/shared/observability";
-import * as OtelEnvironment from "@t3tools/shared/otelEnvironment";
+} from "@yantrix/shared/observability";
+import * as OtelEnvironment from "@yantrix/shared/otelEnvironment";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as References from "effect/References";

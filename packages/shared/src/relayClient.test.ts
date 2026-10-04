@@ -72,7 +72,7 @@ describe("RelayClient", () => {
       Effect.gen(function* () {
         const fileSystem = yield* FileSystem.FileSystem;
         const baseDir = yield* fileSystem.makeTempDirectoryScoped({
-          prefix: "t3-cloudflared-test-",
+          prefix: "yantrix-cloudflared-test-",
         });
         const overridePath = `${baseDir}/override-cloudflared`;
         yield* fileSystem.writeFileString(overridePath, "override");
@@ -86,7 +86,7 @@ describe("RelayClient", () => {
             Effect.provideService(
               ConfigProvider.ConfigProvider,
               ConfigProvider.fromEnv({
-                env: { PATH: "", T3CODE_CLOUDFLARED_PATH: overridePath },
+                env: { PATH: "", YANTRIX_CLOUDFLARED_PATH: overridePath },
               }),
             ),
           ),
@@ -115,7 +115,7 @@ describe("RelayClient", () => {
       Effect.gen(function* () {
         const fileSystem = yield* FileSystem.FileSystem;
         const baseDir = yield* fileSystem.makeTempDirectoryScoped({
-          prefix: "t3-cloudflared-test-",
+          prefix: "yantrix-cloudflared-test-",
         });
         const bytes = new TextEncoder().encode("test-cloudflared-binary");
         const manager = yield* RelayClient.makeCloudflaredRelayClient({
@@ -172,7 +172,7 @@ describe("RelayClient", () => {
     Effect.gen(function* () {
       const fileSystem = yield* FileSystem.FileSystem;
       const baseDir = yield* fileSystem.makeTempDirectoryScoped({
-        prefix: "t3-cloudflared-test-",
+        prefix: "yantrix-cloudflared-test-",
       });
       const manager = yield* RelayClient.makeCloudflaredRelayClient({
         baseDir,
@@ -205,7 +205,7 @@ describe("RelayClient", () => {
     return Effect.gen(function* () {
       const fileSystem = yield* FileSystem.FileSystem;
       const baseDir = yield* fileSystem.makeTempDirectoryScoped({
-        prefix: "t3-cloudflared-test-",
+        prefix: "yantrix-cloudflared-test-",
       });
       const manager = yield* RelayClient.makeCloudflaredRelayClient({
         baseDir,
@@ -241,7 +241,7 @@ describe("RelayClient", () => {
       return Effect.gen(function* () {
         const fileSystem = yield* FileSystem.FileSystem;
         const baseDir = yield* fileSystem.makeTempDirectoryScoped({
-          prefix: "t3-cloudflared-test-",
+          prefix: "yantrix-cloudflared-test-",
         });
         const binDir = `${baseDir}/bin`;
         const executablePath = `${binDir}/cloudflared`;
