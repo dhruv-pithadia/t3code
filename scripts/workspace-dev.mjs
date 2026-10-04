@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 // Local fork entry point. Never inherit the host T3 session's runtime configuration.
-import { spawn } from "node:child_process";
-import { mkdirSync, realpathSync } from "node:fs";
-import { dirname, join, relative, isAbsolute } from "node:path";
-import { fileURLToPath } from "node:url";
-import { platform } from "node:os";
+import * as NodeChildProcess from "node:child_process";
+import * as NodeFS from "node:fs";
+import * as NodePath from "node:path";
+import * as NodeURL from "node:url";
+import * as NodeOS from "node:os";
 
-const root = realpathSync(join(dirname(fileURLToPath(import.meta.url)), ".."));
+const root = NodeFS.realpathSync(
+  NodePath.join(NodePath.dirname(NodeURL.fileURLToPath(import.meta.url)), ".."),
+);
 const [mode = "dev", ...args] = process.argv.slice(2);
 if (
   !["dev", "dev:desktop"].includes(mode) ||
@@ -17,18 +19,20 @@ if (
   );
 }
 
-if (mode === "dev:desktop" && platform() !== "darwin") {
+// oxlint-disable-next-line t3code/no-global-process-runtime -- Standalone launcher runs before an Effect runtime exists.
+const hostPlatform = NodeOS.platform();
+if (mode === "dev:desktop" && hostPlatform !== "darwin") {
   throw new Error(
     "The isolated desktop launcher currently supports macOS. Use dev for the web app.",
   );
 }
 
 function isolatedDirectory(...parts) {
-  const target = join(root, ...parts);
-  mkdirSync(target, { recursive: true, mode: 0o700 });
-  const resolved = realpathSync(target);
-  const rel = relative(root, resolved);
-  if (rel === ".." || rel.startsWith("../") || rel.startsWith("..\\") || isAbsolute(rel)) {
+  const target = NodePath.join(root, ...parts);
+  NodeFS.mkdirSync(target, { recursive: true, mode: 0o700 });
+  const resolved = NodeFS.realpathSync(target);
+  const rel = NodePath.relative(root, resolved);
+  if (rel === ".." || rel.startsWith("../") || rel.startsWith("..\\") || NodePath.isAbsolute(rel)) {
     throw new Error(`Refusing a workspace data directory outside this checkout: ${target}`);
   }
   return resolved;
@@ -55,10 +59,10 @@ Object.assign(env, {
   T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: "false",
 });
 console.log(`[workspace] data=${runtime} electron=${electron} updates=disabled`);
-const child = spawn(
+const child = NodeChildProcess.spawn(
   process.execPath,
   [
-    join(root, "scripts/dev-runner.ts"),
+    NodePath.join(root, "scripts/dev-runner.ts"),
     mode,
     "--home-dir",
     runtime,
