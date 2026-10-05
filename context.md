@@ -7,6 +7,9 @@ existing interface styling and workflows. Feature tasks persist the objective, d
 of chats and provider sessions. Linked conversations supply workspace and PR context;
 task status remains a progress note rather than proof of verification or merging.
 
+Track Yantrix-specific additions and their delivery status in
+[the progress and feature ledger](YANTRIX_PROGRESS.md). Update it with each new feature PR.
+
 ## Repository and isolation
 
 `origin` is https://github.com/dhruv-pithadia/yantrix. The `upstream` remote remains
