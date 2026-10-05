@@ -22,7 +22,7 @@ foundations. Yantrix's additions extend those capabilities.
 | YF-001 | Persistent feature tasks          | Product feature        | Merged           | A durable objective, acceptance criteria, decisions, next action, and handoff shared across linked conversations and restarts.                                   | [PR #4](https://github.com/dhruv-pithadia/yantrix/pull/4) |
 | YF-002 | Independent development workspace | Development foundation | Merged           | Checkout-local application data, separate development identity and ports, and disabled updates for working on Yantrix alongside an installed T3 Code app.        | [PR #1](https://github.com/dhruv-pithadia/yantrix/pull/1) |
 | YF-003 | Yantrix product identity          | Branding foundation    | Merged           | Yantrix naming, assets, package and application identities, and configuration defaults. This establishes the fork's identity rather than a new agent capability. | [PR #3](https://github.com/dhruv-pithadia/yantrix/pull/3) |
-| YF-004 | Task-owned workspaces             | Product feature        | Ready for review | One durable task workspace and branch shared by linked conversations, delivery state, and safe recovery when the workspace is unavailable or inconsistent.       | Current task branch: `feat/task-workspaces`               |
+| YF-004 | Task-owned workspaces             | Product feature        | Ready for review | One durable task workspace and branch shared by linked conversations, delivery state, and safe recovery when the workspace is unavailable or inconsistent.       | [PR #5](https://github.com/dhruv-pithadia/yantrix/pull/5) |
 
 [PR #2](https://github.com/dhruv-pithadia/yantrix/pull/2) preserved the repository
 setup and product direction in documentation. It is supporting work, not an
@@ -94,8 +94,8 @@ web at 390px without overflow or browser page errors.
 
 Native mobile was typechecked but not verified in a simulator. The browser fixture
 had no matching pull request; changing PR/check states are covered by focused service
-tests. Implementation is ready for review on `feat/task-workspaces`; CI and the
-implementation record will be recorded on its PR.
+tests. Implementation is recorded in [PR #5](https://github.com/dhruv-pithadia/yantrix/pull/5).
+It remains unmerged; CI results and browser screenshots are tracked on the PR.
 
 ## Keeping this ledger current
 
