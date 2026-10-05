@@ -1,8 +1,8 @@
 # Yantrix progress and feature ledger
 
-This ledger tracks what Yantrix adds to T3 Code, what is still being built, and what
+This ledger tracks what Yantrix adds to its upstream foundation, what is still being built, and what
 has actually landed. Use it to explain the product's differences without counting
-inherited T3 Code capabilities as new Yantrix features.
+inherited upstream capabilities as new Yantrix features.
 
 ## Comparison baseline
 
@@ -20,7 +20,7 @@ foundations. Yantrix's additions extend those capabilities.
 | ID     | Addition                          | Category               | Status           | What it adds                                                                                                                                                     | Implementation record                                     |
 | ------ | --------------------------------- | ---------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | YF-001 | Persistent feature tasks          | Product feature        | Merged           | A durable objective, acceptance criteria, decisions, next action, and handoff shared across linked conversations and restarts.                                   | [PR #4](https://github.com/dhruv-pithadia/yantrix/pull/4) |
-| YF-002 | Independent development workspace | Development foundation | Merged           | Checkout-local application data, separate development identity and ports, and disabled updates for working on Yantrix alongside an installed T3 Code app.        | [PR #1](https://github.com/dhruv-pithadia/yantrix/pull/1) |
+| YF-002 | Independent development workspace | Development foundation | Merged           | Checkout-local application data, separate development identity and ports, and disabled updates for working on Yantrix alongside an installed upstream app.       | [PR #1](https://github.com/dhruv-pithadia/yantrix/pull/1) |
 | YF-003 | Yantrix product identity          | Branding foundation    | Merged           | Yantrix naming, assets, package and application identities, and configuration defaults. This establishes the fork's identity rather than a new agent capability. | [PR #3](https://github.com/dhruv-pithadia/yantrix/pull/3) |
 | YF-004 | Task-owned workspaces             | Product feature        | Ready for review | One durable task workspace and branch shared by linked conversations, delivery state, and safe recovery when the workspace is unavailable or inconsistent.       | [PR #5](https://github.com/dhruv-pithadia/yantrix/pull/5) |
 
@@ -59,7 +59,7 @@ workspace and PR workflows are reused.
 
 **How to explain it:**
 
-> Yantrix builds on T3 Code's agent workspace and adds persistent feature tasks.
+> Yantrix builds on the upstream agent workspace and adds persistent feature tasks.
 > A feature keeps its goal, decisions, and next step while you move between
 > conversations or restart the app, so the work has continuity beyond one chat.
 
@@ -84,7 +84,7 @@ unknown when it cannot be verified. Recovery cannot reconstruct missing uncommit
 files. Workspaces are retained when conversations are unlinked or tasks archived.
 This feature does not merge pull requests or automatically delete worktrees.
 
-**Evidence:** 159 focused tests passed across workspace ownership, recovery, delivery
+**Evidence:** 184 focused tests passed across workspace ownership, recovery, delivery
 freshness, provider start guards, authorization, MCP, and shared client behavior.
 Targeted lint, formatting, server/contracts/web/mobile/client-runtime typechecks,
 and the production web build passed. Headless Chromium verified restart continuity,

@@ -80,8 +80,7 @@ describe("feature task conversation linking", () => {
   it("launches inside the task binding and ignores sibling conversation workspaces", async () => {
     const commands = makeCommands(makeTask());
     const launchedWith: unknown[] = [];
-    commands.launchThread = async (input) => {
-      commands.launchCalls += 1;
+    commands.launchThreadImpl = async (input) => {
       launchedWith.push(input.workspaceStrategy);
       return launchResult;
     };
@@ -95,11 +94,9 @@ describe("feature task conversation linking", () => {
   });
 
   it("keeps the legacy strategy for an unbound task on a host without task workspaces", async () => {
-    const commands = makeCommands(makeTask());
-    delete commands.workspace;
+    const commands = makeCommands(makeTask(), { withWorkspace: false });
     const launchedWith: unknown[] = [];
-    commands.launchThread = async (input) => {
-      commands.launchCalls += 1;
+    commands.launchThreadImpl = async (input) => {
       launchedWith.push(input.workspaceStrategy);
       return launchResult;
     };
@@ -114,8 +111,7 @@ describe("feature task conversation linking", () => {
   });
 
   it("never launches a bound task through a host that cannot verify its workspace", async () => {
-    const commands = makeCommands(makeTask({ workspace: binding }));
-    delete commands.workspace;
+    const commands = makeCommands(makeTask({ workspace: binding }), { withWorkspace: false });
     await expect(
       launchFeatureTaskConversation(
         commands,
@@ -126,8 +122,7 @@ describe("feature task conversation linking", () => {
   });
 
   it("refuses a host without task workspaces when no legacy strategy was given", async () => {
-    const commands = makeCommands(makeTask());
-    delete commands.workspace;
+    const commands = makeCommands(makeTask(), { withWorkspace: false });
     await expect(launchFeatureTaskConversation(commands, createInput())).rejects.toBeInstanceOf(
       FeatureTaskWorkspaceUnsupportedError,
     );
@@ -137,7 +132,7 @@ describe("feature task conversation linking", () => {
   it("ignores a legacy strategy when the host supports task workspaces", async () => {
     const commands = makeCommands(makeTask());
     const launchedWith: unknown[] = [];
-    commands.launchThread = async (input) => {
+    commands.launchThreadImpl = async (input) => {
       launchedWith.push(input.workspaceStrategy);
       return launchResult;
     };
@@ -297,38 +292,46 @@ function createInput(
   };
 }
 
-function makeCommands(initialTask: FeatureTask) {
-  const commands: FeatureTaskConversationCommands & {
-    launchCalls: number;
-    updateCalls: number;
-    ensureCalls: number;
-    inspectImpl: () => Promise<FeatureTaskWorkspaceResult>;
-    ensureImpl: () => Promise<FeatureTaskWorkspaceResult>;
-    getTaskImpl: () => Promise<FeatureTask>;
-    launchThreadImpl: () => Promise<OrchestrationV2ThreadLaunchResult>;
-    updateTaskImpl: (
-      input: Parameters<FeatureTaskConversationCommands["updateTask"]>[0],
-    ) => Promise<FeatureTask>;
-  } = {
+/**
+ * Counting stubs around the real command surface. Behavior is swapped through
+ * the `*Impl` fields; `withWorkspace: false` models a host that does not
+ * advertise task workspaces, where the optional workspace commands are absent.
+ */
+function makeCommands(
+  initialTask: FeatureTask,
+  options: { readonly withWorkspace?: boolean } = {},
+) {
+  const stubs = {
     launchCalls: 0,
     updateCalls: 0,
     ensureCalls: 0,
-    inspectImpl: async () => readyWorkspace,
-    ensureImpl: async () => readyWorkspace,
-    workspace: {
-      inspectWorkspace: () => commands.inspectImpl(),
-      ensureWorkspace: () => {
-        commands.ensureCalls += 1;
-        return commands.ensureImpl();
-      },
-    },
-    getTaskImpl: async () => initialTask,
-    launchThreadImpl: async () => launchResult,
-    updateTaskImpl: async () => initialTask,
+    inspectImpl: async (): Promise<FeatureTaskWorkspaceResult> => readyWorkspace,
+    ensureImpl: async (): Promise<FeatureTaskWorkspaceResult> => readyWorkspace,
+    getTaskImpl: async (): Promise<FeatureTask> => initialTask,
+    launchThreadImpl: async (
+      _input: Parameters<FeatureTaskConversationCommands["launchThread"]>[0],
+    ): Promise<OrchestrationV2ThreadLaunchResult> => launchResult,
+    updateTaskImpl: async (
+      _input: Parameters<FeatureTaskConversationCommands["updateTask"]>[0],
+    ): Promise<FeatureTask> => initialTask,
+  };
+  const commands: FeatureTaskConversationCommands & typeof stubs = {
+    ...stubs,
+    ...(options.withWorkspace === false
+      ? {}
+      : {
+          workspace: {
+            inspectWorkspace: () => commands.inspectImpl(),
+            ensureWorkspace: () => {
+              commands.ensureCalls += 1;
+              return commands.ensureImpl();
+            },
+          },
+        }),
     getTask: () => commands.getTaskImpl(),
-    launchThread: () => {
+    launchThread: (input) => {
       commands.launchCalls += 1;
-      return commands.launchThreadImpl();
+      return commands.launchThreadImpl(input);
     },
     updateTask: (input) => {
       commands.updateCalls += 1;

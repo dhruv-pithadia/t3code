@@ -26,6 +26,7 @@ const [
   Project,
   Auth,
   FeatureTasks,
+  FeatureTaskWorkspaces,
 ] = await Promise.all([
   app("orchestration-v2/ProviderTurnStartService"),
   app("orchestration-v2/ProjectionStore"),
@@ -39,6 +40,7 @@ const [
   app("project/ProjectService"),
   app("provider/Services/ProviderAuthService"),
   app("featureTasks/FeatureTaskService"),
+  app("featureTasks/FeatureTaskWorkspaceService"),
 ]);
 let current;
 let fullReads = 0;
@@ -58,6 +60,9 @@ const session = {
 const dependencies = Layer.mergeAll(
   Layer.mock(Handoff.ContextHandoffServiceV2)({}),
   Layer.mock(FeatureTasks.FeatureTaskService)({ readForThread: () => Effect.succeed(null) }),
+  Layer.mock(FeatureTaskWorkspaces.FeatureTaskWorkspaceService)({
+    assertThreadWorkspace: () => Effect.void,
+  }),
   Id.layer,
   FileSystem.layerNoop({}),
   Layer.mock(Git.GitWorkflowService)({}),
