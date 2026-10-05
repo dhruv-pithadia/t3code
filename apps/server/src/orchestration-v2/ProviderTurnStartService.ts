@@ -1,9 +1,11 @@
 import { formatFeatureTaskContext } from "@yantrix/shared/featureTaskContext";
 import * as FeatureTasks from "../featureTasks/FeatureTaskService.ts";
+import * as FeatureTaskWorkspaces from "../featureTasks/FeatureTaskWorkspaceService.ts";
 import { modelSelectionsEqual } from "@yantrix/shared/model";
 import { projectComposerContextForProvider } from "@yantrix/shared/composerContextReferences";
 import {
   CommandId,
+  FeatureTaskError,
   type OrchestrationV2DomainEvent,
   type OrchestrationV2ExecutionNode,
   type OrchestrationV2ProviderThread,
@@ -64,6 +66,7 @@ export class ProviderTurnStartError extends Schema.TaggedError<ProviderTurnStart
 ) {}
 
 const isProviderTurnStartError = Schema.is(ProviderTurnStartError);
+const isFeatureTaskError = Schema.is(FeatureTaskError);
 
 export interface ProviderTurnStartServiceV2Shape {
   /**
@@ -88,6 +91,7 @@ export const layer: Layer.Layer<
   never,
   | EventSink.EventSinkV2
   | FeatureTasks.FeatureTaskService
+  | FeatureTaskWorkspaces.FeatureTaskWorkspaceService
   | ContextHandoffService.ContextHandoffServiceV2
   | IdAllocator.IdAllocatorV2
   | FileSystem.FileSystem
@@ -103,6 +107,7 @@ export const layer: Layer.Layer<
   Effect.gen(function* () {
     const eventSink = yield* EventSink.EventSinkV2;
     const featureTasks = yield* FeatureTasks.FeatureTaskService;
+    const featureTaskWorkspaces = yield* FeatureTaskWorkspaces.FeatureTaskWorkspaceService;
     const contextHandoffService = yield* ContextHandoffService.ContextHandoffServiceV2;
     const idAllocator = yield* IdAllocator.IdAllocatorV2;
     const fileSystem = yield* FileSystem.FileSystem;
@@ -458,7 +463,60 @@ export const layer: Layer.Layer<
           return;
         }
       }
+      // The last start attempt fails the run with the provider's own reason
+      // instead of leaving it `starting` after the effect gives up. A run that
+      // already left `starting` is not overwritten, and a failed write returns
+      // its error to the effect worker.
+      const settleStartFailure = (failed: {
+        readonly signal: string;
+        readonly title: string;
+        readonly error: Error;
+      }) =>
+        Effect.gen(function* () {
+          const nestedCause = "cause" in failed.error ? failed.error.cause : undefined;
+          yield* settleRunBeforeStart({
+            signal: failed.signal,
+            status: "failed",
+            now: yield* DateTime.now,
+            providerInstanceId: run.providerInstanceId,
+            itemProviderThreadId: providerThread.id,
+            item: {
+              type: "error",
+              title: failed.title,
+              failure: makeProviderFailure({
+                cause: failed.error,
+                message:
+                  nestedCause instanceof Error
+                    ? nestedCause.message
+                    : typeof nestedCause === "string"
+                      ? nestedCause
+                      : failed.error.message,
+                class: "provider_error",
+              }),
+            },
+          });
+        });
       const { worktreePath, branch } = projection.thread;
+      const linkedFeatureTask = yield* featureTasks.readForThread(projection.thread.id);
+      const validation = yield* Effect.result(
+        featureTaskWorkspaces.assertThreadWorkspace({
+          taskId: linkedFeatureTask?.id ?? null,
+          threadId: projection.thread.id,
+          worktreePath,
+          branch,
+        }),
+      );
+      if (validation._tag === "Failure") {
+        if (isFeatureTaskError(validation.failure) && validation.failure.code !== "storage") {
+          yield* settleStartFailure({
+            signal: "feature-task-workspace-validation-failure",
+            title: "Feature task workspace needs attention",
+            error: validation.failure,
+          });
+          return;
+        }
+        return yield* validation.failure;
+      }
       if (worktreePath !== null && branch !== null) {
         const exists = yield* fileSystem
           .exists(worktreePath)
@@ -550,35 +608,6 @@ export const layer: Layer.Layer<
       // instead of leaving it `starting` after the effect gives up. A run that
       // already left `starting` is not overwritten, and a failed write returns
       // its error to the effect worker.
-      const settleStartFailure = (failed: {
-        readonly signal: string;
-        readonly title: string;
-        readonly error: Error;
-      }) =>
-        Effect.gen(function* () {
-          const nestedCause = "cause" in failed.error ? failed.error.cause : undefined;
-          yield* settleRunBeforeStart({
-            signal: failed.signal,
-            status: "failed",
-            now: yield* DateTime.now,
-            providerInstanceId: run.providerInstanceId,
-            itemProviderThreadId: providerThread.id,
-            item: {
-              type: "error",
-              title: failed.title,
-              failure: makeProviderFailure({
-                cause: failed.error,
-                message:
-                  nestedCause instanceof Error
-                    ? nestedCause.message
-                    : typeof nestedCause === "string"
-                      ? nestedCause
-                      : failed.error.message,
-                class: "provider_error",
-              }),
-            },
-          });
-        });
       if (sessionResult._tag === "Failure") {
         if (input.willRetry === true) return yield* sessionResult.failure;
         yield* settleStartFailure({

@@ -17,6 +17,7 @@ const legacyBrand =
 const provenanceFiles = new Set([
   "README.md",
   "context.md",
+  "YANTRIX_PROGRESS.md",
   "docs/operations/independent-workspace.md",
   "third-party-licenses.config.json",
   "scripts/lib/third-party-licenses.test.ts",

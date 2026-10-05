@@ -7,11 +7,11 @@ import {
   DEFAULT_SERVER_SETTINGS,
   ThreadId,
   type OrchestrationV2ThreadLaunchResult,
+  type OrchestrationV2ThreadLaunchWorkspaceStrategy,
   type EnvironmentId,
   type FeatureTask,
   type FeatureTaskUpdateInput,
   type FeatureTaskStatus,
-  type OrchestrationV2ThreadLaunchInput,
 } from "@yantrix/contracts";
 import type {
   EnvironmentProject,
@@ -47,8 +47,18 @@ import { resolveProjectSettings } from "@yantrix/shared/projectSettings";
 import {
   linkFeatureTaskConversation,
   launchFeatureTaskConversation,
+  type FeatureTaskLaunchInput,
 } from "@yantrix/client-runtime/state/feature-tasks";
+import {
+  classifyLinkedThreadWorkspace,
+  describeFeatureTaskError,
+  FeatureTaskWorkspaceBlockedError,
+  legacyFeatureTaskWorkspaceStrategy,
+  launchBlockedByWorkspace,
+  type FeatureTaskWorkspaceAction,
+} from "@yantrix/client-runtime/state/feature-task-workspace";
 import { SettingsSection } from "../settings/components/SettingsSection";
+import { TaskDeliverySection, TaskWorkspaceSection } from "./TaskWorkspaceSections";
 
 const STATUS_LABELS: Record<FeatureTaskStatus, string> = {
   requested: "Requested",
@@ -158,11 +168,34 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
   const project = projects.find(
     (entry) => entry.environmentId === environmentId && entry.id === task?.projectId,
   );
+  const configForTask = useEnvironmentServerConfig(environmentId);
+  // Older hosts do not advertise task workspaces; every workspace call is skipped for them.
+  const workspacesSupported =
+    configForTask?.environment.capabilities.featureTaskWorkspaces === true;
   const refsQuery = useEnvironmentQuery(
-    project
+    project && !workspacesSupported
       ? vcsEnvironment.listRefs({ environmentId, input: { cwd: project.workspaceRoot } })
       : null,
   );
+  const workspaceQuery = useEnvironmentQuery(
+    task && workspacesSupported
+      ? serverEnvironment.inspectFeatureTaskWorkspace({ environmentId, input: { id: taskId } })
+      : null,
+  );
+  const deliveryQuery = useEnvironmentQuery(
+    task && workspacesSupported
+      ? serverEnvironment.getFeatureTaskDelivery({ environmentId, input: { id: taskId } })
+      : null,
+  );
+  const binding = task?.workspace ?? workspaceQuery.data?.binding ?? null;
+  // A task that owns a workspace cannot be worked on through a host that cannot verify it.
+  const launchBlocked = workspacesSupported
+    ? launchBlockedByWorkspace(
+        workspaceQuery.data,
+        workspaceQuery.error !== null,
+        workspaceQuery.isPending,
+      )
+    : binding !== null;
   const linkedThreads =
     task?.threadIds.flatMap((threadId) => {
       const shell = threads.find(
@@ -181,16 +214,22 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
   const launchThread = useAtomCommand(orchestrationEnvironment.v2.launchThread, {
     reportFailure: false,
   });
-  const configForTask = useEnvironmentServerConfig(environmentId);
+  const readWorkspace = useAtomCommand(serverEnvironment.readFeatureTaskWorkspace, {
+    reportFailure: false,
+  });
+  const ensureWorkspace = useAtomCommand(serverEnvironment.ensureFeatureTaskWorkspace, {
+    reportFailure: false,
+  });
+  const attachWorkspace = useAtomCommand(serverEnvironment.attachFeatureTaskWorkspace, {
+    reportFailure: false,
+  });
   const navigateToThread = useHomeThreadSelection();
   const [working, setWorking] = useState(false);
   const [linkRecovery, setLinkRecovery] = useState<{
     readonly threadId: ThreadId;
     readonly commandId: CommandId;
-    readonly launchInput: Omit<
-      OrchestrationV2ThreadLaunchInput,
-      "commandId" | "threadId" | "initialMessage"
-    >;
+    readonly launchInput: FeatureTaskLaunchInput;
+    readonly legacyWorkspaceStrategy: OrchestrationV2ThreadLaunchWorkspaceStrategy;
     readonly launch: OrchestrationV2ThreadLaunchResult | null;
   } | null>(null);
 
@@ -210,6 +249,22 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
     return result.value;
   };
   const featureCommands = {
+    ...(workspacesSupported
+      ? {
+          workspace: {
+            inspectWorkspace: async ({ id }: { id: FeatureTaskId }) => {
+              const result = await readWorkspace({ environmentId, input: { id } });
+              if (result._tag === "Failure") throw squashAtomCommandFailure(result);
+              return result.value;
+            },
+            ensureWorkspace: async ({ id }: { id: FeatureTaskId }) => {
+              const result = await ensureWorkspace({ environmentId, input: { id } });
+              if (result._tag === "Failure") throw squashAtomCommandFailure(result);
+              return result.value;
+            },
+          },
+        }
+      : {}),
     getTask: getFreshTask,
     launchThread: launchFreshThread,
     updateTask: updateFreshTask,
@@ -255,25 +310,69 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
     navigateToThread(thread);
   };
 
+  const runWorkspaceAction = async (action: FeatureTaskWorkspaceAction, worktreePath?: string) => {
+    if (action === "recheck") {
+      workspaceQuery.refresh();
+      return;
+    }
+    setWorking(true);
+    try {
+      const result =
+        action === "attach" && worktreePath
+          ? await attachWorkspace({ environmentId, input: { id: taskId, worktreePath } })
+          : await ensureWorkspace({ environmentId, input: { id: taskId } });
+      if (result._tag === "Failure") throw squashAtomCommandFailure(result);
+    } catch (error) {
+      Alert.alert("Workspace not updated", errorMessage(error));
+    } finally {
+      workspaceQuery.refresh();
+      setWorking(false);
+    }
+  };
+
+  const finishLaunch = (
+    attempt: NonNullable<typeof linkRecovery>,
+    launched: Awaited<ReturnType<typeof launchFeatureTaskConversation>>,
+  ) => {
+    if (launched.status === "needs_link") {
+      setLinkRecovery({ ...attempt, launch: launched.launch });
+      Alert.alert(
+        "Conversation created",
+        `The empty conversation is ready, but Yantrix could not link it to this task. Retry linking before sending a message. ${errorMessage(launched.error)}`,
+      );
+      return;
+    }
+    setLinkRecovery(null);
+    navigateToThread({ environmentId, id: launched.launch.threadId });
+  };
+
   const startConversation = async () => {
     if (!task) return;
 
     if (linkRecovery) {
       setWorking(true);
       try {
-        let launch = linkRecovery.launch;
-        if (launch === null) {
+        if (linkRecovery.launch === null) {
           // The previous request may have committed even if its response was
-          // lost. Replay the exact payload with the same IDs before doing any
-          // new model/workspace resolution.
-          launch = await launchFreshThread({
-            ...linkRecovery.launchInput,
-            commandId: linkRecovery.commandId,
-            threadId: linkRecovery.threadId,
-          });
-          setLinkRecovery({ ...linkRecovery, launch });
+          // lost. Replay with the same ids; the workspace is re-resolved from
+          // the task binding.
+          finishLaunch(
+            linkRecovery,
+            await launchFeatureTaskConversation(featureCommands, {
+              taskId: task.id,
+              threadId: linkRecovery.threadId,
+              commandId: linkRecovery.commandId,
+              launchInput: linkRecovery.launchInput,
+              legacyWorkspaceStrategy: linkRecovery.legacyWorkspaceStrategy,
+            }),
+          );
+          return;
         }
-        const linked = await linkFeatureTaskConversation(featureCommands, task.id, launch.threadId);
+        const linked = await linkFeatureTaskConversation(
+          featureCommands,
+          task.id,
+          linkRecovery.launch.threadId,
+        );
         if (linked.status === "needs_link") {
           Alert.alert("Conversation not linked", errorMessage(linked.error));
           return;
@@ -281,6 +380,7 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
         setLinkRecovery(null);
         navigateToThread({ environmentId, id: linkRecovery.threadId });
       } catch (error) {
+        workspaceQuery.refresh();
         Alert.alert("Could not resume conversation", errorMessage(error));
       } finally {
         setWorking(false);
@@ -289,7 +389,7 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
     }
 
     if (!project) return;
-    if (task.threadIds.length > 0 && linkedThreads.length === 0) {
+    if (!workspacesSupported && task.threadIds.length > 0 && linkedThreads.length === 0) {
       Alert.alert(
         "Linked conversations unavailable",
         "Reconnect or refresh this environment, then open one of the task's linked conversations before starting another. Yantrix needs an available linked conversation to reuse its workspace safely.",
@@ -316,36 +416,32 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
       project.id,
       project,
     ).settings;
-    const defaultBranch = refsQuery.data?.refs.find((ref) => ref.isDefault)?.name;
-    const workspaceStrategy = existing
-      ? existing.worktreePath !== null
-        ? {
-            type: "existing_worktree" as const,
-            worktreePath: existing.worktreePath,
-            ...(existing.branch ? { branch: existing.branch } : {}),
-          }
-        : { type: "root" as const, ...(existing.branch ? { branch: existing.branch } : {}) }
-      : settings.defaultThreadEnvMode === "worktree" && defaultBranch
-        ? {
-            type: "worktree" as const,
-            baseRef: defaultBranch,
-            startFromOrigin: settings.newWorktreesStartFromOrigin,
-          }
-        : { type: "root" as const };
     const launchInput = {
       projectId: task.projectId,
       title: task.title,
       modelSelection,
-      runtimeMode: settings.defaultRuntimeMode ?? DEFAULT_RUNTIME_MODE,
-      interactionMode: DEFAULT_PROVIDER_INTERACTION_MODE,
-      workspaceStrategy,
-    } satisfies Omit<OrchestrationV2ThreadLaunchInput, "commandId" | "threadId" | "initialMessage">;
+      runtimeMode: existing?.runtimeMode ?? settings.defaultRuntimeMode ?? DEFAULT_RUNTIME_MODE,
+      interactionMode: existing?.interactionMode ?? DEFAULT_PROVIDER_INTERACTION_MODE,
+    } satisfies FeatureTaskLaunchInput;
+    const defaultBranch = refsQuery.data?.refs.find((ref) => ref.isDefault)?.name;
+    const legacyWorkspaceStrategy = legacyFeatureTaskWorkspaceStrategy(
+      existing ?? null,
+      settings.defaultThreadEnvMode === "worktree" && defaultBranch
+        ? {
+            type: "worktree",
+            baseRef: defaultBranch,
+            startFromOrigin: settings.newWorktreesStartFromOrigin,
+          }
+        : { type: "root" },
+    );
     const attempt = {
       threadId: ThreadId.make(uuidv4()),
       commandId: CommandId.make(uuidv4()),
       launch: null,
       launchInput,
+      legacyWorkspaceStrategy,
     };
+    // Kept until the launch resolves so a lost response replays with the same ids.
     setLinkRecovery(attempt);
     setWorking(true);
     try {
@@ -354,19 +450,19 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
         threadId: attempt.threadId,
         commandId: attempt.commandId,
         launchInput,
+        legacyWorkspaceStrategy,
       });
-      if (launched.status === "needs_link") {
-        setLinkRecovery({ ...attempt, launch: launched.launch });
-        Alert.alert(
-          "Conversation created",
-          `The empty conversation is ready, but Yantrix could not link it to this task. Retry linking before sending a message. ${errorMessage(launched.error)}`,
-        );
-        return;
-      }
-      setLinkRecovery(null);
-      navigateToThread({ environmentId, id: launched.launch.threadId });
+      finishLaunch(attempt, launched);
     } catch (error) {
-      Alert.alert("Could not start conversation", errorMessage(error));
+      workspaceQuery.refresh();
+      // A blocked workspace means nothing was created, so a fresh tap starts over.
+      if (error instanceof FeatureTaskWorkspaceBlockedError) setLinkRecovery(null);
+      Alert.alert(
+        error instanceof FeatureTaskWorkspaceBlockedError
+          ? "Task workspace needs attention"
+          : "Could not start conversation",
+        errorMessage(error),
+      );
     } finally {
       setWorking(false);
     }
@@ -456,6 +552,26 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
           </View>
         </SettingsSection>
 
+        {workspacesSupported ? (
+          <>
+            <TaskWorkspaceSection
+              workspace={workspaceQuery.data}
+              error={workspaceQuery.error}
+              isPending={workspaceQuery.isPending}
+              archived={task.archivedAt !== null}
+              working={working}
+              onAction={(action, worktreePath) => void runWorkspaceAction(action, worktreePath)}
+            />
+            <TaskDeliverySection
+              hasWorkspace={binding !== null}
+              delivery={deliveryQuery.data}
+              error={deliveryQuery.error}
+              isPending={deliveryQuery.isPending}
+              onRefresh={deliveryQuery.refresh}
+            />
+          </>
+        ) : null}
+
         <SettingsSection title={`Conversations (${task.threadIds.length})`}>
           <View className="gap-2 p-4">
             {linkedThreads.map((thread) => (
@@ -472,7 +588,11 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
                     {thread.title || "Untitled conversation"}
                   </Text>
                   <Text className="text-xs text-foreground-muted" numberOfLines={1}>
-                    {thread.branch ?? thread.worktreePath ?? "Project workspace"}
+                    {classifyLinkedThreadWorkspace(binding, thread) === "different"
+                      ? "Different workspace, not moved"
+                      : classifyLinkedThreadWorkspace(binding, thread) === "unverified"
+                        ? "Branch unknown, not moved"
+                        : (thread.branch ?? thread.worktreePath ?? "Project workspace")}
                   </Text>
                 </Pressable>
                 <Pressable
@@ -516,10 +636,15 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
                 ))}
               </View>
             ) : null}
+            {launchBlocked ? (
+              <Text className="text-sm leading-5 text-foreground-muted">
+                Repair the task workspace above before starting a conversation.
+              </Text>
+            ) : null}
             <Pressable
               accessibilityRole="button"
-              disabled={working}
-              className="mt-1 min-h-12 flex-row items-center justify-center gap-2 rounded-xl bg-primary px-4 active:opacity-75"
+              disabled={working || launchBlocked}
+              className={`mt-1 min-h-12 flex-row items-center justify-center gap-2 rounded-xl bg-primary px-4 active:opacity-75 ${launchBlocked ? "opacity-50" : ""}`}
               onPress={() => void startConversation()}
             >
               <SymbolView
@@ -537,6 +662,18 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
             </Pressable>
           </View>
         </SettingsSection>
+
+        {!workspacesSupported && binding ? (
+          <SettingsSection title="Workspace">
+            <Text
+              accessibilityRole="alert"
+              className="p-4 text-sm leading-5 text-danger-foreground"
+            >
+              This task has its own workspace, but this server cannot verify it. Update the server
+              to start work on it.
+            </Text>
+          </SettingsSection>
+        ) : null}
         <Pressable
           accessibilityRole="button"
           disabled={working}
@@ -884,7 +1021,7 @@ function ProjectChoice(props: {
 }
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Try again.";
+  return describeFeatureTaskError(error);
 }
 
 function isFeatureTaskConflict(error: unknown): boolean {

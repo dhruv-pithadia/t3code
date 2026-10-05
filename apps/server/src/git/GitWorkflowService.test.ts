@@ -26,6 +26,20 @@ function makeLayer(input: {
 }
 
 describe("GitWorkflowService", () => {
+  it("parses NUL-delimited worktree paths and detects duplicate branch registrations", () => {
+    const parsed = GitWorkflowService.parseRegisteredWorktreePaths(
+      "worktree /repo\0HEAD abc\0branch refs/heads/main\0\0worktree /tmp/feature\nbranch\0HEAD def\0branch refs/heads/feature\0\0",
+      "feature",
+    );
+    expect(parsed).toEqual(["/tmp/feature\nbranch"]);
+    expect(
+      GitWorkflowService.parseRegisteredWorktreePaths(
+        "worktree /repo\0branch refs/heads/feature\0\0worktree /tmp/other\0branch refs/heads/feature\0\0",
+        "feature",
+      ),
+    ).toEqual(["/repo", "/tmp/other"]);
+  });
+
   it.effect("reports a non-Git VCS repository as not a Git repository", () =>
     Effect.gen(function* () {
       const workflow = yield* GitWorkflowService.GitWorkflowService;

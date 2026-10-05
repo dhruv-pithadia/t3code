@@ -13,7 +13,7 @@ layer("055_OrchestrationV2", (it) => {
     Effect.sync(() => {
       assert.deepStrictEqual(
         migrationEntries.map(([id]) => id),
-        Array.from({ length: 57 }, (_, index) => index + 1),
+        Array.from({ length: 58 }, (_, index) => index + 1),
       );
     }),
   );
@@ -29,6 +29,7 @@ layer("055_OrchestrationV2", (it) => {
         [55, "OrchestrationV2"],
         [56, "RemoveRedundantProjectionIndexes"],
         [57, "FeatureTasks"],
+        [58, "FeatureTaskWorkspaces"],
       ]);
       assert.deepStrictEqual(yield* runMigrations(), []);
 
@@ -52,6 +53,7 @@ layer("055_OrchestrationV2", (it) => {
         { migration_id: 55, name: "OrchestrationV2" },
         { migration_id: 56, name: "RemoveRedundantProjectionIndexes" },
         { migration_id: 57, name: "FeatureTasks" },
+        { migration_id: 58, name: "FeatureTaskWorkspaces" },
       ]);
 
       const tables = yield* sql<{ readonly name: string }>`
@@ -116,6 +118,10 @@ layer("055_OrchestrationV2", (it) => {
       assert.ok(featureTaskColumns.some(({ name }) => name === "create_payload_json"));
       assert.ok(featureTaskColumns.some(({ name }) => name === "acceptance_criteria_json"));
       assert.ok(featureTaskColumns.some(({ name }) => name === "version"));
+      assert.ok(featureTaskColumns.some(({ name }) => name === "workspace_repo_path"));
+      assert.ok(featureTaskColumns.some(({ name }) => name === "workspace_worktree_path"));
+      assert.ok(featureTaskColumns.some(({ name }) => name === "workspace_branch"));
+      assert.ok(featureTaskColumns.some(({ name }) => name === "workspace_created_at"));
       assert.ok(featureTaskThreadColumns.some(({ name }) => name === "thread_id"));
       assert.ok(featureTaskThreadColumns.some(({ name }) => name === "task_id"));
       assert.ok(featureTaskThreadColumns.some(({ name }) => name === "position"));

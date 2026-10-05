@@ -84,6 +84,21 @@ describe("RPC authorization scopes", () => {
     );
   });
 
+  it("keeps feature task inspection and delivery read-only while guarding workspace mutations", () => {
+    expect(requiredScopeForRpcMethod(WS_METHODS.featureTasksWorkspaceInspect)).toBe(
+      AuthOrchestrationReadScope,
+    );
+    expect(requiredScopeForRpcMethod(WS_METHODS.featureTasksDeliveryGet)).toBe(
+      AuthOrchestrationReadScope,
+    );
+    expect(requiredScopeForRpcMethod(WS_METHODS.featureTasksWorkspaceEnsure)).toBe(
+      AuthOrchestrationOperateScope,
+    );
+    expect(requiredScopeForRpcMethod(WS_METHODS.featureTasksWorkspaceAttach)).toBe(
+      AuthOrchestrationOperateScope,
+    );
+  });
+
   it("reads the reviewer menu under the same scope as the pull request it belongs to", () => {
     // The candidate list is a read like the detail beside it, and asking somebody for a review is
     // a write like every other pull request operation.

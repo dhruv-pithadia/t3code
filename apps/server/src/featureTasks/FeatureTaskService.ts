@@ -6,6 +6,7 @@ import {
   FeatureTaskCreateInput,
   type FeatureTaskListInput,
   type FeatureTaskUpdateInput,
+  type FeatureTaskWorkspaceBinding as FeatureTaskWorkspaceBindingModel,
   ProjectId,
   ThreadId,
 } from "@yantrix/contracts";
@@ -39,6 +40,10 @@ export class FeatureTaskService extends Context.Service<
     readonly update: (
       input: FeatureTaskUpdateInput,
     ) => Effect.Effect<{ readonly task: FeatureTaskModel }, FeatureTaskError>;
+    readonly saveWorkspaceBinding: (input: {
+      readonly id: FeatureTaskId;
+      readonly binding: FeatureTaskWorkspaceBindingModel;
+    }) => Effect.Effect<{ readonly task: FeatureTaskModel }, FeatureTaskError>;
   }
 >()("yantrix/featureTasks/FeatureTaskService") {}
 
@@ -56,6 +61,10 @@ interface FeatureTaskRow {
   readonly version: number;
   readonly createdAt: string;
   readonly updatedAt: string;
+  readonly workspaceRepoPath: string | null;
+  readonly workspaceWorktreePath: string | null;
+  readonly workspaceBranch: string | null;
+  readonly workspaceCreatedAt: string | null;
 }
 
 const decodeTask = Schema.decodeUnknownEffect(FeatureTask);
@@ -88,6 +97,19 @@ const decodeTaskRow = Effect.fn("FeatureTaskService.decodeTaskRow")(function* (
     nextAction: row.nextAction,
     handoff: row.handoff,
     status: row.status,
+    ...(row.workspaceRepoPath &&
+    row.workspaceWorktreePath &&
+    row.workspaceBranch &&
+    row.workspaceCreatedAt
+      ? {
+          workspace: {
+            repoPath: row.workspaceRepoPath,
+            worktreePath: row.workspaceWorktreePath,
+            branch: row.workspaceBranch,
+            createdAt: row.workspaceCreatedAt,
+          },
+        }
+      : { workspace: null }),
     threadIds,
     archivedAt: row.archivedAt,
     version: row.version,
@@ -109,7 +131,9 @@ export const layer = Layer.effect(
           SELECT task_id AS id, project_id AS projectId, title, objective,
             acceptance_criteria_json AS acceptanceCriteria, decisions_json AS decisions,
             next_action AS nextAction, handoff, status, archived_at AS archivedAt,
-            version, created_at AS createdAt, updated_at AS updatedAt
+            version, created_at AS createdAt, updated_at AS updatedAt,
+            workspace_repo_path AS workspaceRepoPath, workspace_worktree_path AS workspaceWorktreePath,
+            workspace_branch AS workspaceBranch, workspace_created_at AS workspaceCreatedAt
           FROM feature_tasks WHERE task_id = ${id}
         `;
         const row = rows[0];
@@ -139,14 +163,18 @@ export const layer = Layer.effect(
               SELECT task_id AS id, project_id AS projectId, title, objective,
                 acceptance_criteria_json AS acceptanceCriteria, decisions_json AS decisions,
                 next_action AS nextAction, handoff, status, archived_at AS archivedAt,
-                version, created_at AS createdAt, updated_at AS updatedAt
+                version, created_at AS createdAt, updated_at AS updatedAt,
+                workspace_repo_path AS workspaceRepoPath, workspace_worktree_path AS workspaceWorktreePath,
+                workspace_branch AS workspaceBranch, workspace_created_at AS workspaceCreatedAt
               FROM feature_tasks ORDER BY updated_at DESC, task_id
             `
             : yield* sql<FeatureTaskRow>`
               SELECT task_id AS id, project_id AS projectId, title, objective,
                 acceptance_criteria_json AS acceptanceCriteria, decisions_json AS decisions,
                 next_action AS nextAction, handoff, status, archived_at AS archivedAt,
-                version, created_at AS createdAt, updated_at AS updatedAt
+                version, created_at AS createdAt, updated_at AS updatedAt,
+                workspace_repo_path AS workspaceRepoPath, workspace_worktree_path AS workspaceWorktreePath,
+                workspace_branch AS workspaceBranch, workspace_created_at AS workspaceCreatedAt
               FROM feature_tasks WHERE project_id = ${projectId}
               ORDER BY updated_at DESC, task_id
             `;
@@ -188,18 +216,48 @@ export const layer = Layer.effect(
       retained: ReadonlySet<string> = new Set(),
     ) =>
       Effect.gen(function* () {
+        const workspace =
+          taskId === undefined
+            ? null
+            : ((yield* sql<{
+                readonly repoPath: string | null;
+                readonly worktreePath: string | null;
+                readonly branch: string | null;
+              }>`
+              SELECT workspace_repo_path AS repoPath, workspace_worktree_path AS worktreePath,
+                workspace_branch AS branch FROM feature_tasks WHERE task_id = ${taskId}
+            `)[0] ?? null);
         const seen = new Set<string>();
         for (const threadId of threadIds) {
           if (seen.has(threadId))
             return yield* toError("invalid_link", "Conversation links must be unique.", taskId);
           seen.add(threadId);
-          const rows = yield* sql<{ readonly projectId: string }>`
-            SELECT project_id AS projectId FROM orchestration_v2_projection_threads WHERE thread_id = ${threadId}
+          const rows = yield* sql<{
+            readonly projectId: string;
+            readonly worktreePath: string | null;
+            readonly branch: string | null;
+          }>`
+            SELECT project_id AS projectId,
+              json_extract(payload_json, '$.worktreePath') AS worktreePath,
+              json_extract(payload_json, '$.branch') AS branch
+            FROM orchestration_v2_projection_threads WHERE thread_id = ${threadId}
           `;
           if (rows[0]?.projectId !== projectId && !retained.has(threadId)) {
             return yield* toError(
               "invalid_link",
               "Conversation must exist in the task workspace.",
+              taskId,
+            );
+          }
+          if (
+            workspace?.repoPath !== null &&
+            workspace?.repoPath !== undefined &&
+            (rows[0]?.worktreePath !== workspace.worktreePath ||
+              rows[0]?.branch !== workspace.branch)
+          ) {
+            return yield* toError(
+              "conflict",
+              "Linked conversations must use the task's bound workspace and branch.",
               taskId,
             );
           }
@@ -378,6 +436,92 @@ export const layer = Layer.effect(
           ),
     );
 
-    return FeatureTaskService.of({ list, subscribe, get, readForThread, create, update });
+    const saveWorkspaceBinding: FeatureTaskService["Service"]["saveWorkspaceBinding"] = Effect.fn(
+      "FeatureTaskService.saveWorkspaceBinding",
+    )(({ id, binding }) =>
+      sql
+        .withTransaction(
+          Effect.gen(function* () {
+            const current = yield* load(id);
+            if (current === null)
+              return yield* toError("not_found", "Feature task was not found.", id);
+            const workspaceOwner = yield* sql<{ readonly taskId: string }>`
+            SELECT task_id AS taskId FROM feature_tasks
+            WHERE task_id <> ${id} AND (
+              workspace_worktree_path = ${binding.worktreePath} OR
+              (workspace_repo_path = ${binding.repoPath} AND workspace_branch = ${binding.branch})
+            ) LIMIT 1
+          `;
+            if (workspaceOwner.length > 0) {
+              return yield* toError(
+                "conflict",
+                "This checkout or branch is already owned by another feature task.",
+                id,
+              );
+            }
+            const linkedThreads = yield* sql<{
+              readonly threadId: string;
+              readonly worktreePath: string | null;
+              readonly branch: string | null;
+            }>`
+            SELECT t.thread_id AS threadId,
+              json_extract(p.payload_json, '$.worktreePath') AS worktreePath,
+              json_extract(p.payload_json, '$.branch') AS branch
+            FROM feature_task_threads t JOIN orchestration_v2_projection_threads p ON p.thread_id = t.thread_id
+            WHERE t.task_id = ${id}
+          `;
+            if (
+              linkedThreads.some(
+                (thread) =>
+                  thread.worktreePath !== binding.worktreePath || thread.branch !== binding.branch,
+              )
+            ) {
+              return yield* toError(
+                "conflict",
+                "Unlink conversations that use another workspace before binding or rebinding this task.",
+                id,
+              );
+            }
+            if (current.workspace != null) {
+              const same =
+                current.workspace.repoPath === binding.repoPath &&
+                current.workspace.worktreePath === binding.worktreePath &&
+                current.workspace.branch === binding.branch;
+              if (same) return { task: current };
+              const links = yield* sql<{ readonly threadId: string }>`
+              SELECT thread_id AS threadId FROM feature_task_threads WHERE task_id = ${id}
+            `;
+              if (links.length > 0)
+                return yield* toError(
+                  "conflict",
+                  "Unlink all conversations before rebinding this task workspace.",
+                  id,
+                );
+            }
+            const now = yield* nowIso;
+            yield* sql`UPDATE feature_tasks SET workspace_repo_path = ${binding.repoPath},
+            workspace_worktree_path = ${binding.worktreePath}, workspace_branch = ${binding.branch},
+            workspace_created_at = ${binding.createdAt}, version = version + 1, updated_at = ${now}
+            WHERE task_id = ${id}`;
+            return { task: yield* load(id).pipe(Effect.map((task) => task!)) };
+          }),
+        )
+        .pipe(
+          Effect.tap(() => signalChange),
+          Effect.catch((cause) =>
+            isFeatureTaskError(cause) ? Effect.fail(cause) : Effect.fail(storageError(id)),
+          ),
+        ),
+    );
+
+    return FeatureTaskService.of({
+      list,
+      subscribe,
+      get,
+      readForThread,
+      create,
+      update,
+      saveWorkspaceBinding,
+    });
   }),
 );

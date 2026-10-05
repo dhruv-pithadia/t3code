@@ -151,6 +151,10 @@
       "types": "./src/state/featureTasks.ts",
       "default": "./src/state/featureTasks.ts"
     },
+    "./state/feature-task-workspace": {
+      "types": "./src/state/featureTaskWorkspace.ts",
+      "default": "./src/state/featureTaskWorkspace.ts"
+    },
     "./state/filesystem": {
       "types": "./src/state/filesystem.ts",
       "default": "./src/state/filesystem.ts"

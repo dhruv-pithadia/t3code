@@ -72,6 +72,25 @@ export class GitWorkflowService extends Context.Service<
       options?: GitVcsDriver.CreateWorktreeOptions,
     ) => Effect.Effect<VcsCreateWorktreeResult, GitCommandError>;
     readonly listLocalBranchNames: (cwd: string) => Effect.Effect<string[], GitCommandError>;
+    /** Canonical common Git directory for validating that linked worktrees share repository identity. */
+    readonly commonGitDirectory: (cwd: string) => Effect.Effect<string, GitCommandError>;
+    readonly gitTopLevel: (cwd: string) => Effect.Effect<string, GitCommandError>;
+    readonly isPrimaryWorktree: (cwd: string) => Effect.Effect<boolean, GitCommandError>;
+    /** Read HEAD's checked-out branch directly from Git, bypassing the cached status snapshot. */
+    readonly checkedOutBranch: (cwd: string) => Effect.Effect<string | null, GitCommandError>;
+    readonly localBranchExists: (input: {
+      readonly cwd: string;
+      readonly branch: string;
+    }) => Effect.Effect<boolean, GitCommandError>;
+    readonly registeredWorktreePath: (input: {
+      readonly cwd: string;
+      readonly branch: string;
+    }) => Effect.Effect<string | null, GitCommandError>;
+    /** Remove only the Git registration for a path already proven missing by its caller. */
+    readonly unregisterMissingWorktree: (input: {
+      readonly cwd: string;
+      readonly path: string;
+    }) => Effect.Effect<void, GitCommandError>;
     readonly fetchRemote: (input: {
       readonly cwd: string;
       readonly remoteName: string;
@@ -117,6 +136,25 @@ export class GitWorkflowService extends Context.Service<
     }) => Effect.Effect<{ readonly branch: string }, GitManagerServiceError>;
   }
 >()("yantrix/git/GitWorkflowService") {}
+
+/** Git's NUL-delimited porcelain format preserves unusual checkout paths. */
+export function parseRegisteredWorktreePaths(output: string, branch: string): readonly string[] {
+  const paths: string[] = [];
+  let worktree: string | null = null;
+  let matchesBranch = false;
+  const flush = () => {
+    if (worktree !== null && matchesBranch) paths.push(worktree);
+    worktree = null;
+    matchesBranch = false;
+  };
+  for (const field of output.split("\0")) {
+    if (field === "") flush();
+    else if (field.startsWith("worktree ")) worktree = field.slice("worktree ".length);
+    else if (field === `branch refs/heads/${branch}`) matchesBranch = true;
+  }
+  flush();
+  return paths;
+}
 
 function nonRepositoryLocalStatus(): VcsStatusLocalResult {
   return {
@@ -352,6 +390,115 @@ export const make = Effect.gen(function* () {
     listLocalBranchNames: (cwd) =>
       ensureGitCommand("GitWorkflowService.listLocalBranchNames", cwd).pipe(
         Effect.andThen(git.listLocalBranchNames(cwd)),
+      ),
+    commonGitDirectory: (cwd) =>
+      ensureGitCommand("GitWorkflowService.commonGitDirectory", cwd).pipe(
+        Effect.andThen(
+          git.execute({
+            operation: "GitWorkflowService.commonGitDirectory",
+            cwd,
+            args: ["rev-parse", "--git-common-dir"],
+          }),
+        ),
+        Effect.map(({ stdout }) => stdout.trim()),
+      ),
+    gitTopLevel: (cwd) =>
+      ensureGitCommand("GitWorkflowService.gitTopLevel", cwd).pipe(
+        Effect.andThen(
+          git.execute({
+            operation: "GitWorkflowService.gitTopLevel",
+            cwd,
+            args: ["rev-parse", "--show-toplevel"],
+          }),
+        ),
+        Effect.map(({ stdout }) => stdout.trim()),
+      ),
+    isPrimaryWorktree: (cwd) =>
+      ensureGitCommand("GitWorkflowService.isPrimaryWorktree", cwd).pipe(
+        Effect.andThen(
+          Effect.all([
+            git.execute({
+              operation: "GitWorkflowService.isPrimaryWorktree.gitDir",
+              cwd,
+              args: ["rev-parse", "--path-format=absolute", "--git-dir"],
+            }),
+            git.execute({
+              operation: "GitWorkflowService.isPrimaryWorktree.commonDir",
+              cwd,
+              args: ["rev-parse", "--path-format=absolute", "--git-common-dir"],
+            }),
+          ]),
+        ),
+        Effect.map(([gitDir, commonDir]) => gitDir.stdout.trim() === commonDir.stdout.trim()),
+      ),
+    checkedOutBranch: (cwd) =>
+      ensureGitCommand("GitWorkflowService.checkedOutBranch", cwd).pipe(
+        Effect.andThen(
+          git.execute({
+            operation: "GitWorkflowService.checkedOutBranch",
+            cwd,
+            args: ["symbolic-ref", "--quiet", "--short", "HEAD"],
+            allowNonZeroExit: true,
+          }),
+        ),
+        Effect.flatMap(({ stdout, exitCode }) => {
+          if (exitCode === 0) return Effect.succeed(stdout.trim() || null);
+          if (exitCode === 1) return Effect.succeed(null);
+          return Effect.fail(
+            new GitCommandError({
+              operation: "GitWorkflowService.checkedOutBranch",
+              command: "git symbolic-ref --quiet --short HEAD",
+              cwd,
+              detail: "Could not read the current Git branch.",
+            }),
+          );
+        }),
+      ),
+    localBranchExists: ({ cwd, branch }) =>
+      ensureGitCommand("GitWorkflowService.localBranchExists", cwd).pipe(
+        Effect.andThen(
+          git.execute({
+            operation: "GitWorkflowService.localBranchExists",
+            cwd,
+            args: ["show-ref", "--verify", "--quiet", `refs/heads/${branch}`],
+            allowNonZeroExit: true,
+          }),
+        ),
+        Effect.map(({ exitCode }) => exitCode === 0),
+      ),
+    registeredWorktreePath: ({ cwd, branch }) =>
+      ensureGitCommand("GitWorkflowService.registeredWorktreePath", cwd).pipe(
+        Effect.andThen(
+          git.execute({
+            operation: "GitWorkflowService.registeredWorktreePath",
+            cwd,
+            args: ["worktree", "list", "--porcelain", "-z"],
+          }),
+        ),
+        Effect.flatMap(({ stdout }) => {
+          const paths = parseRegisteredWorktreePaths(stdout, branch);
+          if (paths.length > 1)
+            return Effect.fail(
+              new GitCommandError({
+                operation: "GitWorkflowService.registeredWorktreePath",
+                command: "git worktree list --porcelain -z",
+                cwd,
+                detail: `Branch ${branch} is registered in multiple worktrees; refusing to choose one.`,
+              }),
+            );
+          return Effect.succeed(paths[0] ?? null);
+        }),
+      ),
+    unregisterMissingWorktree: ({ cwd, path }) =>
+      ensureGitCommand("GitWorkflowService.unregisterMissingWorktree", cwd).pipe(
+        Effect.andThen(
+          git.execute({
+            operation: "GitWorkflowService.unregisterMissingWorktree",
+            cwd,
+            args: ["worktree", "remove", path],
+          }),
+        ),
+        Effect.asVoid,
       ),
     fetchRemote: (input) =>
       ensureGitCommand("GitWorkflowService.fetchRemote", input.cwd).pipe(

@@ -25,11 +25,11 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import { describeFeatureTaskError } from "@yantrix/client-runtime/state/feature-task-workspace";
 import {
   isAtomCommandInterrupted,
   squashAtomCommandFailure,
 } from "@yantrix/client-runtime/state/runtime";
-import { stackedThreadToast, toastManager } from "../ui/toast";
 
 const STATUSES: ReadonlyArray<{ value: FeatureTaskStatus; label: string }> = [
   { value: "requested", label: "Requested" },
@@ -151,13 +151,11 @@ export function TaskEditorDialog({
         );
         return;
       }
+      // The dialog is modal, so a toast would sit behind it. Keep the fields and
+      // show the real reason where the retry button is.
       if (!isAtomCommandInterrupted(result)) {
-        toastManager.add(
-          stackedThreadToast({
-            type: "error",
-            title: task ? "Could not update task" : "Could not create task",
-            description: String(failure),
-          }),
+        setValidationError(
+          `${task ? "Could not update the task." : "Could not create the task."} ${describeFeatureTaskError(failure)}`,
         );
       }
       return;

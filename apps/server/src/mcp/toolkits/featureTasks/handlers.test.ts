@@ -13,6 +13,8 @@ import * as Layer from "effect/Layer";
 import * as Stream from "effect/Stream";
 
 import * as FeatureTasks from "../../../featureTasks/FeatureTaskService.ts";
+import * as FeatureTaskWorkspaces from "../../../featureTasks/FeatureTaskWorkspaceService.ts";
+import * as FeatureTaskDelivery from "../../../featureTasks/FeatureTaskDeliveryService.ts";
 import * as ThreadManagement from "../../../orchestration-v2/ThreadManagementService.ts";
 import * as McpInvocationContext from "../../McpInvocationContext.ts";
 import { FeatureTasksHandlersLive } from "./handlers.ts";
@@ -73,6 +75,20 @@ function dependencies(
         Effect.sync(() => {
           overrides.onUpdate?.();
           return { task };
+        }),
+    }),
+    Layer.mock(FeatureTaskWorkspaces.FeatureTaskWorkspaceService)({
+      inspect: () => Effect.succeed({ state: "unbound", binding: null, recoveryAvailable: true }),
+      ensure: () => Effect.succeed({ state: "unbound", binding: null, recoveryAvailable: true }),
+      attach: () => Effect.succeed({ state: "unbound", binding: null, recoveryAvailable: true }),
+    }),
+    Layer.mock(FeatureTaskDelivery.FeatureTaskDeliveryService)({
+      get: () =>
+        Effect.succeed({
+          pullRequest: null,
+          checks: "unknown",
+          mergeState: "unknown",
+          updatedAt: null,
         }),
     }),
   );

@@ -323,6 +323,11 @@ import {
   FeatureTaskListInput,
   FeatureTaskListResult,
   FeatureTaskUpdateInput,
+  FeatureTaskWorkspaceInput,
+  FeatureTaskWorkspaceAttachInput,
+  FeatureTaskWorkspaceResult,
+  FeatureTaskDelivery,
+  FeatureTaskDeliveryInput,
 } from "./featureTask.ts";
 import {
   ProjectCloneActionInput,
@@ -488,6 +493,10 @@ export const WS_METHODS = {
   featureTasksGet: "featureTasks.get",
   featureTasksCreate: "featureTasks.create",
   featureTasksUpdate: "featureTasks.update",
+  featureTasksWorkspaceInspect: "featureTasks.workspace.inspect",
+  featureTasksWorkspaceEnsure: "featureTasks.workspace.ensure",
+  featureTasksWorkspaceAttach: "featureTasks.workspace.attach",
+  featureTasksDeliveryGet: "featureTasks.delivery.get",
 
   // Cloud environment methods
   cloudGetRelayClientStatus: "cloud.getRelayClientStatus",
@@ -1709,6 +1718,26 @@ const WsFeatureTasksUpdateRpc = Rpc.make(WS_METHODS.featureTasksUpdate, {
   success: FeatureTaskGetResult,
   error: FeatureTaskRpcError,
 });
+const WsFeatureTasksWorkspaceInspectRpc = Rpc.make(WS_METHODS.featureTasksWorkspaceInspect, {
+  payload: FeatureTaskWorkspaceInput,
+  success: FeatureTaskWorkspaceResult,
+  error: FeatureTaskRpcError,
+});
+const WsFeatureTasksWorkspaceEnsureRpc = Rpc.make(WS_METHODS.featureTasksWorkspaceEnsure, {
+  payload: FeatureTaskWorkspaceInput,
+  success: FeatureTaskWorkspaceResult,
+  error: FeatureTaskRpcError,
+});
+const WsFeatureTasksWorkspaceAttachRpc = Rpc.make(WS_METHODS.featureTasksWorkspaceAttach, {
+  payload: FeatureTaskWorkspaceAttachInput,
+  success: FeatureTaskWorkspaceResult,
+  error: FeatureTaskRpcError,
+});
+const WsFeatureTasksDeliveryGetRpc = Rpc.make(WS_METHODS.featureTasksDeliveryGet, {
+  payload: FeatureTaskDeliveryInput,
+  success: FeatureTaskDelivery,
+  error: FeatureTaskRpcError,
+});
 
 const WsSubscribeAuthAccessRpc = Rpc.make(WS_METHODS.subscribeAuthAccess, {
   payload: Schema.Struct({}),
@@ -1800,6 +1829,10 @@ export const WsRpcGroup = RpcGroup.make(
   WsFeatureTasksGetRpc,
   WsFeatureTasksCreateRpc,
   WsFeatureTasksUpdateRpc,
+  WsFeatureTasksWorkspaceInspectRpc,
+  WsFeatureTasksWorkspaceEnsureRpc,
+  WsFeatureTasksWorkspaceAttachRpc,
+  WsFeatureTasksDeliveryGetRpc,
   WsServerReportClientActivityRpc,
   WsServerReportHostPowerStateRpc,
   WsServerGetBackgroundPolicyRpc,

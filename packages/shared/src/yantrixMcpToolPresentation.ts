@@ -90,6 +90,22 @@ const YANTRIX_MCP_TOOLS: Readonly<Record<string, YantrixMcpToolDefinition>> = {
     ["Update", "Updating", "Updated", "a feature task"],
     "thread-update",
   ),
+  yantrix_feature_task_workspace_inspect: tool(
+    ["Inspect", "Inspecting", "Inspected", "a feature task workspace"],
+    "thread-read",
+  ),
+  yantrix_feature_task_workspace_ensure: tool(
+    ["Prepare", "Preparing", "Prepared", "a feature task workspace"],
+    "thread-update",
+  ),
+  yantrix_feature_task_workspace_attach: tool(
+    ["Attach", "Attaching", "Attached", "a feature task workspace"],
+    "thread-update",
+  ),
+  yantrix_feature_task_delivery: tool(
+    ["Check", "Checking", "Checked", "feature task delivery"],
+    "list-prs",
+  ),
   link_pull_request: tool(
     ["Link", "Linking", "Linked", "a pull request"],
     "link-pr",

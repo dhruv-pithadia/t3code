@@ -118,6 +118,8 @@ import * as ThreadMessageIntake from "./orchestration-v2/ThreadMessageIntake.ts"
 import * as IdAllocator from "./orchestration-v2/IdAllocator.ts";
 import * as ScheduledTasks from "./scheduledTasks/ScheduledTaskService.ts";
 import * as FeatureTasks from "./featureTasks/FeatureTaskService.ts";
+import * as FeatureTaskWorkspaces from "./featureTasks/FeatureTaskWorkspaceService.ts";
+import * as FeatureTaskDelivery from "./featureTasks/FeatureTaskDeliveryService.ts";
 import {
   archivedShellStreamItemFromThreadShell,
   buildActiveShellSnapshot,
@@ -1214,6 +1216,8 @@ const makeWsRpcLayer = (
       const providerSessionManager = yield* ProviderSessionManager.ProviderSessionManagerV2;
       const scheduledTasks = yield* ScheduledTasks.ScheduledTaskService;
       const featureTasks = yield* FeatureTasks.FeatureTaskService;
+      const featureTaskWorkspaces = yield* FeatureTaskWorkspaces.FeatureTaskWorkspaceService;
+      const featureTaskDelivery = yield* FeatureTaskDelivery.FeatureTaskDeliveryService;
       const pullRequests = yield* PullRequestService.PullRequestService;
       const pullRequestSync = yield* PullRequestSyncReactor.PullRequestSyncReactor;
       const deviceService = yield* DeviceService.DeviceService;
@@ -2095,6 +2099,38 @@ const makeWsRpcLayer = (
           }),
         [WS_METHODS.featureTasksUpdate]: (input) =>
           observeRpcEffect(WS_METHODS.featureTasksUpdate, featureTasks.update(input), {
+            "rpc.aggregate": "featureTasks",
+            "feature_task.id": input.id,
+          }),
+        [WS_METHODS.featureTasksWorkspaceInspect]: (input) =>
+          observeRpcEffect(
+            WS_METHODS.featureTasksWorkspaceInspect,
+            featureTaskWorkspaces.inspect(input),
+            {
+              "rpc.aggregate": "featureTasks",
+              "feature_task.id": input.id,
+            },
+          ),
+        [WS_METHODS.featureTasksWorkspaceEnsure]: (input) =>
+          observeRpcEffect(
+            WS_METHODS.featureTasksWorkspaceEnsure,
+            featureTaskWorkspaces.ensure(input),
+            {
+              "rpc.aggregate": "featureTasks",
+              "feature_task.id": input.id,
+            },
+          ),
+        [WS_METHODS.featureTasksWorkspaceAttach]: (input) =>
+          observeRpcEffect(
+            WS_METHODS.featureTasksWorkspaceAttach,
+            featureTaskWorkspaces.attach(input),
+            {
+              "rpc.aggregate": "featureTasks",
+              "feature_task.id": input.id,
+            },
+          ),
+        [WS_METHODS.featureTasksDeliveryGet]: (input) =>
+          observeRpcEffect(WS_METHODS.featureTasksDeliveryGet, featureTaskDelivery.get(input), {
             "rpc.aggregate": "featureTasks",
             "feature_task.id": input.id,
           }),
