@@ -386,6 +386,10 @@
     "./codexAuthHandoff": {
       "types": "./src/codexAuthHandoff.ts",
       "import": "./src/codexAuthHandoff.ts"
+    },
+    "./featureTaskContext": {
+      "types": "./src/featureTaskContext.ts",
+      "import": "./src/featureTaskContext.ts"
     }
   },
   "scripts": {

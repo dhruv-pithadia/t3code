@@ -3,8 +3,12 @@
 ## Product direction
 
 Yantrix is the approved product name. The temporary mark is a plain Y. Keep the
-existing interface styling and workflows. The longer-term direction is a persistent
-feature task that outlives its chat and provider session; this is not implemented yet.
+existing interface styling and workflows. Feature tasks persist the objective, decisions, next action, and handoff independently
+of chats and provider sessions. Linked conversations supply workspace and PR context;
+task status remains a progress note rather than proof of verification or merging.
+
+Track Yantrix-specific additions and their delivery status in
+[the progress and feature ledger](YANTRIX_PROGRESS.md). Update it with each new feature PR.
 
 ## Repository and isolation
 

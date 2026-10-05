@@ -1081,6 +1081,22 @@ export function createServerEnvironmentAtoms<R, E>(
       label: "environment-data:server:scheduled-tasks:live",
       tag: WS_METHODS.scheduledTasksSubscribe,
     }),
+    /** Live feature-task list for a server, optionally scoped to one project. */
+    featureTasksLive: createEnvironmentRpcSubscriptionAtomFamily(runtime, {
+      label: "environment-data:server:feature-tasks:live",
+      tag: WS_METHODS.featureTasksSubscribe,
+      idleTtlMs: 0,
+    }),
+    getFeatureTask: createEnvironmentRpcQueryAtomFamily(runtime, {
+      label: "environment-data:server:feature-task:get",
+      tag: WS_METHODS.featureTasksGet,
+      staleTimeMs: 0,
+      idleTtlMs: 0,
+    }),
+    readFeatureTask: createEnvironmentRpcCommand(runtime, {
+      label: "environment-data:server:feature-task:read",
+      tag: WS_METHODS.featureTasksGet,
+    }),
     // A cold transcript scan is measured in seconds, so keep the result around
     // long enough that switching windows or re-rendering does not rescan.
     usageSummary: createEnvironmentRpcQueryAtomFamily(runtime, {
@@ -1284,6 +1300,14 @@ export function createServerEnvironmentAtoms<R, E>(
     runScheduledTaskNow: createEnvironmentRpcCommand(runtime, {
       label: "environment-data:server:scheduled-task:run-now",
       tag: WS_METHODS.scheduledTasksRunNow,
+    }),
+    createFeatureTask: createEnvironmentRpcCommand(runtime, {
+      label: "environment-data:server:feature-task:create",
+      tag: WS_METHODS.featureTasksCreate,
+    }),
+    updateFeatureTask: createEnvironmentRpcCommand(runtime, {
+      label: "environment-data:server:feature-task:update",
+      tag: WS_METHODS.featureTasksUpdate,
     }),
     refreshUsageRates: createEnvironmentRpcCommand(runtime, {
       label: "environment-data:server:refresh-usage-rates",

@@ -51,6 +51,9 @@ import { layer as threadLifecycleServiceLayer } from "./ThreadLifecycleService.t
 import { layer as threadForkServiceLayer } from "./ThreadForkService.ts";
 import { layer as turnItemPositionStoreLayer } from "./TurnItemPositionStore.ts";
 import { layer as scheduledTaskServiceLayer } from "../scheduledTasks/ScheduledTaskService.ts";
+import * as FeatureTaskServiceModule from "../featureTasks/FeatureTaskService.ts";
+
+const featureTaskServiceLayer = FeatureTaskServiceModule.layer;
 
 /** The shared application event log and its command receipts. */
 export const OrchestrationEventInfrastructureLayerLive = Layer.mergeAll(
@@ -157,6 +160,7 @@ const providerTurnStartServiceProvided = providerTurnStartServiceLayer.pipe(
       providerAuthServiceProvided,
       runExecutionServiceProvided,
       runtimePolicyProvided,
+      featureTaskServiceLayer,
     ),
   ),
 );
@@ -303,6 +307,7 @@ export const OrchestrationV2LayerLive = Layer.mergeAll(
   providerSessionManagerProvided,
   providerAuthServiceProvided,
   providerRuntimeRecoveryProvided,
+  featureTaskServiceLayer,
   projectionMaintenanceProvided,
   legacyV1ThreadImporterProvided,
 );

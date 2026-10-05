@@ -227,6 +227,13 @@ export function CommandPalette(props: {
           }),
       },
       {
+        key: "featureTasks",
+        kind: "action",
+        title: "Feature tasks",
+        searchTerms: ["objectives", "handoff", "resume work", "task tracker"],
+        run: () => navigation.navigate("FeatureTasks"),
+      },
+      {
         key: "scheduledTasks",
         kind: "action",
         title: "Scheduled tasks",

@@ -80,6 +80,16 @@ const YANTRIX_MCP_SERVER_ALIASES = new Set(["yantrix"]);
 
 // Cards, activity rows, summaries, and provider identity recovery share this inventory.
 const YANTRIX_MCP_TOOLS: Readonly<Record<string, YantrixMcpToolDefinition>> = {
+  yantrix_feature_task_list: tool(["List", "Listing", "Listed", "feature tasks"], "thread-list"),
+  yantrix_feature_task_read: tool(["Read", "Reading", "Read", "a feature task"], "thread-read"),
+  yantrix_feature_task_create: tool(
+    ["Create", "Creating", "Created", "a feature task"],
+    "thread-create",
+  ),
+  yantrix_feature_task_update: tool(
+    ["Update", "Updating", "Updated", "a feature task"],
+    "thread-update",
+  ),
   link_pull_request: tool(
     ["Link", "Linking", "Linked", "a pull request"],
     "link-pr",

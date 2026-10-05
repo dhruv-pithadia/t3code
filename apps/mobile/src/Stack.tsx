@@ -53,6 +53,11 @@ import { ThreadRouteScreen } from "./features/threads/ThreadRouteScreen";
 import { ConnectionsRouteScreen } from "./features/connection/ConnectionsRouteScreen";
 import { ConnectionsNewRouteScreen } from "./features/connection/ConnectionsNewRouteScreen";
 import { HomeRouteScreen } from "./features/home/HomeRouteScreen";
+import {
+  FeatureTaskDetailRouteScreen,
+  FeatureTaskEditorRouteScreen,
+  FeatureTasksRouteScreen,
+} from "./features/tasks/FeatureTasksRouteScreens";
 import { AddProjectDestinationRoute } from "./features/projects/AddProjectDestinationRoute";
 import { AddProjectLocalRoute } from "./features/projects/AddProjectLocalRoute";
 import { AddProjectNewRoute } from "./features/projects/AddProjectNewRoute";
@@ -683,6 +688,21 @@ const RootStackConfig = createNativeStackNavigator({
         headerBackVisible: false,
         ...getCompactBrandHeaderOptions(),
       },
+    }),
+    FeatureTasks: createNativeStackScreen({
+      screen: FeatureTasksRouteScreen,
+      linking: "tasks",
+      options: GLASS_HEADER_OPTIONS,
+    }),
+    FeatureTaskDetail: createNativeStackScreen({
+      screen: FeatureTaskDetailRouteScreen,
+      linking: "tasks/:environmentId/:taskId",
+      options: GLASS_HEADER_OPTIONS,
+    }),
+    FeatureTaskEditor: createNativeStackScreen({
+      screen: FeatureTaskEditorRouteScreen,
+      linking: "tasks/edit",
+      options: GLASS_HEADER_OPTIONS,
     }),
     Thread: createNativeStackScreen({
       screen: ThreadRouteScreen,

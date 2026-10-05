@@ -1,3 +1,4 @@
+import * as FeatureTasks from "../../featureTasks/FeatureTaskService.ts";
 import * as OtelEnvironment from "@yantrix/shared/otelEnvironment";
 import { DEFAULT_SIGNAL_EXPORT } from "@yantrix/shared/observability";
 import * as NodeServices from "@effect/platform-node/NodeServices";
@@ -364,6 +365,7 @@ export function makeOrchestratorV2ReplayLayerWithRegistry<Error>(
   const providerTurnStartServiceProvided = ProviderTurnStartService.layer.pipe(
     Layer.provide(
       Layer.mergeAll(
+        FeatureTasks.layer.pipe(Layer.provide(databaseLayer)),
         contextHandoffServiceProvided,
         eventSinkProvided,
         IdAllocator.layer,

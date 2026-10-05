@@ -13,20 +13,33 @@ const [Effect, Layer, FileSystem] = await Promise.all([
   load("FileSystem"),
 ]);
 const app = (file) => import(NodeURL.pathToFileURL(root + "/apps/server/src/" + file + ".ts"));
-const [Start, Projection, Run, Sessions, Policy, Id, Sink, Handoff, Git, Project, Auth] =
-  await Promise.all([
-    app("orchestration-v2/ProviderTurnStartService"),
-    app("orchestration-v2/ProjectionStore"),
-    app("orchestration-v2/RunExecutionService"),
-    app("orchestration-v2/ProviderSessionManager"),
-    app("orchestration-v2/RuntimePolicy"),
-    app("orchestration-v2/IdAllocator"),
-    app("orchestration-v2/EventSink"),
-    app("orchestration-v2/ContextHandoffService"),
-    app("git/GitWorkflowService"),
-    app("project/ProjectService"),
-    app("provider/Services/ProviderAuthService"),
-  ]);
+const [
+  Start,
+  Projection,
+  Run,
+  Sessions,
+  Policy,
+  Id,
+  Sink,
+  Handoff,
+  Git,
+  Project,
+  Auth,
+  FeatureTasks,
+] = await Promise.all([
+  app("orchestration-v2/ProviderTurnStartService"),
+  app("orchestration-v2/ProjectionStore"),
+  app("orchestration-v2/RunExecutionService"),
+  app("orchestration-v2/ProviderSessionManager"),
+  app("orchestration-v2/RuntimePolicy"),
+  app("orchestration-v2/IdAllocator"),
+  app("orchestration-v2/EventSink"),
+  app("orchestration-v2/ContextHandoffService"),
+  app("git/GitWorkflowService"),
+  app("project/ProjectService"),
+  app("provider/Services/ProviderAuthService"),
+  app("featureTasks/FeatureTaskService"),
+]);
 let current;
 let fullReads = 0;
 const liveRuns = [];
@@ -44,6 +57,7 @@ const session = {
 };
 const dependencies = Layer.mergeAll(
   Layer.mock(Handoff.ContextHandoffServiceV2)({}),
+  Layer.mock(FeatureTasks.FeatureTaskService)({ readForThread: () => Effect.succeed(null) }),
   Id.layer,
   FileSystem.layerNoop({}),
   Layer.mock(Git.GitWorkflowService)({}),
