@@ -17,18 +17,19 @@ foundations. Yantrix's additions extend those capabilities.
 
 ## Progress ledger
 
-| ID     | Addition                          | Category               | Status                       | What it adds                                                                                                                                                     | Implementation record                                     |
-| ------ | --------------------------------- | ---------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| YF-001 | Persistent feature tasks          | Product feature        | Ready for review, not merged | A durable objective, acceptance criteria, decisions, next action, and handoff shared across linked conversations and restarts.                                   | [PR #4](https://github.com/dhruv-pithadia/yantrix/pull/4) |
-| YF-002 | Independent development workspace | Development foundation | Merged                       | Checkout-local application data, separate development identity and ports, and disabled updates for working on Yantrix alongside an installed T3 Code app.        | [PR #1](https://github.com/dhruv-pithadia/yantrix/pull/1) |
-| YF-003 | Yantrix product identity          | Branding foundation    | Merged                       | Yantrix naming, assets, package and application identities, and configuration defaults. This establishes the fork's identity rather than a new agent capability. | [PR #3](https://github.com/dhruv-pithadia/yantrix/pull/3) |
+| ID     | Addition                          | Category               | Status   | What it adds                                                                                                                                                     | Implementation record                                     |
+| ------ | --------------------------------- | ---------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| YF-001 | Persistent feature tasks          | Product feature        | Merged   | A durable objective, acceptance criteria, decisions, next action, and handoff shared across linked conversations and restarts.                                   | [PR #4](https://github.com/dhruv-pithadia/yantrix/pull/4) |
+| YF-002 | Independent development workspace | Development foundation | Merged   | Checkout-local application data, separate development identity and ports, and disabled updates for working on Yantrix alongside an installed T3 Code app.        | [PR #1](https://github.com/dhruv-pithadia/yantrix/pull/1) |
+| YF-003 | Yantrix product identity          | Branding foundation    | Merged   | Yantrix naming, assets, package and application identities, and configuration defaults. This establishes the fork's identity rather than a new agent capability. | [PR #3](https://github.com/dhruv-pithadia/yantrix/pull/3) |
+| YF-004 | Task-owned workspaces             | Product feature        | Building | One durable task workspace and branch shared by linked conversations, delivery state, and safe recovery when the workspace is unavailable or inconsistent.       | Current task branch: `feat/task-workspaces`               |
 
 [PR #2](https://github.com/dhruv-pithadia/yantrix/pull/2) preserved the repository
 setup and product direction in documentation. It is supporting work, not an
 additional product feature.
 
-**Current position:** one new product feature is implemented and awaiting merge;
-two supporting foundations are merged. A merged change is not automatically a
+**Current position:** the first new product feature is merged in PR #4 on 5 October 2026;
+two supporting foundations are merged. Task-owned workspaces are being built next. A merged change is not automatically a
 published release. No published Yantrix release is recorded here yet.
 
 ## YF-001: persistent feature tasks
@@ -62,8 +63,8 @@ workspace and PR workflows are reused.
 > A feature keeps its goal, decisions, and next step while you move between
 > conversations or restart the app, so the work has continuity beyond one chat.
 
-Until PR #4 is merged and available in a build, describe this as implemented and
-under review, rather than available in a released version.
+PR #4 merged on 5 October 2026. Persistent feature tasks are done and merged;
+a published release containing them has not yet been recorded.
 
 ## Keeping this ledger current
 
