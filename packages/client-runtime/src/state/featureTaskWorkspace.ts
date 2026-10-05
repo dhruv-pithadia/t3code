@@ -1,5 +1,4 @@
 import type {
-  FeatureTask,
   FeatureTaskDelivery,
   FeatureTaskId,
   FeatureTaskWorkspaceBinding,
@@ -352,8 +351,4 @@ export function describeFeatureTaskDelivery(delivery: FeatureTaskDelivery): Deli
             ? "unknown"
             : "success";
   return { headline: `Pull request #${delivery.pullRequest.number}`, tone, checks, merge };
-}
-
-export function taskWorkspaceBinding(task: FeatureTask): FeatureTaskWorkspaceBinding | null {
-  return task.workspace ?? null;
 }
