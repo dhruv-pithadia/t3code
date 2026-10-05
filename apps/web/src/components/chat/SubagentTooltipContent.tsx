@@ -4,11 +4,11 @@ import type {
   OrchestrationProjectShell,
   ServerProvider,
   ProviderDriverKind,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import {
   resolveSubagentMetadata,
   subagentDetailPreview,
-} from "@t3tools/client-runtime/state/subagent-display";
+} from "@yantrix/client-runtime/state/subagent-display";
 import type { ReactNode } from "react";
 import {
   BotIcon,

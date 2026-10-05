@@ -572,7 +572,7 @@ const WsServerRefreshProvidersRpc = Rpc.make(WS_METHODS.serverRefreshProviders, 
     /** With `instanceId` and `cwd`: rescan the workspace's skills and slash
      * commands even when a snapshot for that cwd already exists. */
     fresh: Schema.optional(Schema.Boolean),
-    /** Explicit user request: bypass T3-owned caches and rediscover models.
+    /** Explicit user request: bypass Yantrix-owned caches and rediscover models.
      * Background status refreshes must not open agent sessions. */
     refreshModels: Schema.optional(Schema.Boolean),
   }),
@@ -1316,7 +1316,7 @@ const WsVcsInitRpc = Rpc.make(WS_METHODS.vcsInit, {
 
 /**
  * Ephemeral live diff preview for compact/mobile surfaces.
- * Not the persisted T3 Review model. Future review sessions should use
+ * Not the persisted Yantrix Review model. Future review sessions should use
  * review.open* + review.getSnapshot.
  */
 const WsReviewGetDiffPreviewRpc = Rpc.make(WS_METHODS.reviewGetDiffPreview, {
@@ -1695,7 +1695,7 @@ const WsSubscribeResourceTelemetryRpc = Rpc.make(WS_METHODS.subscribeResourceTel
  * be added without authorization.
  */
 export class RpcScopeAuthorization extends RpcMiddleware.Service<RpcScopeAuthorization>()(
-  "t3/contracts/RpcScopeAuthorization",
+  "yantrix/contracts/RpcScopeAuthorization",
   { error: EnvironmentAuthorizationError },
 ) {}
 

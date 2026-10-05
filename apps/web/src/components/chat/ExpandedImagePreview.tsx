@@ -1,4 +1,4 @@
-import type { SnapShotSource } from "@t3tools/contracts";
+import type { SnapShotSource } from "@yantrix/contracts";
 
 import type { ComposerFileAttachment } from "../../composerDraftStore";
 import { type ChatFileAttachment, type ChatImageAttachment, isVideoAttachment } from "../../types";
@@ -7,14 +7,14 @@ import type {
   AssetResource,
   EnvironmentId,
   ScopedThreadRef,
-} from "@t3tools/contracts";
-import { videoMimeType } from "@t3tools/shared/video";
-import { resolveMediaSource } from "@t3tools/client-runtime/media-source";
-import { resolveAssetUrl } from "@t3tools/client-runtime/state/assets";
+} from "@yantrix/contracts";
+import { videoMimeType } from "@yantrix/shared/video";
+import { resolveMediaSource } from "@yantrix/client-runtime/media-source";
+import { resolveAssetUrl } from "@yantrix/client-runtime/state/assets";
 import {
   squashAtomCommandFailure,
   type AtomCommandResult,
-} from "@t3tools/client-runtime/state/runtime";
+} from "@yantrix/client-runtime/state/runtime";
 import { resolveExternalWebLinkHost } from "./externalLinkContextMenu";
 import type { MediaActionSource } from "../media/MediaActions";
 import { resolveProtocolRelativeMediaUrl } from "../media/mediaContent";

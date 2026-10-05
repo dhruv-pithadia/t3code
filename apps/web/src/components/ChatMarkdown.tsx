@@ -3,7 +3,7 @@ import { useAtomValue } from "@effect/atom-react";
 import {
   COMPOSER_CONTEXT_CLIPBOARD_MIME,
   encodeComposerContextClipboardHtml,
-} from "@t3tools/shared/composerContextClipboard";
+} from "@yantrix/shared/composerContextClipboard";
 import {
   ChevronRightIcon,
   CodeIcon,
@@ -32,26 +32,26 @@ import type {
   ScopedThreadRef,
   ServerProviderSkill,
   ThreadPullRequestKey,
-} from "@t3tools/contracts";
-import { faviconUrlForOrigin } from "@t3tools/shared/favicon";
-import { githubMediaFetchUrl } from "@t3tools/shared/githubMedia";
+} from "@yantrix/contracts";
+import { faviconUrlForOrigin } from "@yantrix/shared/favicon";
+import { githubMediaFetchUrl } from "@yantrix/shared/githubMedia";
 import {
   isAtomCommandInterrupted,
   squashAtomCommandFailure,
   type AtomCommandResult,
-} from "@t3tools/client-runtime/state/runtime";
+} from "@yantrix/client-runtime/state/runtime";
 import {
   codexArtifactTemplatePresentationLabel,
   type CodexArtifactTemplate,
   type CodexArtifactTemplateKind,
-} from "@t3tools/client-runtime/codex-artifact-templates";
+} from "@yantrix/client-runtime/codex-artifact-templates";
 import {
   classifyMarkdownImageSource,
   markdownImageSourceFragment,
-} from "@t3tools/client-runtime/markdown-images";
-import { inlineCodeFilePathCandidate } from "@t3tools/client-runtime/markdown-links";
-import { mediaFileReference, mediaUrlReference } from "@t3tools/client-runtime/media-reference";
-import { mediaKindFromPath, mediaMimeTypeFromExtension } from "@t3tools/shared/filePreview";
+} from "@yantrix/client-runtime/markdown-images";
+import { inlineCodeFilePathCandidate } from "@yantrix/client-runtime/markdown-links";
+import { mediaFileReference, mediaUrlReference } from "@yantrix/client-runtime/media-reference";
+import { mediaKindFromPath, mediaMimeTypeFromExtension } from "@yantrix/shared/filePreview";
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/unstable/reactivity";
 import React, {
@@ -84,19 +84,19 @@ import { defaultUrlTransform } from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import remarkBreaks from "remark-breaks";
-import { parseAssistantCitationHref } from "@t3tools/shared/assistantCitations";
-import { parseComposerContextHref } from "@t3tools/shared/composerContextReferences";
+import { parseAssistantCitationHref } from "@yantrix/shared/assistantCitations";
+import { parseComposerContextHref } from "@yantrix/shared/composerContextReferences";
 import { AssistantCitationChip } from "./chat/AssistantCitationChip";
 import remarkGfm from "remark-gfm";
 import type { Processor } from "unified";
-import { isWindowsAbsolutePath } from "@t3tools/shared/path";
+import { isWindowsAbsolutePath } from "@yantrix/shared/path";
 import { remarkGithubAlerts } from "../markdown-github-alerts";
 import {
   artifactTemplateFromHastProperties,
   CODEX_ARTIFACT_TEMPLATE_HAST_PROPERTIES,
   remarkCodexDirectives,
   renderCodexFileCitationsAsMarkdown,
-} from "@t3tools/client-runtime/codex-markdown-directives";
+} from "@yantrix/client-runtime/codex-markdown-directives";
 import { renderSkillInlineMarkdownChildren } from "./chat/SkillInlineText";
 import {
   resolveMarkdownMediaPreview,
@@ -161,7 +161,7 @@ import {
   shouldOpenMarkdownFileLinkInEditor,
   type MarkdownFileLinkMeta,
 } from "../markdown-links";
-import { isMarkdownFileLinkLabel } from "@t3tools/client-runtime/markdown-links";
+import { isMarkdownFileLinkLabel } from "@yantrix/client-runtime/markdown-links";
 import { readLocalApi } from "../localApi";
 import { useAssetUrlRefresh, useAssetUrlState } from "../assets/assetUrls";
 import { cn } from "../lib/utils";
@@ -226,7 +226,7 @@ interface ChatMarkdownProps {
   imageBaseDir?: string | undefined;
   onImageExpand?: ((preview: ExpandedImagePreview) => void) | undefined;
   extraRemarkPlugins?: NonNullable<ReactMarkdownOptions["remarkPlugins"]>;
-  /** Renders a `t3-context://` link as a chip; without it the link shows its label as text. */
+  /** Renders a `yantrix-context://` link as a chip; without it the link shows its label as text. */
   renderContextReference?: ((reference: ChatMarkdownContextReference) => ReactNode) | undefined;
   /** Loads GitHub-hosted media through `cwd`'s GitHub credential, which a private repository's
       uploads need; without it those images and videos load unauthenticated and 404. */
@@ -487,8 +487,8 @@ const CHAT_MARKDOWN_SANITIZE_SCHEMA = {
   },
   protocols: {
     ...defaultSchema.protocols,
-    href: [...(defaultSchema.protocols?.href ?? []), "file", "t3-citation", "t3-context"],
-    src: [...(defaultSchema.protocols?.src ?? []), "file", "t3-context"],
+    href: [...(defaultSchema.protocols?.href ?? []), "file", "yantrix-citation", "yantrix-context"],
+    src: [...(defaultSchema.protocols?.src ?? []), "file", "yantrix-context"],
   },
 } satisfies Parameters<typeof rehypeSanitize>[0];
 
@@ -655,7 +655,7 @@ function keepWindowsPathDestination(this: DestinationCompileContext, token: unkn
 }
 
 /**
- * CommonMark reads the `\.` in `C:\me\.t3\shot.png` as an escape, even in a link
+ * CommonMark reads the `\.` in `C:\me\.yantrix\shot.png` as an escape, even in a link
  * destination. Every backslash in a Windows path is a separator, so link, image, and
  * definition destinations that are Windows paths keep the text as written.
  */

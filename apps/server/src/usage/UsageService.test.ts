@@ -8,15 +8,15 @@ import * as NodeSqlite from "node:sqlite";
 
 import { assert, describe, it } from "@effect/vitest";
 import * as NodeServices from "@effect/platform-node/NodeServices";
-import { HostProcessEnvironment, HostProcessPlatform } from "@t3tools/shared/hostProcess";
-import { mergeUsage } from "@t3tools/shared/usageMerge";
+import { HostProcessEnvironment, HostProcessPlatform } from "@yantrix/shared/hostProcess";
+import { mergeUsage } from "@yantrix/shared/usageMerge";
 import {
   EnvironmentId,
   ProviderDriverKind,
   ProviderInstanceId,
   UsageDay,
   type UsageSummaryInput,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import * as Duration from "effect/Duration";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";

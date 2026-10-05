@@ -1,10 +1,10 @@
-import { EnvironmentId } from "@t3tools/contracts";
-import { mediaMimeType } from "@t3tools/shared/filePreview";
+import { EnvironmentId } from "@yantrix/contracts";
+import { mediaMimeType } from "@yantrix/shared/filePreview";
 import {
   getProjectFaviconCacheKey,
   getProjectFaviconResourceKey,
   isProjectFaviconFallbackUrl,
-} from "@t3tools/shared/projectFavicon";
+} from "@yantrix/shared/projectFavicon";
 import * as Encoding from "effect/Encoding";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";

@@ -27,10 +27,10 @@ import {
   RunId,
   ThreadId,
   TurnItemId,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import { assert, describe, it } from "@effect/vitest";
-import { HostProcessEnvironment, HostProcessPlatform } from "@t3tools/shared/hostProcess";
-import { SpawnExecutableResolution } from "@t3tools/shared/shell";
+import { HostProcessEnvironment, HostProcessPlatform } from "@yantrix/shared/hostProcess";
+import { SpawnExecutableResolution } from "@yantrix/shared/shell";
 import * as CodexClient from "effect-codex-app-server/client";
 import * as CodexReplay from "effect-codex-app-server/replay";
 import * as DateTime from "effect/DateTime";
@@ -400,7 +400,7 @@ describe("CodexAdapterV2 assistant message streaming", () => {
 });
 
 describe("CodexAdapterV2 runtime policy", () => {
-  it.effect("derives concrete Codex turn policies from every T3 runtime mode", () =>
+  it.effect("derives concrete Codex turn policies from every Yantrix runtime mode", () =>
     Effect.gen(function* () {
       const build = (
         runtimeMode: "approval-required" | "auto-accept-edits" | "auto" | "full-access",
@@ -464,39 +464,41 @@ describe("CodexAdapterV2 runtime policy", () => {
     }),
   );
 
-  it.effect("adds default-mode developer instructions when the T3 MCP server is attached", () =>
-    Effect.gen(function* () {
-      const params = yield* CodexAdapterV2.buildCodexTurnStartParams({
-        nativeThreadId: "native-orchestration-instructions",
-        codexInput: [{ type: "text", text: "delegate this task" }],
-        runtimePolicy: {
-          runtimeMode: "full-access",
-          interactionMode: "default",
-          cwd: null,
-        },
-        modelSelection: {
-          instanceId: ProviderInstanceId.make("codex"),
-          model: "gpt-5.4",
-        },
-        hasT3Mcp: true,
-      });
+  it.effect(
+    "adds default-mode developer instructions when the Yantrix MCP server is attached",
+    () =>
+      Effect.gen(function* () {
+        const params = yield* CodexAdapterV2.buildCodexTurnStartParams({
+          nativeThreadId: "native-orchestration-instructions",
+          codexInput: [{ type: "text", text: "delegate this task" }],
+          runtimePolicy: {
+            runtimeMode: "full-access",
+            interactionMode: "default",
+            cwd: null,
+          },
+          modelSelection: {
+            instanceId: ProviderInstanceId.make("codex"),
+            model: "gpt-5.4",
+          },
+          hasYantrixMcp: true,
+        });
 
-      assert.equal(params.collaborationMode?.mode, "default");
-      assert.include(
-        params.additionalContext?.t3_code_orchestration?.value ?? "",
-        "Use `delegate_task`",
-      );
-      assert.include(
-        params.additionalContext?.t3_code_orchestration?.value ?? "",
-        "structured object, never as JSON text",
-      );
-    }),
+        assert.equal(params.collaborationMode?.mode, "default");
+        assert.include(
+          params.additionalContext?.yantrix_orchestration?.value ?? "",
+          "Use `delegate_task`",
+        );
+        assert.include(
+          params.additionalContext?.yantrix_orchestration?.value ?? "",
+          "structured object, never as JSON text",
+        );
+      }),
   );
 
-  it.effect("omits default-mode collaboration settings without the T3 MCP server", () =>
+  it.effect("omits default-mode collaboration settings without the Yantrix MCP server", () =>
     Effect.gen(function* () {
       const params = yield* CodexAdapterV2.buildCodexTurnStartParams({
-        nativeThreadId: "native-default-without-t3-mcp",
+        nativeThreadId: "native-default-without-yantrix-mcp",
         codexInput: [{ type: "text", text: "implement this task" }],
         runtimePolicy: {
           runtimeMode: "full-access",
@@ -507,43 +509,45 @@ describe("CodexAdapterV2 runtime policy", () => {
           instanceId: ProviderInstanceId.make("codex"),
           model: "gpt-5.4",
         },
-        hasT3Mcp: false,
+        hasYantrixMcp: false,
       });
 
       assert.isUndefined(params.collaborationMode);
     }),
   );
 
-  it.effect("adds T3 plan-mode developer instructions when the T3 MCP server is attached", () =>
-    Effect.gen(function* () {
-      const params = yield* CodexAdapterV2.buildCodexTurnStartParams({
-        nativeThreadId: "native-plan-with-t3-mcp",
-        codexInput: [{ type: "text", text: "plan this task" }],
-        runtimePolicy: {
-          runtimeMode: "full-access",
-          interactionMode: "plan",
-          cwd: null,
-        },
-        modelSelection: {
-          instanceId: ProviderInstanceId.make("codex"),
-          model: "gpt-5.4",
-        },
-        hasT3Mcp: true,
-      });
+  it.effect(
+    "adds Yantrix plan-mode developer instructions when the Yantrix MCP server is attached",
+    () =>
+      Effect.gen(function* () {
+        const params = yield* CodexAdapterV2.buildCodexTurnStartParams({
+          nativeThreadId: "native-plan-with-yantrix-mcp",
+          codexInput: [{ type: "text", text: "plan this task" }],
+          runtimePolicy: {
+            runtimeMode: "full-access",
+            interactionMode: "plan",
+            cwd: null,
+          },
+          modelSelection: {
+            instanceId: ProviderInstanceId.make("codex"),
+            model: "gpt-5.4",
+          },
+          hasYantrixMcp: true,
+        });
 
-      assert.equal(params.collaborationMode?.mode, "plan");
-      assert.include(
-        params.collaborationMode?.settings.developer_instructions ?? "",
-        "request_user_input",
-      );
-      assert.include(params.additionalContext?.t3_code_tools?.value ?? "", "preview_status");
-    }),
+        assert.equal(params.collaborationMode?.mode, "plan");
+        assert.include(
+          params.collaborationMode?.settings.developer_instructions ?? "",
+          "request_user_input",
+        );
+        assert.include(params.additionalContext?.yantrix_tools?.value ?? "", "preview_status");
+      }),
   );
 
-  it.effect("keeps Codex in plan mode without referencing unavailable T3 MCP tools", () =>
+  it.effect("keeps Codex in plan mode without referencing unavailable Yantrix MCP tools", () =>
     Effect.gen(function* () {
       const params = yield* CodexAdapterV2.buildCodexTurnStartParams({
-        nativeThreadId: "native-plan-without-t3-mcp",
+        nativeThreadId: "native-plan-without-yantrix-mcp",
         codexInput: [{ type: "text", text: "plan this task" }],
         runtimePolicy: {
           runtimeMode: "full-access",
@@ -554,7 +558,7 @@ describe("CodexAdapterV2 runtime policy", () => {
           instanceId: ProviderInstanceId.make("codex"),
           model: "gpt-5.4",
         },
-        hasT3Mcp: false,
+        hasYantrixMcp: false,
       });
 
       assert.equal(params.collaborationMode?.mode, "plan");
@@ -641,7 +645,7 @@ describe("CodexAdapterV2 process spawning", () => {
           config: {
             "tools.update_plan.enabled": true,
             mcp_servers: {
-              "t3-code": {
+              yantrix: {
                 url: "http://127.0.0.1:43123/mcp",
                 http_headers: {
                   Authorization: "Bearer secret-codex-token",
@@ -747,7 +751,7 @@ describe("CodexAdapterV2 process spawning", () => {
           .pipe(Effect.scoped, Effect.exit);
 
       yield* open({});
-      yield* open({ T3CODE_CODEX_LAUNCH_ARGS: " --enable env-feature " });
+      yield* open({ YANTRIX_CODEX_LAUNCH_ARGS: " --enable env-feature " });
 
       assert.deepEqual(spawnedArgs, [
         ["app-server", "--strict-config", "-c", "model_reasoning_summary=detailed"],
@@ -776,7 +780,7 @@ describe("CodexAdapterV2 process spawning", () => {
         Effect.provide(
           Layer.mergeAll(
             CodexAdapterV2.codexAppServerClientFactoryFromSettingsLayer,
-            ServerConfig.layerTest(process.cwd(), { prefix: "t3-codex-binary-home-" }),
+            ServerConfig.layerTest(process.cwd(), { prefix: "yantrixx-binary-home-" }),
           ),
         ),
         Effect.provideService(ChildProcessSpawner.ChildProcessSpawner, spawner),
@@ -888,7 +892,7 @@ describe("CodexAdapterV2 dynamic tool projection", () => {
     const projection = CodexAdapterV2.projectCodexDynamicToolItem({
       type: "mcpToolCall",
       id: "call-create-threads",
-      server: "t3-code",
+      server: "yantrix",
       tool: "create_threads",
       status: "completed",
       arguments: {
@@ -903,7 +907,7 @@ describe("CodexAdapterV2 dynamic tool projection", () => {
     });
 
     assert.deepEqual(projection, {
-      toolName: "t3-code.create_threads",
+      toolName: "yantrix.create_threads",
       input: {
         threads: [{ title: "Fixture child", prompt: "fixture child prompt" }],
       },
@@ -1480,7 +1484,7 @@ function codexReplayPreamble(input: {
         id: 1,
         method: "initialize",
         params: {
-          clientInfo: { name: "T3 Code", title: "T3 Code", version: packageJson.version },
+          clientInfo: { name: "Yantrix", title: "Yantrix", version: packageJson.version },
           capabilities: {
             experimentalApi: true,
             optOutNotificationMethods: ["turn/diff/updated"],
@@ -1494,7 +1498,7 @@ function codexReplayPreamble(input: {
       frame: {
         id: 1,
         result: {
-          userAgent: "T3 Code/0.156.1",
+          userAgent: "Yantrix/0.156.1",
           codexHome: "/tmp/codex-home",
           platformFamily: "unix",
           platformOs: "macos",
@@ -1856,7 +1860,7 @@ describe("CodexAdapterV2 post-settle continuation", () => {
       // version, so pin the whole value here.
       assert.deepEqual(initializeParams, [
         {
-          clientInfo: { name: "T3 Code", title: "T3 Code", version: packageJson.version },
+          clientInfo: { name: "Yantrix", title: "Yantrix", version: packageJson.version },
           capabilities: {
             experimentalApi: true,
             optOutNotificationMethods: ["turn/diff/updated"],
@@ -2376,7 +2380,7 @@ describe("CodexAdapterV2 post-settle continuation", () => {
     ),
   );
 
-  it.effect("preserves T3 context on the wire and restores it after compaction", () =>
+  it.effect("preserves Yantrix context on the wire and restores it after compaction", () =>
     Effect.scoped(
       Effect.gen(function* () {
         const nativeThreadId = "context-thread";
@@ -2386,10 +2390,10 @@ describe("CodexAdapterV2 post-settle continuation", () => {
           codexInput: [{ type: "text", text: "work" }],
           runtimePolicy: CODEX_TEST_RUNTIME_POLICY,
           modelSelection: CODEX_TEST_MODEL_SELECTION,
-          hasT3Mcp: true,
+          hasYantrixMcp: true,
         });
         assert.include(
-          params.additionalContext?.t3_code_orchestration?.value ?? "",
+          params.additionalContext?.yantrix_orchestration?.value ?? "",
           "delegate_task",
         );
         const entries = codexReplayPreamble({ nativeThreadId, nativeTurnId, prompt: "work" });
@@ -4021,7 +4025,7 @@ describe("CodexAdapterV2 post-settle continuation", () => {
     return Effect.scoped(
       Effect.gen(function* () {
         const fs = yield* FileSystem.FileSystem;
-        const cwd = yield* fs.makeTempDirectoryScoped({ prefix: "t3-bg-stop-workspace-" });
+        const cwd = yield* fs.makeTempDirectoryScoped({ prefix: "yantrix-bg-stop-workspace-" });
         const localTranscript = yield* decodeReplayTranscriptJson(
           (yield* encodeReplayTranscriptJson(transcript)).replaceAll(
             yield* encodeStringJson("/workspace"),
@@ -4153,7 +4157,7 @@ describe("CodexAdapterV2 post-settle continuation", () => {
     Effect.scoped(
       Effect.gen(function* () {
         const fs = yield* FileSystem.FileSystem;
-        const cwd = yield* fs.makeTempDirectoryScoped({ prefix: "t3-bg-stale-workspace-" });
+        const cwd = yield* fs.makeTempDirectoryScoped({ prefix: "yantrix-bg-stale-workspace-" });
         const staleTranscript = makeCodexReplayTranscript({
           scenario: "codex-bg-stop-untracked",
           entries: [
@@ -6023,8 +6027,8 @@ describe("CodexAdapterV2 post-settle continuation", () => {
             item: {
               type: "mcpToolCall",
               id: COMPLETED_WAIT_ITEM,
-              server: "t3-code",
-              tool: "t3_thread_wait",
+              server: "yantrix",
+              tool: "yantrix_thread_wait",
               status: "inProgress",
               arguments: { threadId: "thread:completed-wait", timeoutMs: 30000 },
             },
@@ -6043,8 +6047,8 @@ describe("CodexAdapterV2 post-settle continuation", () => {
             item: {
               type: "mcpToolCall",
               id: COMPLETED_WAIT_ITEM,
-              server: "t3-code",
-              tool: "t3_thread_wait",
+              server: "yantrix",
+              tool: "yantrix_thread_wait",
               status: "completed",
               arguments: { threadId: "thread:completed-wait", timeoutMs: 30000 },
               result: { content: [{ type: "text", text: "idle" }] },
@@ -6064,8 +6068,8 @@ describe("CodexAdapterV2 post-settle continuation", () => {
             item: {
               type: "mcpToolCall",
               id: ORPHAN_WAIT_ITEM,
-              server: "t3-code",
-              tool: "t3_thread_wait",
+              server: "yantrix",
+              tool: "yantrix_thread_wait",
               status: "inProgress",
               arguments: {
                 threadId:

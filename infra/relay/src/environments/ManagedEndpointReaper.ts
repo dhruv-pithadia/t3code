@@ -39,7 +39,7 @@ export class ManagedEndpointReaper extends Context.Service<
       | ManagedEndpointAllocations.ManagedEndpointAllocationPersistenceError
     >;
   }
->()("t3code-relay/environments/ManagedEndpointReaper") {}
+>()("yantrix-relay/environments/ManagedEndpointReaper") {}
 
 function isExpiredManagedTunnel(input: {
   readonly tunnel: ManagedEndpointProvider.ManagedEndpointTunnel;

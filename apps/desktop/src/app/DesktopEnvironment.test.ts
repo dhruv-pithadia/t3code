@@ -15,9 +15,9 @@ const defaultInput = {
   platform: "darwin",
   processArch: "arm64",
   appVersion: "0.0.22",
-  appPath: "/Applications/T3 Code.app/Contents/Resources/app.asar",
+  appPath: "/Applications/Yantrix.app/Contents/Resources/app.asar",
   isPackaged: false,
-  resourcesPath: "/Applications/T3 Code.app/Contents/Resources",
+  resourcesPath: "/Applications/Yantrix.app/Contents/Resources",
   runningUnderArm64Translation: false,
 } satisfies DesktopEnvironment.MakeDesktopEnvironmentInput;
 
@@ -46,19 +46,19 @@ describe("DesktopEnvironment", () => {
       const environment = yield* makeEnvironment(
         {},
         {
-          T3CODE_HOME: "/checkout/.t3/workspace-runtime",
-          T3CODE_DESKTOP_APP_DATA_DIR: "/checkout/.t3/workspace-electron",
-          T3CODE_DESKTOP_APP_NAME: "Independent Agent Workspace",
-          T3CODE_DESKTOP_APP_USER_MODEL_ID: "dev.dhruvpithadia.independentworkspace",
+          YANTRIX_HOME: "/checkout/.yantrix/workspace-runtime",
+          YANTRIX_DESKTOP_APP_DATA_DIR: "/checkout/.yantrix/workspace-electron",
+          YANTRIX_DESKTOP_APP_NAME: "Yantrix",
+          YANTRIX_DESKTOP_APP_USER_MODEL_ID: "dev.dhruvpithadia.yantrix",
           VITE_DEV_SERVER_URL: "http://127.0.0.1:7777",
         },
       );
-      assert.equal(environment.stateDir, "/checkout/.t3/workspace-runtime/userdata");
-      assert.equal(environment.appDataDirectory, "/checkout/.t3/workspace-electron");
-      assert.equal(environment.displayName, "Independent Agent Workspace (Dev)");
-      assert.equal(environment.appUserModelId, "dev.dhruvpithadia.independentworkspace");
+      assert.equal(environment.stateDir, "/checkout/.yantrix/workspace-runtime/userdata");
+      assert.equal(environment.appDataDirectory, "/checkout/.yantrix/workspace-electron");
+      assert.equal(environment.displayName, "Yantrix (Dev)");
+      assert.equal(environment.appUserModelId, "dev.dhruvpithadia.yantrix");
       const profile = yield* resolveUserDataPath(environment);
-      assert.equal(profile, "/checkout/.t3/workspace-electron/t3code-dev");
+      assert.equal(profile, "/checkout/.yantrix/workspace-electron/yantrix-dev");
     }).pipe(Effect.provide(NodeServices.layer)),
   );
 
@@ -67,46 +67,49 @@ describe("DesktopEnvironment", () => {
       const environment = yield* makeEnvironment(
         {},
         {
-          T3CODE_HOME: " /tmp/t3 ",
-          T3CODE_COMMIT_HASH: " 0123456789abcdef ",
-          T3CODE_PORT: "4949",
+          YANTRIX_HOME: " /tmp/yantrix ",
+          YANTRIX_COMMIT_HASH: " 0123456789abcdef ",
+          YANTRIX_PORT: "4949",
           VITE_DEV_SERVER_URL: "http://localhost:5173",
-          T3CODE_DEV_REMOTE_T3_SERVER_ENTRY_PATH: " /remote/server.mjs ",
-          T3CODE_OTLP_TRACES_URL: " http://127.0.0.1:4318/v1/traces ",
-          T3CODE_OTLP_METRICS_URL: " http://127.0.0.1:4318/v1/metrics ",
-          T3CODE_OTLP_LOGS_URL: " http://127.0.0.1:4318/v1/logs ",
-          T3CODE_OTLP_EXPORT_INTERVAL_MS: "2500",
-          T3CODE_OTLP_HEADERS: "authorization=Basic%20abc%3D%3D,x-tenant=t3",
-          T3CODE_OTLP_PROTOCOL: "http/protobuf",
+          YANTRIX_DEV_REMOTE_YANTRIX_SERVER_ENTRY_PATH: " /remote/server.mjs ",
+          YANTRIX_OTLP_TRACES_URL: " http://127.0.0.1:4318/v1/traces ",
+          YANTRIX_OTLP_METRICS_URL: " http://127.0.0.1:4318/v1/metrics ",
+          YANTRIX_OTLP_LOGS_URL: " http://127.0.0.1:4318/v1/logs ",
+          YANTRIX_OTLP_EXPORT_INTERVAL_MS: "2500",
+          YANTRIX_OTLP_HEADERS: "authorization=Basic%20abc%3D%3D,x-tenant=yantrix",
+          YANTRIX_OTLP_PROTOCOL: "http/protobuf",
         },
       );
 
       assert.equal(environment.isDevelopment, true);
       assert.equal(environment.appDataDirectory, "/Users/alice/Library/Application Support");
-      assert.equal(environment.baseDir, "/tmp/t3");
-      assert.equal(environment.stateDir, "/tmp/t3/userdata");
-      assert.equal(environment.desktopSettingsPath, "/tmp/t3/userdata/desktop-settings.json");
-      assert.equal(environment.clientSettingsPath, "/tmp/t3/userdata/client-settings.json");
+      assert.equal(environment.baseDir, "/tmp/yantrix");
+      assert.equal(environment.stateDir, "/tmp/yantrix/userdata");
+      assert.equal(environment.desktopSettingsPath, "/tmp/yantrix/userdata/desktop-settings.json");
+      assert.equal(environment.clientSettingsPath, "/tmp/yantrix/userdata/client-settings.json");
       assert.equal(
         environment.savedEnvironmentRegistryPath,
-        "/tmp/t3/userdata/saved-environments.json",
+        "/tmp/yantrix/userdata/saved-environments.json",
       );
-      assert.equal(environment.serverSettingsPath, "/tmp/t3/userdata/settings.json");
-      assert.equal(environment.logDir, "/tmp/t3/userdata/logs");
-      assert.equal(environment.browserArtifactsDir, "/tmp/t3/userdata/browser-artifacts");
+      assert.equal(environment.serverSettingsPath, "/tmp/yantrix/userdata/settings.json");
+      assert.equal(environment.logDir, "/tmp/yantrix/userdata/logs");
+      assert.equal(environment.browserArtifactsDir, "/tmp/yantrix/userdata/browser-artifacts");
       assert.equal(environment.rootDir, "/repo");
       assert.equal(environment.appRoot, "/repo");
       assert.equal(environment.serverRoot, "/repo");
       assert.equal(environment.backendEntryPath, "/repo/apps/server/dist/bin.mjs");
       assert.equal(environment.backendCwd, "/repo");
-      assert.equal(environment.appUserModelId, "com.t3tools.t3code.dev");
-      assert.equal(environment.linuxWmClass, "t3code-dev");
-      assert.equal(environment.linuxDesktopEntryName, "com.t3tools.T3Code.Development.desktop");
+      assert.equal(environment.appUserModelId, "com.yantrix.yantrix.dev");
+      assert.equal(environment.linuxWmClass, "yantrix-dev");
+      assert.equal(environment.linuxDesktopEntryName, "com.yantrix.Yantrix.Development.desktop");
       assert.deepEqual(
         Option.map(environment.devServerUrl, (url) => url.href),
         Option.some("http://localhost:5173/"),
       );
-      assert.deepEqual(environment.devRemoteT3ServerEntryPath, Option.some("/remote/server.mjs"));
+      assert.deepEqual(
+        environment.devRemoteYantrixServerEntryPath,
+        Option.some("/remote/server.mjs"),
+      );
       assert.deepEqual(environment.configuredBackendPort, Option.some(4949));
       assert.deepEqual(environment.commitHashOverride, Option.some("0123456789abcdef"));
       assert.deepEqual(environment.otlpTracesUrl, Option.some("http://127.0.0.1:4318/v1/traces"));
@@ -117,7 +120,7 @@ describe("DesktopEnvironment", () => {
         environment.otlpHeaders,
         Option.some({
           authorization: "Basic abc==",
-          "x-tenant": "t3",
+          "x-tenant": "yantrix",
         }),
       );
       assert.equal(environment.otlpProtocol, "http/protobuf");
@@ -129,15 +132,15 @@ describe("DesktopEnvironment", () => {
       const environment = yield* makeEnvironment(
         {},
         {
-          T3CODE_HOME: "/tmp/t3",
+          YANTRIX_HOME: "/tmp/yantrix",
         },
       );
 
       assert.equal(environment.isDevelopment, false);
-      assert.equal(environment.stateDir, "/tmp/t3/userdata");
-      assert.equal(environment.logDir, "/tmp/t3/userdata/logs");
-      assert.equal(environment.browserArtifactsDir, "/tmp/t3/userdata/browser-artifacts");
-      assert.equal(environment.serverSettingsPath, "/tmp/t3/userdata/settings.json");
+      assert.equal(environment.stateDir, "/tmp/yantrix/userdata");
+      assert.equal(environment.logDir, "/tmp/yantrix/userdata/logs");
+      assert.equal(environment.browserArtifactsDir, "/tmp/yantrix/userdata/browser-artifacts");
+      assert.equal(environment.serverSettingsPath, "/tmp/yantrix/userdata/settings.json");
       assert.equal(environment.otlpProtocol, "http/json");
     }),
   );
@@ -169,11 +172,11 @@ describe("DesktopEnvironment", () => {
       const environment = yield* makeEnvironment({
         platform: "linux",
         isPackaged: true,
-        appPath: "/tmp/.mount_t3code/resources/app.asar",
-        resourcesPath: "/tmp/.mount_t3code/resources",
+        appPath: "/tmp/.mount_yantrix/resources/app.asar",
+        resourcesPath: "/tmp/.mount_yantrix/resources",
       });
 
-      assert.equal(environment.linuxDesktopEntryName, "com.t3tools.T3Code.desktop");
+      assert.equal(environment.linuxDesktopEntryName, "com.yantrix.Yantrix.desktop");
     }),
   );
 
@@ -185,8 +188,8 @@ describe("DesktopEnvironment", () => {
       );
       const production = yield* makeEnvironment();
 
-      assert.equal(development.stateDir, "/Users/alice/.t3/dev");
-      assert.equal(production.stateDir, "/Users/alice/.t3/userdata");
+      assert.equal(development.stateDir, "/Users/alice/.yantrix/dev");
+      assert.equal(production.stateDir, "/Users/alice/.yantrix/userdata");
     }),
   );
 
@@ -195,12 +198,12 @@ describe("DesktopEnvironment", () => {
       const environment = yield* makeEnvironment(
         {},
         {
-          T3CODE_DESKTOP_APP_USER_MODEL_ID: " com.t3tools.t3code.dev.local ",
+          YANTRIX_DESKTOP_APP_USER_MODEL_ID: " com.yantrix.yantrix.dev.local ",
           VITE_DEV_SERVER_URL: "http://localhost:5173",
         },
       );
 
-      assert.equal(environment.appUserModelId, "com.t3tools.t3code.dev.local");
+      assert.equal(environment.appUserModelId, "com.yantrix.yantrix.dev.local");
     }),
   );
 

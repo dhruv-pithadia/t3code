@@ -9,7 +9,7 @@ import * as NodeCrypto from "node:crypto";
 import {
   DesktopPreviewRecordingInputSchema,
   DESKTOP_PREVIEW_RECORDING_CAPTURE_TRIGGER,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import type {
   DesktopPreviewAnnotationTheme,
   DesktopPreviewAutomationStatus,
@@ -34,9 +34,9 @@ import type {
   PreviewAutomationSnapshot,
   PreviewAutomationTypeInput,
   PreviewAutomationWaitForInput,
-} from "@t3tools/contracts";
-import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
-import { normalizePreviewUrl } from "@t3tools/shared/preview";
+} from "@yantrix/contracts";
+import { HostProcessPlatform } from "@yantrix/shared/hostProcess";
+import { normalizePreviewUrl } from "@yantrix/shared/preview";
 import {
   BrowserWindow,
   ClipboardItem,
@@ -4283,7 +4283,7 @@ const makeNativeOperations = Effect.fn("PreviewManager.makeOperations")(function
           "Page.createIsolatedWorld",
           {
             frameId,
-            worldName: "t3-preview-key-target",
+            worldName: "yantrix-preview-key-target",
           },
           sessionId,
         )) as { executionContextId?: number };
@@ -5146,7 +5146,7 @@ export class PreviewManager extends Context.Service<
       listener: RecordingFrameListener,
     ) => Effect.Effect<void, never, Scope.Scope>;
   }
->()("@t3tools/desktop/preview/Manager/PreviewManager") {}
+>()("@yantrix/desktop/preview/Manager/PreviewManager") {}
 
 /** @public Service construction is part of the canonical Effect module API. */
 export const make = Effect.gen(function* PreviewManagerMake() {

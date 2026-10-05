@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vite-plus/test";
-import { EnvironmentId, ProjectId, ProviderInstanceId, ThreadId } from "@t3tools/contracts";
+import { EnvironmentId, ProjectId, ProviderInstanceId, ThreadId } from "@yantrix/contracts";
 import type { Project, Thread } from "../types";
 import { makeThreadFixture } from "../test-fixtures";
 import {
@@ -76,24 +76,24 @@ describe("buildCommandPaletteProjectMetadata", () => {
       projects: [
         {
           environmentId: localEnvironmentId,
-          title: "T3 Code",
-          workspaceRoot: "/Users/theo/Projects/t3code",
+          title: "Yantrix",
+          workspaceRoot: "/Users/theo/Projects/yantrix",
         },
         {
           environmentId: remoteEnvironmentId,
-          title: "t3code",
-          workspaceRoot: "/srv/t3code",
+          title: "yantrix",
+          workspaceRoot: "/srv/yantrix",
         },
       ],
       locationByEnvironmentId: locations,
     });
 
     expect(metadata.searchTerms).toEqual([
-      "T3 Code",
-      "/Users/theo/Projects/t3code",
+      "Yantrix",
+      "/Users/theo/Projects/yantrix",
       "Local",
-      "t3code",
-      "/srv/t3code",
+      "yantrix",
+      "/srv/yantrix",
       "Build box",
     ]);
     expect(metadata.environmentLabels).toEqual(["Local", "Build box"]);
@@ -105,8 +105,8 @@ describe("buildCommandPaletteProjectMetadata", () => {
       projectSearchItems: [
         {
           kind: "action",
-          value: "project:t3code",
-          title: "T3 Code",
+          value: "project:yantrix",
+          title: "Yantrix",
           searchTerms: metadata.searchTerms,
           icon: null,
           run: async () => undefined,
@@ -122,13 +122,13 @@ describe("buildCommandPaletteProjectMetadata", () => {
       projects: [
         {
           environmentId: remoteEnvironmentId,
-          title: "T3 Code",
-          workspaceRoot: "/srv/t3code",
+          title: "Yantrix",
+          workspaceRoot: "/srv/yantrix",
         },
         {
           environmentId: remoteEnvironmentId,
-          title: "T3 Code worktree",
-          workspaceRoot: "/srv/t3code-feature",
+          title: "Yantrix worktree",
+          workspaceRoot: "/srv/yantrix-feature",
         },
       ],
       locationByEnvironmentId: locations,
@@ -143,13 +143,13 @@ describe("buildCommandPaletteProjectMetadata", () => {
       projects: [
         {
           environmentId: remoteEnvironmentId,
-          title: "T3 Code",
-          workspaceRoot: "/srv/t3code",
+          title: "Yantrix",
+          workspaceRoot: "/srv/yantrix",
         },
         {
           environmentId: secondRemoteEnvironmentId,
-          title: "T3 Code mirror",
-          workspaceRoot: "/srv/mirror/t3code",
+          title: "Yantrix mirror",
+          workspaceRoot: "/srv/mirror/yantrix",
         },
       ],
       locationByEnvironmentId: new Map([
@@ -166,8 +166,8 @@ describe("buildCommandPaletteProjectMetadata", () => {
       projects: [
         {
           environmentId: remoteEnvironmentId,
-          title: "T3 Code",
-          workspaceRoot: "/srv/t3code",
+          title: "Yantrix",
+          workspaceRoot: "/srv/yantrix",
         },
       ],
       locationByEnvironmentId: new Map(),
@@ -463,7 +463,7 @@ describe("buildThreadActionItems", () => {
     ];
     const items = buildThreadActionItems({
       threads,
-      projectTitleById: new Map([[PROJECT_ID, "T3 Code"]]),
+      projectTitleById: new Map([[PROJECT_ID, "Yantrix"]]),
       sortOrder: "created_at",
       icon: null,
       getContentMatch: (thread) =>
@@ -612,7 +612,7 @@ describe("buildThreadActionItems", () => {
   it("keeps message excerpts searchable without replacing thread metadata", () => {
     const [item] = buildThreadActionItems({
       threads: [makeThread({ branch: "feat/search" })],
-      projectTitleById: new Map([[PROJECT_ID, "T3 Code"]]),
+      projectTitleById: new Map([[PROJECT_ID, "Yantrix"]]),
       sortOrder: "updated_at",
       icon: null,
       getContentMatch: () => ({
@@ -629,7 +629,7 @@ describe("buildThreadActionItems", () => {
       snippet: "The relay reconnect is now bounded.",
       query: "reconnect",
     });
-    expect(item?.description).toBe("T3 Code · #feat/search");
+    expect(item?.description).toBe("Yantrix · #feat/search");
   });
 
   it("surfaces threads when the query is their ID, without outranking title matches", () => {
@@ -645,7 +645,7 @@ describe("buildThreadActionItems", () => {
     });
     const items = buildThreadActionItems({
       threads: [idThread, titleThread],
-      projectTitleById: new Map([[PROJECT_ID, "T3 Code"]]),
+      projectTitleById: new Map([[PROJECT_ID, "Yantrix"]]),
       sortOrder: "updated_at",
       icon: null,
       runThread: async (_thread) => undefined,
@@ -669,7 +669,7 @@ describe("buildThreadActionItems", () => {
   it("prefers renderDescription when provided", () => {
     const [item] = buildThreadActionItems({
       threads: [makeThread({ branch: "feat/search", worktreePath: "/tmp/wt" })],
-      projectTitleById: new Map([[PROJECT_ID, "T3 Code"]]),
+      projectTitleById: new Map([[PROJECT_ID, "Yantrix"]]),
       sortOrder: "updated_at",
       icon: null,
       renderDescription: (thread, { projectTitle }) =>
@@ -677,7 +677,7 @@ describe("buildThreadActionItems", () => {
       runThread: async (_thread) => undefined,
     });
 
-    expect(item?.description).toBe("T3 Code:feat/search:wt");
+    expect(item?.description).toBe("Yantrix:feat/search:wt");
   });
 
   it("filters archived threads out of thread search items", () => {
@@ -783,8 +783,8 @@ describe("filterPinnedBrowseEntries", () => {
 it.each([
   "#10839",
   "10839",
-  "pingdotgg/t3code#10839",
-  "https://github.com/pingdotgg/t3code/pull/10839",
+  "dhruv-pithadia/yantrix#10839",
+  "https://github.com/dhruv-pithadia/yantrix/pull/10839",
 ])("finds linked threads from PR query %s", (query) => {
   const items = buildThreadActionItems({
     threads: [
@@ -793,9 +793,9 @@ it.each([
         pullRequests: [
           {
             host: "github.com",
-            repository: "pingdotgg/t3code",
+            repository: "dhruv-pithadia/yantrix",
             number: 10839,
-            url: "https://github.com/pingdotgg/t3code/pull/10839",
+            url: "https://github.com/dhruv-pithadia/yantrix/pull/10839",
             source: "manual",
             linkedAt: "2026-09-08T00:00:00Z",
             snapshot: null,

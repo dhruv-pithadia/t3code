@@ -1,0 +1,10 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["YantrixTerminalModule"],
+    "podspecPath": "YantrixTerminalNative.podspec"
+  },
+  "android": {
+    "modules": ["expo.modules.yantrixterminal.YantrixTerminalModule"]
+  }
+}

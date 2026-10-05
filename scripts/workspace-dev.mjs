@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Local fork entry point. Never inherit the host T3 session's runtime configuration.
+// Local fork entry point. Never inherit the host Yantrix session's runtime configuration.
 import * as NodeChildProcess from "node:child_process";
 import * as NodeFS from "node:fs";
 import * as NodePath from "node:path";
@@ -19,7 +19,7 @@ if (
   );
 }
 
-// oxlint-disable-next-line t3code/no-global-process-runtime -- Standalone launcher runs before an Effect runtime exists.
+// oxlint-disable-next-line yantrix/no-global-process-runtime -- Standalone launcher runs before an Effect runtime exists.
 const hostPlatform = NodeOS.platform();
 if (mode === "dev:desktop" && hostPlatform !== "darwin") {
   throw new Error(
@@ -38,25 +38,25 @@ function isolatedDirectory(...parts) {
   return resolved;
 }
 
-// Validate each parent before creating children, including when .t3 is a symlink.
-isolatedDirectory(".t3");
-const runtime = isolatedDirectory(".t3", "workspace-runtime");
-const electron = isolatedDirectory(".t3", "workspace-electron");
+// Validate each parent before creating children, including when .yantrix is a symlink.
+isolatedDirectory(".yantrix");
+const runtime = isolatedDirectory(".yantrix", "workspace-runtime");
+const electron = isolatedDirectory(".yantrix", "workspace-electron");
 const env = Object.fromEntries(
   Object.entries(process.env).filter(
-    ([key]) => !/^(T3CODE_|VITE_|EXPO_PUBLIC_|ELECTRON_)/.test(key),
+    ([key]) => !/^(T3CODE_|YANTRIX_|VITE_|EXPO_PUBLIC_|ELECTRON_)/.test(key),
   ),
 );
 Object.assign(env, {
-  T3CODE_HOME: runtime,
-  T3CODE_DESKTOP_APP_DATA_DIR: electron,
-  T3CODE_DESKTOP_APP_NAME: "Independent Agent Workspace",
-  T3CODE_DESKTOP_APP_USER_MODEL_ID: "dev.dhruvpithadia.independentworkspace",
-  T3CODE_DISABLE_AUTO_UPDATE: "true",
-  T3CODE_DESKTOP_SKIP_PROTOCOL_REGISTRATION: "1",
-  T3CODE_DEV_INSTANCE: `independent-workspace:${root}`,
-  T3CODE_HOST: "127.0.0.1",
-  T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: "false",
+  YANTRIX_HOME: runtime,
+  YANTRIX_DESKTOP_APP_DATA_DIR: electron,
+  YANTRIX_DESKTOP_APP_NAME: "Yantrix",
+  YANTRIX_DESKTOP_APP_USER_MODEL_ID: "dev.dhruvpithadia.yantrix",
+  YANTRIX_DISABLE_AUTO_UPDATE: "true",
+  YANTRIX_DESKTOP_SKIP_PROTOCOL_REGISTRATION: "1",
+  YANTRIX_DEV_INSTANCE: `yantrix:${root}`,
+  YANTRIX_HOST: "127.0.0.1",
+  YANTRIX_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: "false",
 });
 console.log(`[workspace] data=${runtime} electron=${electron} updates=disabled`);
 const child = NodeChildProcess.spawn(

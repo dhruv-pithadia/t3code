@@ -1,7 +1,7 @@
-import type { V2ItemSupport } from "@t3tools/client-runtime/state/item-support";
-import { toolItemForDisplay } from "@t3tools/client-runtime/work-log/presentation";
-import type { ThreadId } from "@t3tools/contracts";
-import { formatDuration } from "@t3tools/shared/orchestrationTiming";
+import type { V2ItemSupport } from "@yantrix/client-runtime/state/item-support";
+import { toolItemForDisplay } from "@yantrix/client-runtime/work-log/presentation";
+import type { ThreadId } from "@yantrix/contracts";
+import { formatDuration } from "@yantrix/shared/orchestrationTiming";
 import * as DateTime from "effect/DateTime";
 
 import type { ThreadFeedActivity } from "./threadActivity";

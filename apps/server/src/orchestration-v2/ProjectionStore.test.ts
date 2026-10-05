@@ -20,13 +20,13 @@ import {
   RunId,
   ThreadId,
   TurnItemId,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
 import * as SqlClient from "effect/unstable/sql/SqlClient";
-import { projectThreadAwarenessV2 } from "@t3tools/shared/agentAwareness";
+import { projectThreadAwarenessV2 } from "@yantrix/shared/agentAwareness";
 
 import { SqlitePersistenceMemory } from "../persistence/Layers/Sqlite.ts";
 import { CodexProviderCapabilitiesV2 } from "./Adapters/CodexAdapterV2.ts";
@@ -2646,7 +2646,7 @@ it.layer(TestLayer)("ProjectionStoreV2", (it) => {
         const nodeId = NodeId.make("node:checkpoint-context");
         const scopeId = CheckpointScopeId.make("scope:checkpoint-context");
         const checkpointId = CheckpointId.make("checkpoint:checkpoint-context");
-        const ref = CheckpointRef.make("refs/t3/checkpoint-context/1");
+        const ref = CheckpointRef.make("refs/yantrix/checkpoint-context/1");
         yield* projectionStore.apply({
           id: EventId.make("event:checkpoint-context:thread"),
           type: "thread.created",

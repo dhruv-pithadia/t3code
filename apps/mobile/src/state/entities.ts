@@ -1,18 +1,18 @@
 import { useAtomValue } from "@effect/atom-react";
-import { deriveReportedModelSelection } from "@t3tools/client-runtime/state/thread-execution";
+import { deriveReportedModelSelection } from "@yantrix/client-runtime/state/thread-execution";
 
 import { appAtomRegistry } from "./atom-registry";
 import type {
   EnvironmentProject,
   EnvironmentThread,
   EnvironmentThreadShell,
-} from "@t3tools/client-runtime/state/shell";
+} from "@yantrix/client-runtime/state/shell";
 import type {
   EnvironmentId,
   ScopedProjectRef,
   ScopedThreadRef,
   ServerConfig,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import { Atom } from "effect/unstable/reactivity";
 
 import { environmentProjects } from "./projects";

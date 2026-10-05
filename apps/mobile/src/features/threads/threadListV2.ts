@@ -1,4 +1,4 @@
-import { threadPullRequestSearchTerms } from "@t3tools/shared/threadPullRequests";
+import { threadPullRequestSearchTerms } from "@yantrix/shared/threadPullRequests";
 import {
   canSnooze,
   effectiveSnoozed,
@@ -6,24 +6,24 @@ import {
   QUEUED_TURN_START_GRACE_MS,
   resolveSnoozePresets,
   snoozeWakeLabel,
-} from "@t3tools/client-runtime/state/thread-settled";
-import type { SnoozePreset } from "@t3tools/client-runtime/state/thread-settled";
-import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
-import { resolveThreadProviderStack } from "@t3tools/client-runtime/state/models";
-import { threadSearchMatchKey } from "@t3tools/client-runtime/state/thread-search";
+} from "@yantrix/client-runtime/state/thread-settled";
+import type { SnoozePreset } from "@yantrix/client-runtime/state/thread-settled";
+import type { EnvironmentThreadShell } from "@yantrix/client-runtime/state/shell";
+import { resolveThreadProviderStack } from "@yantrix/client-runtime/state/models";
+import { threadSearchMatchKey } from "@yantrix/client-runtime/state/thread-search";
 import {
   createInboxReturnTracker,
   isThreadWorking,
   sortInboxThreadsByReturn,
   sortWorkingThreadsBySend,
-} from "@t3tools/client-runtime/state/thread-inbox";
+} from "@yantrix/client-runtime/state/thread-inbox";
 import {
   sortActiveThreadsByOrderKey,
   resolveSettledThreadTimestamp,
   sortPinnedThreadsByOrderKey,
   sortSettledThreads,
-} from "@t3tools/client-runtime/state/thread-sort";
-import type { EnvironmentId, ProjectId } from "@t3tools/contracts";
+} from "@yantrix/client-runtime/state/thread-sort";
+import type { EnvironmentId, ProjectId } from "@yantrix/contracts";
 
 import type { ThreadListProvider } from "../../state/thread-list-environments";
 import type { ThreadMoveAvailability } from "./threadOrder";

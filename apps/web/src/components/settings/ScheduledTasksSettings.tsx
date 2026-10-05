@@ -18,16 +18,16 @@ import type {
   ScheduledTaskSchedule,
   ScheduledTaskUpsertInput,
   ThreadId,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import {
   MIN_SCHEDULED_TASK_INTERVAL_MS,
   ProviderInstanceId,
   resolveEnvironmentMachineKind,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import {
   isAtomCommandInterrupted,
   squashAtomCommandFailure,
-} from "@t3tools/client-runtime/state/runtime";
+} from "@yantrix/client-runtime/state/runtime";
 
 import { formatRelativeTime } from "../../timestampFormat";
 import { useEnvironmentSettings } from "../../hooks/useSettings";

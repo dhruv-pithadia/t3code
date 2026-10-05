@@ -1,5 +1,5 @@
 {
-  "name": "@t3tools/client-runtime",
+  "name": "@yantrix/client-runtime",
   "private": true,
   "type": "module",
   "exports": {
@@ -111,9 +111,9 @@
       "types": "./src/voice-input/index.ts",
       "default": "./src/voice-input/index.ts"
     },
-    "./t3ToolSummary": {
-      "types": "./src/t3ToolSummary.ts",
-      "default": "./src/t3ToolSummary.ts"
+    "./yantrixToolSummary": {
+      "types": "./src/yantrixToolSummary.ts",
+      "default": "./src/yantrixToolSummary.ts"
     },
     "./relay": {
       "types": "./src/relay/index.ts",
@@ -381,8 +381,8 @@
     "test": "vp test run"
   },
   "dependencies": {
-    "@t3tools/contracts": "workspace:*",
-    "@t3tools/shared": "workspace:*",
+    "@yantrix/contracts": "workspace:*",
+    "@yantrix/shared": "workspace:*",
     "effect": "catalog:",
     "mdast-util-directive": "^3.1.0",
     "micromark-extension-directive": "^4.0.0",

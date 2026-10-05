@@ -23,7 +23,7 @@ NodeFS.writeFileSync("result.json", JSON.stringify({args:process.argv.slice(2), 
   return root;
 }
 
-it("launches with checkout-owned state despite an inherited live T3 environment", () => {
+it("launches with checkout-owned state despite an inherited live Yantrix environment", () => {
   const root = fixture();
   const run = NodeChildProcess.spawnSync(
     process.execPath,
@@ -31,34 +31,38 @@ it("launches with checkout-owned state despite an inherited live T3 environment"
     {
       env: {
         PATH: process.env.PATH,
-        T3CODE_HOME: "/live/t3",
-        T3CODE_PORT: "3773",
-        T3CODE_DEV_AUTH_TOKEN: "parent-secret",
+        T3CODE_HOME: "/live/upstream",
+        T3CODE_DEV_AUTH_TOKEN: "upstream-secret",
+        YANTRIX_HOME: "/live/yantrix",
+        YANTRIX_PORT: "3773",
+        YANTRIX_DEV_AUTH_TOKEN: "parent-secret",
         VITE_WS_URL: "ws://live",
-        T3CODE_DISABLE_AUTO_UPDATE: "false",
+        YANTRIX_DISABLE_AUTO_UPDATE: "false",
       },
       encoding: "utf8",
     },
   );
   expect(run.status, run.stderr).toBe(0);
   const result = JSON.parse(NodeFS.readFileSync(NodePath.join(root, "result.json"), "utf8"));
-  expect(result.env.T3CODE_HOME).toBe(NodePath.join(root, ".t3/workspace-runtime"));
-  expect(result.env.T3CODE_DESKTOP_APP_DATA_DIR).toBe(
-    NodePath.join(root, ".t3/workspace-electron"),
+  expect(result.env.YANTRIX_HOME).toBe(NodePath.join(root, ".yantrix/workspace-runtime"));
+  expect(result.env.YANTRIX_DESKTOP_APP_DATA_DIR).toBe(
+    NodePath.join(root, ".yantrix/workspace-electron"),
   );
-  expect(result.env.T3CODE_DISABLE_AUTO_UPDATE).toBe("true");
-  expect(result.env.T3CODE_HOST).toBe("127.0.0.1");
+  expect(result.env.YANTRIX_DISABLE_AUTO_UPDATE).toBe("true");
+  expect(result.env.YANTRIX_HOST).toBe("127.0.0.1");
+  expect(result.env.YANTRIX_DEV_AUTH_TOKEN).toBeUndefined();
+  expect(result.env.YANTRIX_PORT).toBeUndefined();
+  expect(result.env.T3CODE_HOME).toBeUndefined();
   expect(result.env.T3CODE_DEV_AUTH_TOKEN).toBeUndefined();
-  expect(result.env.T3CODE_PORT).toBeUndefined();
   expect(result.env.VITE_WS_URL).toBeUndefined();
-  expect(result.args).toContain(NodePath.join(root, ".t3/workspace-runtime"));
+  expect(result.args).toContain(NodePath.join(root, ".yantrix/workspace-runtime"));
 });
 
 it("rejects a home override before starting a server", () => {
   const root = fixture();
   const run = NodeChildProcess.spawnSync(
     process.execPath,
-    [NodePath.join(root, "scripts/workspace-dev.mjs"), "dev", "--home-dir", "/live/t3"],
+    [NodePath.join(root, "scripts/workspace-dev.mjs"), "dev", "--home-dir", "/live/yantrix"],
     { encoding: "utf8" },
   );
   expect(run.status).not.toBe(0);
@@ -68,7 +72,7 @@ it("rejects a home override before starting a server", () => {
 it("rejects a symlink to external application data", () => {
   const root = fixture();
   const outside = NodeFS.mkdtempSync(NodePath.join(NodeOS.tmpdir(), "workspace-protected-"));
-  NodeFS.symlinkSync(outside, NodePath.join(root, ".t3"), "dir");
+  NodeFS.symlinkSync(outside, NodePath.join(root, ".yantrix"), "dir");
   const run = NodeChildProcess.spawnSync(
     process.execPath,
     [NodePath.join(root, "scripts/workspace-dev.mjs"), "dev"],

@@ -32,7 +32,7 @@ import type {
   ProviderInstanceId,
   ServerProvider,
   ServerProviderWorkspaceSnapshot,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import type * as Effect from "effect/Effect";
 import type * as Schema from "effect/Schema";
 import type * as Scope from "effect/Scope";
@@ -84,7 +84,7 @@ export interface ProviderInstance {
     cwd: string,
   ) => Effect.Effect<ProviderWorkspaceSnapshot, ProviderDriverError>;
   readonly refreshModels?: () => Effect.Effect<void, ProviderDriverError>;
-  /** Invalidate T3-owned discovery caches before an explicit provider refresh. */
+  /** Invalidate Yantrix-owned discovery caches before an explicit provider refresh. */
   readonly invalidateCaches?: Effect.Effect<void>;
   /**
    * Redeem one banked rate-limit reset credit on the signed-in account, then

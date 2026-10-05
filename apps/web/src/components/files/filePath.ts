@@ -1,5 +1,5 @@
-import type { ProjectEntry } from "@t3tools/contracts";
-import { isWindowsAbsolutePath } from "@t3tools/shared/path";
+import type { ProjectEntry } from "@yantrix/contracts";
+import { isWindowsAbsolutePath } from "@yantrix/shared/path";
 
 import { isAbsolutePath } from "~/terminal-links";
 

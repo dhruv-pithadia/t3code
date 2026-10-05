@@ -26,7 +26,7 @@ import {
   ProviderTurnId,
   RunId,
   ThreadId,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import * as Effect from "effect/Effect";
 import * as DateTime from "effect/DateTime";
 import * as Deferred from "effect/Deferred";
@@ -86,7 +86,7 @@ const PlatformTestLayer = Layer.merge(
 );
 
 const ServerConfigLayer = ServerConfig.layerTest(process.cwd(), {
-  prefix: "t3-orchestration-v2-runtime-layer-",
+  prefix: "yantrix-orchestration-v2-runtime-layer-",
 });
 
 const modelSelection = {
@@ -495,7 +495,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive", (it) => {
         interactionMode: "default",
         branch: null,
         // Its own path, so other rollback tests keep an isolated worktree.
-        worktreePath: `/tmp/t3-${name}`,
+        worktreePath: `/tmp/yantrix-${name}`,
       });
       yield* orchestrator.dispatch({
         type: "message.dispatch",
@@ -528,7 +528,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive", (it) => {
               parentCheckpointId: null,
               ordinalWithinScope: 0,
               appRunOrdinal: null,
-              ref: CheckpointRef.make(`refs/t3/${name}`),
+              ref: CheckpointRef.make(`refs/yantrix/${name}`),
               status: "ready",
               files: [],
               capturedAt: now,
@@ -680,7 +680,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive", (it) => {
                 parentCheckpointId: null,
                 ordinalWithinScope: 0,
                 appRunOrdinal: null,
-                ref: CheckpointRef.make(`refs/t3/runtime-rollback-${status}`),
+                ref: CheckpointRef.make(`refs/yantrix/runtime-rollback-${status}`),
                 status,
                 files: [],
                 capturedAt: now,
@@ -1664,7 +1664,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         threadId,
         title: "Renamed lifecycle thread",
         branch: "feature/v2",
-        worktreePath: "/tmp/t3-v2-worktree",
+        worktreePath: "/tmp/yantrix-v2-worktree",
       });
       const staleWorkspaceUpdate = yield* orchestrator
         .dispatch({
@@ -1679,7 +1679,10 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
       assert.instanceOf(staleWorkspaceUpdate, Orchestrator.OrchestratorDispatchError);
       const projectionAfterStaleWorkspaceUpdate = yield* orchestrator.getThreadProjection(threadId);
       assert.equal(projectionAfterStaleWorkspaceUpdate.thread.branch, "feature/v2");
-      assert.equal(projectionAfterStaleWorkspaceUpdate.thread.worktreePath, "/tmp/t3-v2-worktree");
+      assert.equal(
+        projectionAfterStaleWorkspaceUpdate.thread.worktreePath,
+        "/tmp/yantrix-v2-worktree",
+      );
       const pullRequestSnapshot = yield* orchestrator.getShellSnapshot();
       const pullRequest = {
         projectId,
@@ -1698,7 +1701,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
           expected: {
             workspaceRoot: "/workspace/project",
             branch: "feature/v2",
-            worktreePath: "/tmp/t3-v2-worktree",
+            worktreePath: "/tmp/yantrix-v2-worktree",
             linkedPullRequest: null,
             branchPullRequest: null,
           },
@@ -1716,7 +1719,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         expected: {
           workspaceRoot: "/workspace/project",
           branch: "feature/v2",
-          worktreePath: "/tmp/t3-v2-worktree",
+          worktreePath: "/tmp/yantrix-v2-worktree",
           linkedPullRequest: null,
           branchPullRequest: null,
         },
@@ -1736,7 +1739,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
           expected: {
             workspaceRoot: "/workspace/project",
             branch: "feature/v2",
-            worktreePath: "/tmp/t3-v2-worktree",
+            worktreePath: "/tmp/yantrix-v2-worktree",
             linkedPullRequest: null,
             branchPullRequest: null,
           },
@@ -1904,7 +1907,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
       const projection = yield* orchestrator.getThreadProjection(threadId);
       assert.equal(projection.thread.title, "Renamed lifecycle thread");
       assert.equal(projection.thread.branch, "feature/v2");
-      assert.equal(projection.thread.worktreePath, "/tmp/t3-v2-worktree");
+      assert.equal(projection.thread.worktreePath, "/tmp/yantrix-v2-worktree");
       assert.equal(projection.thread.runtimeMode, "approval-required");
       assert.equal(projection.thread.interactionMode, "plan");
       assert.equal(projection.thread.modelSelection.model, "gpt-5.5");
@@ -1920,9 +1923,9 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
       const threadId = ThreadId.make("runtime-layer-linked-pull-request-thread");
       const linkedPullRequest = {
         projectId: ProjectId.make("runtime-layer-linked-pull-request-project"),
-        repository: "pingdotgg/t3code",
+        repository: "dhruv-pithadia/yantrix",
         number: 8160,
-        url: "https://github.com/pingdotgg/t3code/pull/8160",
+        url: "https://github.com/dhruv-pithadia/yantrix/pull/8160",
       } as const;
 
       yield* orchestrator.dispatch({
@@ -2017,9 +2020,9 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         },
         branchPullRequest: {
           projectId,
-          repository: "pingdotgg/t3code",
+          repository: "dhruv-pithadia/yantrix",
           number: 1,
-          url: "https://github.com/pingdotgg/t3code/pull/1",
+          url: "https://github.com/dhruv-pithadia/yantrix/pull/1",
         },
       });
       for (const [index, number] of [2, 2, 1, 3].entries()) {
@@ -2028,9 +2031,9 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
           commandId: CommandId.make(`branch-pr-link-${index}`),
           threadId,
           host: "GitHub.com",
-          repository: "Pingdotgg/T3code",
+          repository: "dhruv-pithadia/yantrix",
           number,
-          url: `https://github.com/pingdotgg/t3code/pull/${number}`,
+          url: `https://github.com/dhruv-pithadia/yantrix/pull/${number}`,
           source: "manual",
         });
         assert.deepEqual(
@@ -2043,7 +2046,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         commandId: CommandId.make("branch-pr-unlink"),
         threadId,
         host: "github.com",
-        repository: "pingdotgg/t3code",
+        repository: "dhruv-pithadia/yantrix",
         number: 1,
       });
       yield* orchestrator.dispatch({
@@ -2051,9 +2054,9 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         commandId: CommandId.make("branch-pr-link-after-unlink"),
         threadId,
         host: "github.com",
-        repository: "pingdotgg/t3code",
+        repository: "dhruv-pithadia/yantrix",
         number: 4,
-        url: "https://github.com/pingdotgg/t3code/pull/4",
+        url: "https://github.com/dhruv-pithadia/yantrix/pull/4",
         source: "manual",
       });
       assert.isTrue((yield* maintenance.rebuild).valid);
@@ -2083,7 +2086,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         branch: null,
         worktreePath: null,
       });
-      const key = { host: "GitHub.com", repository: "Pingdotgg/T3code" };
+      const key = { host: "GitHub.com", repository: "dhruv-pithadia/yantrix" };
       for (const number of [1, 2]) {
         yield* orchestrator.dispatch({
           type: "thread.pull-request.link",
@@ -2091,14 +2094,18 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
           threadId,
           ...key,
           number,
-          url: `https://github.com/pingdotgg/t3code/pull/${number}`,
+          url: `https://github.com/dhruv-pithadia/yantrix/pull/${number}`,
           source: number === 1 ? "manual" : "stack",
         });
       }
       const linked = yield* orchestrator.getThreadShell(threadId);
       assert.deepEqual(
         linked?.pullRequests?.map(({ host, repository, number }) => ({ host, repository, number })),
-        [1, 2].map((number) => ({ host: "github.com", repository: "pingdotgg/t3code", number })),
+        [1, 2].map((number) => ({
+          host: "github.com",
+          repository: "dhruv-pithadia/yantrix",
+          number,
+        })),
       );
       yield* orchestrator.dispatch({
         type: "thread.pull-request.unlink",
@@ -2127,7 +2134,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         threadId,
         ...key,
         number: 2,
-        url: "https://github.com/pingdotgg/t3code/pull/2",
+        url: "https://github.com/dhruv-pithadia/yantrix/pull/2",
         source: "stack",
       });
       assert.equal(
@@ -2145,7 +2152,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         threadId,
         ...key,
         number: 2,
-        url: "https://github.com/pingdotgg/t3code/pull/2",
+        url: "https://github.com/dhruv-pithadia/yantrix/pull/2",
         source: "manual",
       });
       assert.equal(
@@ -2174,8 +2181,8 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         branch: null,
         worktreePath: null,
       });
-      const key = { host: "github.com", repository: "pingdotgg/t3code", number: 7 };
-      const url = "https://github.com/pingdotgg/t3code/pull/7";
+      const key = { host: "github.com", repository: "dhruv-pithadia/yantrix", number: 7 };
+      const url = "https://github.com/dhruv-pithadia/yantrix/pull/7";
       const watchOf = Effect.map(
         orchestrator.getThreadShell(threadId),
         (thread) => thread?.pullRequests?.[0]?.watch,
@@ -2281,10 +2288,10 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         commandId: CommandId.make("pr-watch-unreadable-start"),
         threadId,
         host: "github.com",
-        repository: "pingdotgg/t3code",
+        repository: "dhruv-pithadia/yantrix",
         number: 8,
         watching: true,
-        link: { url: "https://github.com/pingdotgg/t3code/pull/8", source: "agent" },
+        link: { url: "https://github.com/dhruv-pithadia/yantrix/pull/8", source: "agent" },
       });
       const reactor = yield* PullRequestWatchReactor.make.pipe(
         Effect.provide(
@@ -2342,8 +2349,8 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         branch: null,
         worktreePath: null,
       });
-      const key = { host: "github.com", repository: "pingdotgg/t3code", number: 7 };
-      const url = "https://github.com/pingdotgg/t3code/pull/7";
+      const key = { host: "github.com", repository: "dhruv-pithadia/yantrix", number: 7 };
+      const url = "https://github.com/dhruv-pithadia/yantrix/pull/7";
       yield* orchestrator.dispatch({
         type: "thread.pull-request.link",
         commandId: CommandId.make(`pr-watch-wake-link-${mode}`),
@@ -2715,7 +2722,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
           commandId: CommandId.make(`restart-${status}-continuation`),
           threadId,
           messageId: MessageId.make(`restart-${status}-continuation`),
-          text: "Note: the T3 server restarted.",
+          text: "Note: the Yantrix server restarted.",
           attachments: [],
           modelSelection,
           dispatchMode: { type: "start_immediately" },

@@ -190,15 +190,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "t3-resource-monitor"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sysinfo",
-]
-
-[[package]]
 name = "unicode-ident"
 version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -334,6 +325,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3949bd5b99cafdf1c7ca86b43ca564028dfe27d66958f2470940f73d86d75b37"
 dependencies = [
  "windows-link",
+]
+
+[[package]]
+name = "yantrix-resource-monitor"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sysinfo",
 ]
 
 [[package]]

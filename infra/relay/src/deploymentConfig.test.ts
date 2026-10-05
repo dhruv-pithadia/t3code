@@ -60,11 +60,11 @@ describe("relayOwnsManagedEndpointZone", () => {
 
 describe("relayResourceNameForStage", () => {
   it("isolates production and personal stages", () => {
-    expect(relayResourceNameForStage("t3-code-relay-traces", "prod")).toBe(
-      "t3-code-relay-traces-prod",
+    expect(relayResourceNameForStage("yantrix-relay-traces", "prod")).toBe(
+      "yantrix-relay-traces-prod",
     );
-    expect(relayResourceNameForStage("t3-code-relay-traces", "dev_julius")).toBe(
-      "t3-code-relay-traces-dev-julius",
+    expect(relayResourceNameForStage("yantrix-relay-traces", "dev_julius")).toBe(
+      "yantrix-relay-traces-dev-julius",
     );
   });
 });
@@ -79,14 +79,14 @@ describe("managed endpoint names", () => {
     expect(managedEndpointHostname("dev_julius", ".example.com.", hash)).toBe(
       "dev-julius-abcdef0123456789.example.com",
     );
-    expect(managedEndpointHostname("prod", "t3coderelay.com", hash)).toBe(
-      "prod-abcdef0123456789.t3coderelay.com",
+    expect(managedEndpointHostname("prod", "yantrixrelay.com", hash)).toBe(
+      "prod-abcdef0123456789.yantrixrelay.com",
     );
     expect(managedEndpointTunnelName("dev_julius", hash)).toBe(
-      "t3coderelay-managedendpoint-dev-julius-abcdef0123456789",
+      "yantrixrelay-managedendpoint-dev-julius-abcdef0123456789",
     );
     expect(managedEndpointTunnelNamePrefix("dev_julius")).toBe(
-      "t3coderelay-managedendpoint-dev-julius-",
+      "yantrixrelay-managedendpoint-dev-julius-",
     );
   });
 

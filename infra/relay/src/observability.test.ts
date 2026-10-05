@@ -81,8 +81,8 @@ it.effect("exports schema error fields as span attributes", () =>
     expect(request.authorization).toBe("Bearer test-token");
     expect(request.dataset).toBe("relay-test-traces");
     expect(resourceAttributes).toMatchObject({
-      "service.name": "t3code-relay",
-      "service.namespace": "t3code",
+      "service.name": "yantrix-relay",
+      "service.namespace": "yantrix",
     });
     expect(attributes).toMatchObject({
       "error.type": "EnvironmentConnectNotAuthorized",

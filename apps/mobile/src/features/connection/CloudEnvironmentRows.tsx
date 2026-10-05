@@ -4,13 +4,13 @@ import { SymbolView } from "../../components/AppSymbol";
 import {
   connectionStatusText,
   type EnvironmentConnectionPhase,
-} from "@t3tools/client-runtime/connection";
+} from "@yantrix/client-runtime/connection";
 import {
   type EnvironmentId,
   type EnvironmentMachineKind,
   type ExecutionEnvironmentDescriptor,
   resolveEnvironmentMachineKind,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import { useAtomValue } from "@effect/atom-react";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, type TextLayoutEvent, View } from "react-native";
@@ -36,15 +36,15 @@ interface CloudEnvironmentRowsProps {
   readonly showcaseAvailableEnvironments?: ReadonlyArray<RelayEnvironmentView>;
   readonly showcaseSignedIn?: boolean;
   /**
-   * Hide the "T3 Connect" section title when the host provides its own header.
+   * Hide the "Yantrix Connect" section title when the host provides its own header.
    */
   readonly showHeader?: boolean;
 }
 
 /**
- * "T3 Connect" section: every environment published to the signed-in account,
+ * "Yantrix Connect" section: every environment published to the signed-in account,
  * with connect switches, availability status, and loading/error
- * states. Shared between the Settings environments screen and the T3 Connect
+ * states. Shared between the Settings environments screen and the Yantrix Connect
  * onboarding sheet.
  *
  * Already-connected relay environments render even without cloud config or a
@@ -114,7 +114,9 @@ function CloudEnvironmentRowsContent(
     <View collapsable={false} className={cn("gap-3", showHeader && "mt-5")}>
       {showHeader ? (
         <View className="px-1">
-          <Text className="text-sm font-t3-bold uppercase text-foreground-muted">T3 Connect</Text>
+          <Text className="text-sm font-yantrix-bold uppercase text-foreground-muted">
+            Yantrix Connect
+          </Text>
         </View>
       ) : null}
 
@@ -170,8 +172,8 @@ function CloudEnvironmentRowsContent(
       controller.relayDiscovery.error &&
       !controller.relayDiscovery.isRefreshing ? (
         <View collapsable={false} className="gap-3 rounded-[24px] bg-grouped-card p-5">
-          <Text className="text-base font-t3-bold text-foreground">
-            Could not load T3 Connect environments
+          <Text className="text-base font-yantrix-bold text-foreground">
+            Could not load Yantrix Connect environments
           </Text>
           <Text className="text-sm text-foreground-muted">{controller.relayDiscovery.error}</Text>
           {controller.relayDiscovery.errorTraceId ? (
@@ -184,7 +186,7 @@ function CloudEnvironmentRowsContent(
             }}
             className="self-start rounded-full bg-subtle px-3.5 py-2 active:opacity-70"
           >
-            <Text className="text-xs font-t3-bold text-foreground">Try again</Text>
+            <Text className="text-xs font-yantrix-bold text-foreground">Try again</Text>
           </Pressable>
         </View>
       ) : null}
@@ -193,7 +195,7 @@ function CloudEnvironmentRowsContent(
 }
 
 /**
- * A saved T3 Connect environment. The switch turns it on or off; off keeps the
+ * A saved Yantrix Connect environment. The switch turns it on or off; off keeps the
  * registration and cache but drops the connection and hides its errors.
  * Long-press removes it from this device.
  */
@@ -353,7 +355,7 @@ function CloudEnvironmentRowShell(props: {
             tintColorClassName="accent-foreground-muted"
           />
           <Text
-            className="min-w-0 flex-shrink text-base font-t3-bold leading-snug text-foreground"
+            className="min-w-0 flex-shrink text-base font-yantrix-bold leading-snug text-foreground"
             numberOfLines={1}
           >
             {props.label}
@@ -435,7 +437,7 @@ function CopyTraceIdButton(props: { readonly traceId: string }) {
         tintColorClassName={"accent-icon"}
         type="monochrome"
       />
-      <Text className="text-xs font-t3-bold text-foreground">Copy trace ID</Text>
+      <Text className="text-xs font-yantrix-bold text-foreground">Copy trace ID</Text>
     </Pressable>
   );
 }

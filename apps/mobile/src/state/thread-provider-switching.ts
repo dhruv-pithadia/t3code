@@ -1,6 +1,6 @@
-import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
-import { threadSupportsProviderHandoff } from "@t3tools/client-runtime/state/thread-workflows";
-import type { OrchestrationV2ThreadProjection } from "@t3tools/contracts";
+import type { EnvironmentThreadShell } from "@yantrix/client-runtime/state/shell";
+import { threadSupportsProviderHandoff } from "@yantrix/client-runtime/state/thread-workflows";
+import type { OrchestrationV2ThreadProjection } from "@yantrix/contracts";
 
 type ThreadStartMarkers = Pick<
   EnvironmentThreadShell,

@@ -5,13 +5,13 @@ import type {
   RuntimeMode,
   ScheduledTask,
   ScheduledTaskUpsertSchedule,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 
-import { DEFAULT_SERVER_SETTINGS } from "@t3tools/contracts";
+import { DEFAULT_SERVER_SETTINGS } from "@yantrix/contracts";
 import {
   resolveProjectSettings,
   type LegacyProjectSettingsFields,
-} from "@t3tools/shared/projectSettings";
+} from "@yantrix/shared/projectSettings";
 import {
   buildModelOptions,
   resolveDefaultableModelSelection,

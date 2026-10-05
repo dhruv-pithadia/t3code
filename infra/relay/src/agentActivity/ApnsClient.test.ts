@@ -1,7 +1,7 @@
 import * as NodeCrypto from "node:crypto";
 
-import { EnvironmentId, ThreadId } from "@t3tools/contracts";
-import type { RelayAgentActivityAggregateState } from "@t3tools/contracts/relay";
+import { EnvironmentId, ThreadId } from "@yantrix/contracts";
+import type { RelayAgentActivityAggregateState } from "@yantrix/contracts/relay";
 import { describe, expect, it } from "@effect/vitest";
 import * as DateTime from "effect/DateTime";
 import * as Deferred from "effect/Deferred";
@@ -35,7 +35,7 @@ const TestLayer = ApnsClient.layer.pipe(
 describe("ApnsClient", () => {
   const now = DateTime.makeUnsafe(0);
   const state: RelayAgentActivityAggregateState = {
-    title: "T3 Code",
+    title: "Yantrix",
     subtitle: "Agent work in progress",
     activeCount: 1,
     updatedAt: DateTime.formatIso(now),
@@ -215,7 +215,7 @@ describe("ApnsClient", () => {
             teamId: "team-1",
             keyId: "key-1",
             privateKey: Redacted.make("not-a-private-key"),
-            bundleId: "com.t3tools.test",
+            bundleId: "com.yantrix.test",
             environment: "sandbox",
           },
           request,
@@ -251,7 +251,7 @@ describe("ApnsClient", () => {
       teamId: "team-1",
       keyId: "key-1",
       privateKey: Redacted.make(privateKey),
-      bundleId: "com.t3tools.test",
+      bundleId: "com.yantrix.test",
       environment: "sandbox",
     } satisfies ApnsCredentials;
     const failingHttpClient = HttpClient.make((request) =>
@@ -294,7 +294,7 @@ describe("ApnsClient", () => {
         requestKind: "push-notification",
         event: null,
         environment: "sandbox",
-        bundleId: "com.t3tools.test",
+        bundleId: "com.yantrix.test",
         tokenSuffix: "sh-token",
         stage: "send",
         status: null,
@@ -319,7 +319,7 @@ describe("ApnsClient", () => {
       teamId: "team-jwt-cache",
       keyId: "key-jwt-cache",
       privateKey: Redacted.make(privateKey),
-      bundleId: "com.t3tools.test",
+      bundleId: "com.yantrix.test",
       environment: "sandbox",
     } satisfies ApnsCredentials;
     const authorizations: Array<string> = [];
@@ -395,7 +395,7 @@ describe("ApnsClient", () => {
         teamId: "team-timeout",
         keyId: "key-timeout",
         privateKey: Redacted.make("unused-test-key"),
-        bundleId: "com.t3tools.test",
+        bundleId: "com.yantrix.test",
         environment: "sandbox",
       } satisfies ApnsCredentials;
       const send =

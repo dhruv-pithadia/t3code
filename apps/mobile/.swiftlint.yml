@@ -1,14 +1,14 @@
 included:
-  - ios/T3Code
-  - modules/t3-composer-editor/ios
-  - modules/t3-native-controls/ios
-  - modules/t3-terminal/ios
-  - modules/t3-review-diff/ios
+  - ios/Yantrix
+  - modules/yantrix-composer-editor/ios
+  - modules/yantrix-native-controls/ios
+  - modules/yantrix-terminal/ios
+  - modules/yantrix-review-diff/ios
 
 excluded:
   - ios/Pods
   - ios/build
-  - modules/t3-terminal/Vendor
+  - modules/yantrix-terminal/Vendor
 
 reporter: xcode
 

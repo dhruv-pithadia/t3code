@@ -1,11 +1,11 @@
-import { NodeId, PlanId, ProjectId, RunId } from "@t3tools/contracts";
+import { NodeId, PlanId, ProjectId, RunId } from "@yantrix/contracts";
 import {
   getLatestThreadForProject,
   sortActiveThreadsByOrderKey,
   sortPinnedThreadsByOrderKey,
   sortThreads,
-} from "@t3tools/client-runtime/state/thread-sort";
-import { formatHourShort, formatRelativeHourShort } from "@t3tools/shared/usageFormat";
+} from "@yantrix/client-runtime/state/thread-sort";
+import { formatHourShort, formatRelativeHourShort } from "@yantrix/shared/usageFormat";
 import { describe, test } from "vite-plus/test";
 
 import { makeThreadProjectionFixture } from "./test-fixtures";

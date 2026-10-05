@@ -3,12 +3,12 @@ import {
   scopeProjectRef,
   scopeThreadRef,
   scopedThreadKey,
-} from "@t3tools/client-runtime/environment";
-import { settlePromise, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
-import { canSnooze, threadWokeAt } from "@t3tools/client-runtime/state/thread-settled";
-import { threadRuntimeCanArchive } from "@t3tools/client-runtime/state/models";
-import { EnvironmentId, type ScopedThreadRef, ThreadId } from "@t3tools/contracts";
-import { resolveWorktreeCleanup } from "@t3tools/shared/projectSettings";
+} from "@yantrix/client-runtime/environment";
+import { settlePromise, squashAtomCommandFailure } from "@yantrix/client-runtime/state/runtime";
+import { canSnooze, threadWokeAt } from "@yantrix/client-runtime/state/thread-settled";
+import { threadRuntimeCanArchive } from "@yantrix/client-runtime/state/models";
+import { EnvironmentId, type ScopedThreadRef, ThreadId } from "@yantrix/contracts";
+import { resolveWorktreeCleanup } from "@yantrix/shared/projectSettings";
 import * as Cause from "effect/Cause";
 import * as Schema from "effect/Schema";
 import { AsyncResult } from "effect/unstable/reactivity";
@@ -20,7 +20,7 @@ import { useComposerDraftStore } from "../composerDraftStore";
 import { terminalEnvironment } from "../state/terminal";
 import { appAtomRegistry } from "../rpc/atomRegistry";
 import { environmentServerConfigsAtom } from "../state/server";
-import { isScratchProject } from "@t3tools/client-runtime/state/projects";
+import { isScratchProject } from "@yantrix/client-runtime/state/projects";
 import { threadEnvironment } from "../state/threads";
 import { vcsEnvironment } from "../state/vcs";
 import { useNewThreadHandler } from "./useHandleNewThread";

@@ -3,8 +3,8 @@ import {
   ORCHESTRATION_PROTOCOL_VERSION,
   type ServerConfig,
   type ServerConfigStreamEvent,
-} from "@t3tools/contracts";
-import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+} from "@yantrix/contracts";
+import { HostProcessPlatform } from "@yantrix/shared/hostProcess";
 import * as ConfigProvider from "effect/ConfigProvider";
 import * as Deferred from "effect/Deferred";
 import * as Duration from "effect/Duration";
@@ -168,7 +168,7 @@ const makeParkedWindowsLauncher = Effect.gen(function* () {
       Effect.provide(
         ConfigProvider.layer(
           ConfigProvider.fromEnv({
-            env: { PATH: "C:\\t3-late-editors-test", PATHEXT: ".EXE" },
+            env: { PATH: "C:\\yantrix-late-editors-test", PATHEXT: ".EXE" },
           }),
         ),
       ),

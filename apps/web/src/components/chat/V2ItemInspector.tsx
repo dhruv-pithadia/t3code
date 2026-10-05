@@ -3,13 +3,13 @@ import type {
   OrchestrationV2ProjectedTurnItem,
   RunId,
   ThreadId,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import {
   toolCallLines,
   turnItemDetailRevision,
   turnItemNeedsDetailFetch,
   turnItemOutputText,
-} from "@t3tools/client-runtime/work-log/item-detail";
+} from "@yantrix/client-runtime/work-log/item-detail";
 import { ExternalLinkIcon, GitBranchIcon, RotateCcwIcon } from "lucide-react";
 import { memo, Suspense, use, useMemo } from "react";
 

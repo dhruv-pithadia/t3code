@@ -7,8 +7,8 @@ import type {
   OrchestrationV2ThreadShellSnapshot,
   OrchestrationV2ShellStreamItem,
   OrchestrationV2StoredEvent,
-} from "@t3tools/contracts";
-import { OrchestrationProjectShell as ProjectShellSchema } from "@t3tools/contracts";
+} from "@yantrix/contracts";
+import { OrchestrationProjectShell as ProjectShellSchema } from "@yantrix/contracts";
 import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 

@@ -2,9 +2,9 @@ import type { SDKModel } from "@cursor/sdk";
 import { describe, expect, it } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
-import type { CursorSettings } from "@t3tools/contracts";
-import { CursorSettings as CursorSettingsSchema } from "@t3tools/contracts";
-import { createModelCapabilities } from "@t3tools/shared/model";
+import type { CursorSettings } from "@yantrix/contracts";
+import { CursorSettings as CursorSettingsSchema } from "@yantrix/contracts";
+import { createModelCapabilities } from "@yantrix/shared/model";
 
 import {
   buildCursorCapabilitiesFromSdkModel,

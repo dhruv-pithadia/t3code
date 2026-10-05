@@ -1,5 +1,5 @@
 {
-  "name": "@t3tools/shared",
+  "name": "@yantrix/shared",
   "private": true,
   "type": "module",
   "exports": {
@@ -139,9 +139,9 @@
       "types": "./src/projectSettings.ts",
       "import": "./src/projectSettings.ts"
     },
-    "./t3ProjectFile": {
-      "types": "./src/t3ProjectFile.ts",
-      "import": "./src/t3ProjectFile.ts"
+    "./yantrixProjectFile": {
+      "types": "./src/yantrixProjectFile.ts",
+      "import": "./src/yantrixProjectFile.ts"
     },
     "./orchestrationTiming": {
       "types": "./src/orchestrationTiming.ts",
@@ -347,9 +347,9 @@
       "types": "./src/orchestrationV2Timeline.ts",
       "import": "./src/orchestrationV2Timeline.ts"
     },
-    "./t3McpToolPresentation": {
-      "types": "./src/t3McpToolPresentation.ts",
-      "import": "./src/t3McpToolPresentation.ts"
+    "./yantrixMcpToolPresentation": {
+      "types": "./src/yantrixMcpToolPresentation.ts",
+      "import": "./src/yantrixMcpToolPresentation.ts"
     },
     "./Array": {
       "types": "./src/Array.ts",
@@ -395,7 +395,7 @@
   "dependencies": {
     "@noble/curves": "catalog:",
     "@noble/hashes": "catalog:",
-    "@t3tools/contracts": "workspace:*",
+    "@yantrix/contracts": "workspace:*",
     "effect": "catalog:",
     "jose": "catalog:",
     "yaml": "catalog:"

@@ -37,8 +37,8 @@ import {
   ProviderDriverKind,
   type ProviderInstanceConfigMap,
   ProviderInstanceId,
-} from "@t3tools/contracts";
-import { HostProcessPlatform, isHostWindows } from "@t3tools/shared/hostProcess";
+} from "@yantrix/contracts";
+import { HostProcessPlatform, isHostWindows } from "@yantrix/shared/hostProcess";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -153,7 +153,7 @@ const makeTildeProviderFixtures = Effect.fn(
   const homePath = expandHomePath("~");
   const fixtureDir = yield* fileSystem.makeTempDirectoryScoped({
     directory: homePath,
-    prefix: ".t3-provider-path-test-",
+    prefix: ".yantrix-provider-path-test-",
   });
   const codexPath = path.join(fixtureDir, "codex");
   const claudePath = path.join(fixtureDir, "claude");
@@ -363,7 +363,11 @@ describe("ProviderInstanceRegistryLive — multi-instance codex slice", () => {
             driver: ProviderDriverKind.make("codex"),
             enabled: true,
             environment: [
-              { name: "T3_CODEX_COLLAB_SCRIPT", value: fixtures.codexScriptPath, sensitive: false },
+              {
+                name: "YANTRIX_CODEX_COLLAB_SCRIPT",
+                value: fixtures.codexScriptPath,
+                sensitive: false,
+              },
             ],
             config: makeCodexConfig({ enabled: true, binaryPath: fixtures.codexBinaryPath }),
           },
@@ -391,7 +395,7 @@ describe("ProviderInstanceRegistryLive — multi-instance codex slice", () => {
           enabled: true,
           environment: [
             {
-              name: "T3_CODEX_COLLAB_SCRIPT",
+              name: "YANTRIX_CODEX_COLLAB_SCRIPT",
               value: fixtures.codexScriptPath,
               sensitive: false,
             },
@@ -474,9 +478,9 @@ describe("ProviderInstanceRegistryLive — multi-instance codex slice", () => {
             driver: ProviderDriverKind.make("claudeAgent"),
             enabled: true,
             environment: [
-              { name: "T3_CLAUDE_RESET_MARKER", value: marker, sensitive: false },
+              { name: "YANTRIX_CLAUDE_RESET_MARKER", value: marker, sensitive: false },
               ...(claim.usageFailsAfterClaim
-                ? [{ name: "T3_CLAUDE_USAGE_FAILS_AFTER_CLAIM", value: "1", sensitive: false }]
+                ? [{ name: "YANTRIX_CLAUDE_USAGE_FAILS_AFTER_CLAIM", value: "1", sensitive: false }]
                 : []),
             ],
             config: makeClaudeConfig({

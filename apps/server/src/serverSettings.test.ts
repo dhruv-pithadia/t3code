@@ -9,8 +9,8 @@ import {
   resolveProviderInstanceEnabled,
   ServerSettings,
   ServerSettingsPatch,
-} from "@t3tools/contracts";
-import { createModelSelection } from "@t3tools/shared/model";
+} from "@yantrix/contracts";
+import { createModelSelection } from "@yantrix/shared/model";
 import { assert, it } from "@effect/vitest";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -43,7 +43,7 @@ const makeServerSettingsLayer = () =>
     Layer.provideMerge(
       Layer.fresh(
         ServerConfig.layerTest(process.cwd(), {
-          prefix: "t3code-server-settings-test-",
+          prefix: "yantrix-server-settings-test-",
         }),
       ),
     ),
@@ -57,7 +57,7 @@ const makeServerSettingsLayerWithSecrets = () =>
     Layer.provideMerge(
       Layer.fresh(
         ServerConfig.layerTest(process.cwd(), {
-          prefix: "t3code-server-settings-test-",
+          prefix: "yantrix-server-settings-test-",
         }),
       ),
     ),
@@ -139,7 +139,7 @@ it.layer(NodeServices.layer)("server settings", (it) => {
       const fs = yield* FileSystem.FileSystem;
       const path = yield* Path.Path;
       const service = yield* ServerSettingsModule.ServerSettingsService;
-      const dotfiles = yield* fs.makeTempDirectoryScoped({ prefix: "t3-settings-dotfiles-" });
+      const dotfiles = yield* fs.makeTempDirectoryScoped({ prefix: "yantrix-settings-dotfiles-" });
       const linkedSettingsPath = path.join(dotfiles, "settings.json");
       yield* fs.writeFileString(linkedSettingsPath, `{ "responseStreamingMode": "turn" }`);
       yield* fs.remove(config.settingsPath, { force: true });
@@ -162,7 +162,9 @@ it.layer(NodeServices.layer)("server settings", (it) => {
         const fs = yield* FileSystem.FileSystem;
         const path = yield* Path.Path;
         const service = yield* ServerSettingsModule.ServerSettingsService;
-        const dotfiles = yield* fs.makeTempDirectoryScoped({ prefix: "t3-settings-dotfiles-" });
+        const dotfiles = yield* fs.makeTempDirectoryScoped({
+          prefix: "yantrix-settings-dotfiles-",
+        });
         const linkedSettingsPath = path.join(dotfiles, "settings.json");
         yield* fs.writeFileString(linkedSettingsPath, `{ "responseStreamingMode": "turn" }`);
         yield* fs.remove(config.settingsPath, { force: true });
@@ -188,7 +190,9 @@ it.layer(NodeServices.layer)("server settings", (it) => {
         const fs = yield* FileSystem.FileSystem;
         const path = yield* Path.Path;
         const service = yield* ServerSettingsModule.ServerSettingsService;
-        const dotfiles = yield* fs.makeTempDirectoryScoped({ prefix: "t3-settings-dotfiles-" });
+        const dotfiles = yield* fs.makeTempDirectoryScoped({
+          prefix: "yantrix-settings-dotfiles-",
+        });
         const firstSettingsPath = path.join(dotfiles, "first", "settings.json");
         const secondSettingsPath = path.join(dotfiles, "second", "settings.json");
         yield* fs.makeDirectory(path.dirname(firstSettingsPath), { recursive: true });
@@ -223,7 +227,9 @@ it.layer(NodeServices.layer)("server settings", (it) => {
         const fs = yield* FileSystem.FileSystem;
         const path = yield* Path.Path;
         const service = yield* ServerSettingsModule.ServerSettingsService;
-        const dotfiles = yield* fs.makeTempDirectoryScoped({ prefix: "t3-settings-dotfiles-" });
+        const dotfiles = yield* fs.makeTempDirectoryScoped({
+          prefix: "yantrix-settings-dotfiles-",
+        });
         const linkedSettingsPath = path.join(dotfiles, "not-yet", "settings.json");
         yield* fs.remove(config.settingsPath, { force: true });
         yield* fs.symlink(linkedSettingsPath, config.settingsPath);
@@ -255,7 +261,7 @@ it.layer(NodeServices.layer)("server settings", (it) => {
     });
     const configLayer = Layer.fresh(
       ServerConfig.layerTest(process.cwd(), {
-        prefix: "t3code-server-settings-secret-failure-test-",
+        prefix: "yantrix-server-settings-secret-failure-test-",
       }),
     );
     const settingsLayer = ServerSettingsModule.layer.pipe(
@@ -1320,7 +1326,7 @@ it.layer(NodeServices.layer)("server settings", (it) => {
       Layer.provideMerge(
         Layer.fresh(
           ServerConfig.layerTest(process.cwd(), {
-            prefix: "t3code-inline-secret-failure-test-",
+            prefix: "yantrix-inline-secret-failure-test-",
           }),
         ),
       ),
@@ -1805,7 +1811,7 @@ it.layer(NodeServices.layer)("server settings", (it) => {
         Layer.provideMerge(
           Layer.fresh(
             ServerConfig.layerTest(process.cwd(), {
-              prefix: "t3code-server-settings-materialization-failure-test-",
+              prefix: "yantrix-server-settings-materialization-failure-test-",
             }),
           ),
         ),

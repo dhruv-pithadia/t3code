@@ -2,9 +2,9 @@ import type {
   EnvironmentId,
   UserInputAttachmentAnswerPayload,
   UserInputAttachments,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import { Image, Linking, Pressable, View } from "react-native";
-import { getQuestionAnswerText } from "@t3tools/client-runtime/work-log/user-input";
+import { getQuestionAnswerText } from "@yantrix/client-runtime/work-log/user-input";
 import { AppText as Text } from "../../components/AppText";
 import { useAssetUrl } from "../../state/assets";
 

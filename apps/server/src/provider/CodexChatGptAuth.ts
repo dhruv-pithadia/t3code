@@ -7,8 +7,8 @@ import {
   type ChatGptReconnectProfile,
   type ChatGptTransferredProfile,
   type ProviderInstanceId,
-} from "@t3tools/contracts";
-import { codexCallbackUrl } from "@t3tools/shared/codexAuthHandoff";
+} from "@yantrix/contracts";
+import { codexCallbackUrl } from "@yantrix/shared/codexAuthHandoff";
 import * as Clock from "effect/Clock";
 import * as Cause from "effect/Cause";
 import * as AnalyticsService from "../telemetry/AnalyticsService.ts";
@@ -515,7 +515,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
               ? { prompt: "consent" }
               : {}),
           }
-        : { agent_name_hint: "T3 Code" }),
+        : { agent_name_hint: "Yantrix" }),
       ext_agent_host_id: hostId,
       response_type: "code",
       redirect_uri: redirectUri,

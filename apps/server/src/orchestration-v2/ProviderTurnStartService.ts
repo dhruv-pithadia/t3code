@@ -1,5 +1,5 @@
-import { modelSelectionsEqual } from "@t3tools/shared/model";
-import { projectComposerContextForProvider } from "@t3tools/shared/composerContextReferences";
+import { modelSelectionsEqual } from "@yantrix/shared/model";
+import { projectComposerContextForProvider } from "@yantrix/shared/composerContextReferences";
 import {
   CommandId,
   type OrchestrationV2DomainEvent,
@@ -10,7 +10,7 @@ import {
   type OrchestrationV2TurnItem,
   RunId,
   ThreadId,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import * as Context from "effect/Context";
 import * as Cause from "effect/Cause";
 import * as DateTime from "effect/DateTime";
@@ -79,7 +79,7 @@ export interface ProviderTurnStartServiceV2Shape {
 export class ProviderTurnStartServiceV2 extends Context.Service<
   ProviderTurnStartServiceV2,
   ProviderTurnStartServiceV2Shape
->()("t3/orchestration-v2/ProviderTurnStartService/ProviderTurnStartServiceV2") {}
+>()("yantrix/orchestration-v2/ProviderTurnStartService/ProviderTurnStartServiceV2") {}
 
 export const layer: Layer.Layer<
   ProviderTurnStartServiceV2,

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Yantrix App Testing"
+  short_description: "Test web and desktop in Yantrix's Browser panel"
+  default_prompt: "Use $test-yantrix-app to verify the affected web or desktop flow through Yantrix's Browser panel."

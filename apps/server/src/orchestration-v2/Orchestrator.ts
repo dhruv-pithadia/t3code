@@ -3,14 +3,14 @@ import {
   latestRootProviderFailure,
   runRanAfter,
   usageLimitBlockedRun,
-} from "@t3tools/shared/orchestrationV2ThreadError";
-import { threadPullRequestsOf } from "@t3tools/shared/threadPullRequests";
+} from "@yantrix/shared/orchestrationV2ThreadError";
+import { threadPullRequestsOf } from "@yantrix/shared/threadPullRequests";
 import {
   normalizeThreadPullRequestKey,
   visibleThreadPullRequests,
   threadPullRequestKeysEqual,
   legacyThreadPullRequestKey,
-} from "@t3tools/shared/threadPullRequests";
+} from "@yantrix/shared/threadPullRequests";
 import {
   ORCHESTRATION_V2_WORKSPACE_PREPARATION_FAILURE_CODE,
   type ChatAttachment,
@@ -50,12 +50,12 @@ import {
   ThreadLinkedPullRequest,
   ThreadId,
   type TurnItemId,
-} from "@t3tools/contracts";
-import { modelSelectionsEqual } from "@t3tools/shared/model";
+} from "@yantrix/contracts";
+import { modelSelectionsEqual } from "@yantrix/shared/model";
 import {
   derivePendingBackgroundWork,
   pendingBackgroundTurnItems,
-} from "@t3tools/shared/orchestrationV2PendingBackgroundWork";
+} from "@yantrix/shared/orchestrationV2PendingBackgroundWork";
 import * as Context from "effect/Context";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
@@ -319,7 +319,7 @@ export interface OrchestratorV2Shape {
 }
 
 export class OrchestratorV2 extends Context.Service<OrchestratorV2, OrchestratorV2Shape>()(
-  "t3/orchestration-v2/Orchestrator/OrchestratorV2",
+  "yantrix/orchestration-v2/Orchestrator/OrchestratorV2",
 ) {}
 
 function nextRunOrdinal(projection: Pick<OrchestrationV2ThreadProjection, "runs">): number {
@@ -361,7 +361,7 @@ function wakeWorkStartedAt(
 export function isNativeMaintenanceCommand(message: {
   readonly text: string;
   readonly attachments: ReadonlyArray<ChatAttachment>;
-  readonly context?: import("@t3tools/contracts").OrchestrationMessageContext | undefined;
+  readonly context?: import("@yantrix/contracts").OrchestrationMessageContext | undefined;
 }): boolean {
   return (
     message.attachments.length === 0 &&
@@ -1888,7 +1888,7 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
           : "disposed";
       const now = yield* DateTime.now;
       const emitEvent = emit(events, command);
-      // task_status and t3_thread_read use distinct command IDs, so two
+      // task_status and yantrix_thread_read use distinct command IDs, so two
       // valid observations can race after their read preflight. Re-emit the
       // existing task row so the second dispatch is a successful idempotent
       // no-op rather than "already acknowledged/disposed" or empty-events.
@@ -3607,7 +3607,7 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
     readonly messageId: OrchestrationV2ConversationMessage["id"];
     readonly text: string;
     readonly attachments: ReadonlyArray<ChatAttachment>;
-    readonly context?: import("@t3tools/contracts").OrchestrationMessageContext | undefined;
+    readonly context?: import("@yantrix/contracts").OrchestrationMessageContext | undefined;
     readonly createdBy: OrchestrationV2ConversationMessage["createdBy"];
     readonly creationSource: OrchestrationV2ConversationMessage["creationSource"];
     readonly scheduledTaskId?: OrchestrationV2ConversationMessage["scheduledTaskId"];
@@ -8360,7 +8360,7 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
         }),
       );
 
-      // Open interrupt edge cases are tracked in https://github.com/pingdotgg/t3code/issues/15013.
+      // Open interrupt edge cases are tracked in https://github.com/dhruv-pithadia/yantrix/issues/15013.
       yield* emitEvent({
         type: "turn-item.updated",
         threadId: command.threadId,

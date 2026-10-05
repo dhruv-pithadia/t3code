@@ -1,0 +1,60 @@
+import ExpoModulesCore
+
+public class YantrixTerminalModule: Module {
+  public func definition() -> ModuleDefinition {
+    Name("YantrixTerminalSurface")
+
+    // Bumped when native hardware-keyboard handling changes; surfaced in the JS debug
+    // logs so a stale native binary is distinguishable from a broken key pipeline.
+    Constants([
+      "hardwareKeyRevision": 3,
+    ])
+
+    View(YantrixTerminalView.self) {
+      Prop("terminalKey") { (view: YantrixTerminalView, terminalKey: String) in
+        view.terminalKey = terminalKey
+      }
+
+      Prop("initialBuffer") { (view: YantrixTerminalView, initialBuffer: String) in
+        view.initialBuffer = initialBuffer
+      }
+
+      Prop("fontSize") { (view: YantrixTerminalView, fontSize: Double) in
+        view.fontSize = CGFloat(fontSize)
+      }
+
+      Prop("focusRequest") { (view: YantrixTerminalView, focusRequest: Double) in
+        view.focusRequest = focusRequest
+      }
+
+      Prop("autoFocus") { (view: YantrixTerminalView, autoFocus: Bool) in
+        view.autoFocus = autoFocus
+      }
+
+      Prop("appearanceScheme") { (view: YantrixTerminalView, appearanceScheme: String) in
+        view.appearanceScheme = appearanceScheme
+      }
+
+      Prop("themeConfig") { (view: YantrixTerminalView, themeConfig: String) in
+        view.themeConfig = themeConfig
+      }
+
+      Prop("backgroundColor") { (view: YantrixTerminalView, backgroundColor: String) in
+        view.backgroundColorHex = backgroundColor
+      }
+
+      Prop("foregroundColor") { (view: YantrixTerminalView, foregroundColor: String) in
+        view.foregroundColorHex = foregroundColor
+      }
+
+      Prop("mutedForegroundColor") { (view: YantrixTerminalView, mutedForegroundColor: String) in
+        view.mutedForegroundColorHex = mutedForegroundColor
+      }
+
+      Prop("captureRequest") { (view: YantrixTerminalView, request: Double) in
+        view.captureRequest = request
+      }
+      Events("onInput", "onResize", "onCapture")
+    }
+  }
+}

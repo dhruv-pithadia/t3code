@@ -63,3 +63,4 @@ jobs:
           PKGREL: ${{ inputs.pkgrel || '1' }}
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
         run: packaging/aur/scripts/release.sh
+    if: ${{ vars.YANTRIX_ENABLE_EXTERNAL_WORKFLOWS == 'true' }}

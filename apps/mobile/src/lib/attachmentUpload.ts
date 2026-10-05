@@ -1,19 +1,19 @@
-import { resolveAssetUrl } from "@t3tools/client-runtime/state/assets";
+import { resolveAssetUrl } from "@yantrix/client-runtime/state/assets";
 import {
   clampFileAttachmentUploadBytes,
   fileAttachmentTooLargeMessage,
   isAssetAttachmentNotFoundFailure,
   runAttachmentUploadCycle,
   verifyPersistedAttachmentUpload,
-} from "@t3tools/client-runtime/state/attachments";
-import { runAtomCommand, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
+} from "@yantrix/client-runtime/state/attachments";
+import { runAtomCommand, squashAtomCommandFailure } from "@yantrix/client-runtime/state/runtime";
 import type {
   ChatFileAttachment,
   ChatImageAttachment,
   EnvironmentId,
   UploadChatImageAttachment,
-} from "@t3tools/contracts";
-import { PROVIDER_SEND_TURN_SUPPORTED_IMAGE_MIME_TYPES } from "@t3tools/contracts";
+} from "@yantrix/contracts";
+import { PROVIDER_SEND_TURN_SUPPORTED_IMAGE_MIME_TYPES } from "@yantrix/contracts";
 import * as Option from "effect/Option";
 
 import { appAtomRegistry } from "../state/atom-registry";
@@ -28,7 +28,7 @@ import {
   type DraftComposerAttachment,
   type DraftComposerImageAttachment,
 } from "./composerImages";
-import { imageMimeType } from "@t3tools/shared/image";
+import { imageMimeType } from "@yantrix/shared/image";
 import { uuidv4 } from "./uuid";
 
 /**
@@ -271,7 +271,7 @@ async function uploadFileBytes(
   }
   const file =
     fileUri === undefined
-      ? new File(Paths.cache, `t3-upload-${uuidv4()}`)
+      ? new File(Paths.cache, `yantrix-upload-${uuidv4()}`)
       : new File(resolveOwnedComposerAttachmentFileUri(fileUri, Paths.document.uri) ?? fileUri);
   try {
     if (fileUri === undefined && inlineDataUrl !== undefined) {

@@ -20,8 +20,8 @@ import {
   type HttpClientRequest,
 } from "effect/unstable/http";
 
-import { DESKTOP_UPDATE_RESTART_MARKER_FILE, EnvironmentId } from "@t3tools/contracts";
-import { RelayClientTracer } from "@t3tools/shared/relayTracing";
+import { DESKTOP_UPDATE_RESTART_MARKER_FILE, EnvironmentId } from "@yantrix/contracts";
+import { RelayClientTracer } from "@yantrix/shared/relayTracing";
 import * as EnvironmentAuth from "../auth/EnvironmentAuth.ts";
 import * as ServerSecretStore from "../auth/ServerSecretStore.ts";
 import * as ServerConfigModule from "../config.ts";
@@ -39,7 +39,7 @@ import * as CliTokenManager from "./CliTokenManager.ts";
 import {
   RelayManagedEndpointRecoveryRegistrationRequest,
   type RelayLinkProofRequest,
-} from "@t3tools/contracts/relay";
+} from "@yantrix/contracts/relay";
 import {
   CLOUD_ENDPOINT_CONFIRMED_ORIGIN,
   CLOUD_ENDPOINT_RUNTIME_CONFIG,
@@ -170,7 +170,7 @@ describe("relay request tracing", () => {
         },
       });
       const request = HttpServerRequest.fromWeb(
-        new Request("https://environment.example.test/api/t3-cloud/mint-credential", {
+        new Request("https://environment.example.test/api/yantrix-cloud/mint-credential", {
           headers: {
             traceparent: "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01",
           },
@@ -200,7 +200,7 @@ describe("relay request tracing", () => {
         },
       });
       const request = HttpServerRequest.fromWeb(
-        new Request("https://environment.example.test/api/t3-cloud/mint-credential", {
+        new Request("https://environment.example.test/api/yantrix-cloud/mint-credential", {
           headers: {
             traceparent: "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01",
           },
@@ -229,7 +229,7 @@ describe("reconcileDesiredCloudLink", () => {
 
       expect(error).toMatchObject({
         _tag: "EnvironmentHttpUnauthorizedError",
-        message: "Run `t3 connect link` to authorize this environment.",
+        message: "Run `yantrix connect link` to authorize this environment.",
       });
     }).pipe(
       Effect.provideService(
@@ -445,7 +445,7 @@ describe("releaseManagedTunnelOnShutdown", () => {
         // The release consults the launcher state file under the configured
         // baseDir, so every harness run gets a scoped temp baseDir.
         Effect.provide(
-          ServerConfigModule.layerTest("/", { prefix: "t3-http-release-test-" }).pipe(
+          ServerConfigModule.layerTest("/", { prefix: "yantrix-http-release-test-" }).pipe(
             Layer.provideMerge(NodeServices.layer),
           ),
         ),
@@ -612,7 +612,7 @@ describe("releaseManagedTunnelOnShutdown", () => {
   });
 
   it.effect("still releases a pending update when the launcher is stopping", () => {
-    // `t3 service uninstall` or `systemctl stop` during the pending window:
+    // `yantrix service uninstall` or `systemctl stop` during the pending window:
     // the launcher writes its stop marker before signalling the child, so no
     // replacement server is coming and the tunnel must not be kept.
     const { store, values } = makeMemorySecretStore(managedLinkSecrets);
@@ -1247,10 +1247,10 @@ describe("link proof provider kinds", () => {
     origin: { localHttpHost: "127.0.0.1", localHttpPort: 7331 },
   });
 
-  it("accepts managed and manual endpoints but not t3_relay", () => {
+  it("accepts managed and manual endpoints but not yantrix_relay", () => {
     expect(isSupportedLinkProviderKind(proofRequest("cloudflare_tunnel"))).toBe(true);
     expect(isSupportedLinkProviderKind(proofRequest("manual"))).toBe(true);
-    expect(isSupportedLinkProviderKind(proofRequest("t3_relay"))).toBe(false);
+    expect(isSupportedLinkProviderKind(proofRequest("yantrix_relay"))).toBe(false);
   });
 
   it("only claims the managed-tunnel scope for tunnel links", () => {

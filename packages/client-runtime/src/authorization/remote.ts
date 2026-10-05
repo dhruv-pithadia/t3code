@@ -5,8 +5,8 @@ import {
   AuthTokenExchangeGrantType,
   type ClientConnectionMethod,
   type AuthEnvironmentScope,
-} from "@t3tools/contracts";
-import { encodeOAuthScope } from "@t3tools/shared/oauthScope";
+} from "@yantrix/contracts";
+import { encodeOAuthScope } from "@yantrix/shared/oauthScope";
 import * as Effect from "effect/Effect";
 import { environmentEndpointUrl } from "../environment/endpoint.ts";
 import {

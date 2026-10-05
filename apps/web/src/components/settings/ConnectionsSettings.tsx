@@ -40,12 +40,12 @@ import {
   type DesktopWslState,
   type EnvironmentId,
   resolveEnvironmentMachineKind,
-} from "@t3tools/contracts";
-import { connectionStatusText } from "@t3tools/client-runtime/connection";
+} from "@yantrix/contracts";
+import { connectionStatusText } from "@yantrix/client-runtime/connection";
 import {
   isAtomCommandInterrupted,
   squashAtomCommandFailure,
-} from "@t3tools/client-runtime/state/runtime";
+} from "@yantrix/client-runtime/state/runtime";
 import * as DateTime from "effect/DateTime";
 import * as Option from "effect/Option";
 
@@ -144,7 +144,7 @@ import {
   supportsServerUpdateThreadContinuation,
 } from "~/versionSkew";
 import { hasCloudPublicConfig } from "~/cloud/publicConfig";
-import { RemoveT3ConnectEnvironmentDialog } from "../clerk/RemoveT3ConnectEnvironmentDialog";
+import { RemoveYantrixConnectEnvironmentDialog } from "../clerk/RemoveYantrixConnectEnvironmentDialog";
 import { useCloudLinkController } from "~/cloud/useCloudLinkController";
 import { authEnvironment } from "~/state/auth";
 import { environmentCatalog } from "~/connection/catalog";
@@ -1520,7 +1520,7 @@ function SavedBackendListRow({
     serverUpdateState.status === "running" && serverUpdateState.stage === "resuming";
   const status = savedBackendStatus(environment);
   const serverVersion = environment.serverConfig?.environment.serverVersion ?? null;
-  // A saved T3 Connect machine this device has never reached (unsupported,
+  // A saved Yantrix Connect machine this device has never reached (unsupported,
   // or not yet connected) still has a descriptor from relay discovery, so
   // it can wear its detected glyph instead of the generic server. Discovery
   // empties its map on every refresh, so hold the last descriptor seen or
@@ -1677,7 +1677,7 @@ function CloudLinkSwitch({
   disabled,
   disabledReason,
   onCheckedChange,
-  ariaLabel = "Enable T3 Connect",
+  ariaLabel = "Enable Yantrix Connect",
 }: {
   readonly checked: boolean;
   readonly disabled: boolean;
@@ -1716,9 +1716,9 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
   const [isUpdatingPreference, setIsUpdatingPreference] = useState(false);
 
   const disabledReason = !isSignedIn
-    ? "Sign in to T3 Connect to manage this environment."
+    ? "Sign in to Yantrix Connect to manage this environment."
     : !canManageRelay
-      ? "Your session does not have permission to manage T3 Connect access."
+      ? "Your session does not have permission to manage Yantrix Connect access."
       : null;
   const isBusy = isUpdating || isUpdatingPreference;
 
@@ -1731,15 +1731,15 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
       toastManager.add({
         type: "success",
         title: enabled
-          ? "T3 Connect linked"
+          ? "Yantrix Connect linked"
           : publishAgentActivity
-            ? "T3 Connect tunnel disabled"
-            : "T3 Connect unlinked",
+            ? "Yantrix Connect tunnel disabled"
+            : "Yantrix Connect unlinked",
         description: enabled
-          ? "This environment is available through T3 Connect."
+          ? "This environment is available through Yantrix Connect."
           : publishAgentActivity
             ? "The managed tunnel was removed. Agent activity publishing stays on."
-            : "This environment is no longer available through T3 Connect.",
+            : "This environment is no longer available through Yantrix Connect.",
       });
     }
     setIsUpdating(false);
@@ -1764,11 +1764,11 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
     <>
       {window.desktopBridge ? (
         <SettingsRow
-          title={searchableSetting("t3-connect").title}
+          title={searchableSetting("yantrix-connect").title}
           description={
             managedTunnelActive
-              ? "This environment is available to your other devices through T3 Connect."
-              : "Make this environment available to your other devices through T3 Connect."
+              ? "This environment is available to your other devices through Yantrix Connect."
+              : "Make this environment available to your other devices through Yantrix Connect."
           }
           status={operationError ?? primaryCloudLinkState.error}
           control={
@@ -1783,7 +1783,7 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
       ) : null}
       <SettingsRow
         title={searchableSetting("publish-agent-activity").title}
-        description="Send activity to mobile notifications and Live Activities without T3 Connect."
+        description="Send activity to mobile notifications and Live Activities without Yantrix Connect."
         control={
           <CloudLinkSwitch
             ariaLabel="Publish agent activity to mobile clients"
@@ -1812,7 +1812,7 @@ function EmptyRemoteEnvironments({ cloudEnabled = true }: { readonly cloudEnable
         <EmptyTitle>No saved remote environments</EmptyTitle>
         <EmptyDescription>
           {cloudEnabled
-            ? "Click “Add environment” to pair another environment, or connect one from T3 Connect."
+            ? "Click “Add environment” to pair another environment, or connect one from Yantrix Connect."
             : "Click “Add environment” to pair another environment."}
         </EmptyDescription>
       </EmptyHeader>
@@ -2556,14 +2556,14 @@ export function ConnectionsSettings() {
 
   // Removing forgets the pairing, credentials, and cached threads on this
   // device. Switching off is the reversible path, so removal always confirms.
-  // T3 Connect environments get their own dialog: removing one here leaves its
+  // Yantrix Connect environments get their own dialog: removing one here leaves its
   // account registration, so it points to where that can be deregistered.
-  const [pendingT3ConnectRemoval, setPendingT3ConnectRemoval] =
+  const [pendingYantrixConnectRemoval, setPendingYantrixConnectRemoval] =
     useState<EnvironmentPresentation | null>(null);
   const handleRemoveSavedBackend = useCallback(
     async (environment: EnvironmentPresentation) => {
       if (environment.relayManaged && hasCloudPublicConfig()) {
-        setPendingT3ConnectRemoval(environment);
+        setPendingYantrixConnectRemoval(environment);
         return;
       }
       // Fail closed: no mounted confirm host means no removal.
@@ -3167,7 +3167,7 @@ export function ConnectionsSettings() {
         {desktopWslState.enabled ? (
           <SettingsRow
             title="WSL only"
-            description="Run only the WSL backend. T3 Code restarts when this changes."
+            description="Run only the WSL backend. Yantrix restarts when this changes."
             className="bg-muted/20 pl-7 sm:pl-8"
             control={
               <Switch
@@ -3450,8 +3450,8 @@ export function ConnectionsSettings() {
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   {pendingDesktopServerExposureMode === "network-accessible"
-                    ? "Let your other devices connect to T3 Code over the network. Pair devices to give them access. T3 Code will restart."
-                    : "Devices connected over your local network will disconnect. Existing tunnels, such as T3 Connect or Tailscale HTTPS, keep working. T3 Code will restart."}
+                    ? "Let your other devices connect to Yantrix over the network. Pair devices to give them access. Yantrix will restart."
+                    : "Devices connected over your local network will disconnect. Existing tunnels, such as Yantrix Connect or Tailscale HTTPS, keep working. Yantrix will restart."}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -3505,15 +3505,15 @@ export function ConnectionsSettings() {
                 <AlertDialogDescription>
                   {pendingWslChange?.kind === "disable"
                     ? pendingWslChange.wasWslOnly
-                      ? "T3 Code will restart on the Windows backend. Threads and projects opened against WSL stay safe inside the distro and become available again when you re-enable WSL."
-                      : "The WSL backend will stop. Threads and projects opened against WSL stay safe inside the distro, but they'll be unavailable in T3 Code until you re-enable WSL."
+                      ? "Yantrix will restart on the Windows backend. Threads and projects opened against WSL stay safe inside the distro and become available again when you re-enable WSL."
+                      : "The WSL backend will stop. Threads and projects opened against WSL stay safe inside the distro, but they'll be unavailable in Yantrix until you re-enable WSL."
                     : pendingWslChange?.kind === "distro"
-                      ? "T3 Code will restart the WSL backend on the new distro. Sessions still running on the current distro will be interrupted."
+                      ? "Yantrix will restart the WSL backend on the new distro. Sessions still running on the current distro will be interrupted."
                       : pendingWslChange?.kind === "enable"
                         ? "Run the WSL backend alongside the Windows one, or stop the Windows backend and use only WSL? You can change this later from Settings."
                         : pendingWslChange?.nextValue
-                          ? "T3 Code will restart and start only the WSL backend. Your Windows-side projects won't be accessible until you turn this off again."
-                          : "T3 Code will restart and bring the Windows backend back up alongside WSL."}
+                          ? "Yantrix will restart and start only the WSL backend. Your Windows-side projects won't be accessible until you turn this off again."
+                          : "Yantrix will restart and bring the Windows backend back up alongside WSL."}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -3599,7 +3599,7 @@ export function ConnectionsSettings() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Disable Tailscale HTTPS?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  T3 Code will restart the local backend without Tailscale Serve.
+                  Yantrix will restart the local backend without Tailscale Serve.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -3637,7 +3637,7 @@ export function ConnectionsSettings() {
               <DialogHeader>
                 <DialogTitle>Set up Tailscale HTTPS?</DialogTitle>
                 <DialogDescription>
-                  T3 Code will restart the local backend with Tailscale Serve enabled and ask
+                  Yantrix will restart the local backend with Tailscale Serve enabled and ask
                   Tailscale to proxy HTTPS traffic to this backend.
                 </DialogDescription>
               </DialogHeader>
@@ -3795,13 +3795,13 @@ export function ConnectionsSettings() {
         />
       </SettingsSection>
       {hasCloudPublicConfig() ? (
-        <RemoveT3ConnectEnvironmentDialog
-          environmentLabel={pendingT3ConnectRemoval?.label ?? null}
-          onCancel={() => setPendingT3ConnectRemoval(null)}
+        <RemoveYantrixConnectEnvironmentDialog
+          environmentLabel={pendingYantrixConnectRemoval?.label ?? null}
+          onCancel={() => setPendingYantrixConnectRemoval(null)}
           onConfirm={() => {
-            if (!pendingT3ConnectRemoval) return;
-            setPendingT3ConnectRemoval(null);
-            void removeSavedBackend(pendingT3ConnectRemoval);
+            if (!pendingYantrixConnectRemoval) return;
+            setPendingYantrixConnectRemoval(null);
+            void removeSavedBackend(pendingYantrixConnectRemoval);
           }}
         />
       ) : null}

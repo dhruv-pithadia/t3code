@@ -1,9 +1,9 @@
-import type { ComposerTextPaste } from "../../native/T3ComposerEditor.types";
+import type { ComposerTextPaste } from "../../native/YantrixComposerEditor.types";
 import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
-import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
+import type { EnvironmentThreadShell } from "@yantrix/client-runtime/state/shell";
 import { useAtomValue } from "@effect/atom-react";
-import { clampFileAttachmentUploadBytes } from "@t3tools/client-runtime/state/attachments";
-import { pastedTextDisposition, replaceTextSelection } from "@t3tools/client-runtime/text-paste";
+import { clampFileAttachmentUploadBytes } from "@yantrix/client-runtime/state/attachments";
+import { pastedTextDisposition, replaceTextSelection } from "@yantrix/client-runtime/text-paste";
 import {
   PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
   PROVIDER_SEND_TURN_MAX_INPUT_CHARS,
@@ -13,14 +13,14 @@ import {
   type ModelSelection,
   type ProviderInteractionMode,
   type RuntimeMode,
-  type ServerConfig as T3ServerConfig,
+  type ServerConfig as YantrixServerConfig,
   type UsageLimitsReport,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import {
   collectProviderUsageLimits,
   hasProviderUsageLimits,
   isUsageLimitsCommand,
-} from "@t3tools/shared/usageLimits";
+} from "@yantrix/shared/usageLimits";
 import { StackActions, useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { ReactNode } from "react";
 import {
@@ -63,7 +63,7 @@ import {
 import { appAtomRegistry } from "../../state/atom-registry";
 import type { ComposerDocumentAttachment } from "../../lib/composerContext";
 import { useProject, useThreadShells } from "../../state/entities";
-import { scopeProjectRef } from "@t3tools/client-runtime/environment";
+import { scopeProjectRef } from "@yantrix/client-runtime/environment";
 
 import { AppText as Text } from "../../components/AppText";
 import { ComposerAttachmentButton } from "../../components/ComposerAttachmentButton";
@@ -95,7 +95,7 @@ import { useScaledTextRole } from "../settings/appearance/useScaledTextRole";
 import type { RemoteClientConnectionState } from "../../lib/connection";
 import { resolveProviderOptionDescriptors } from "../../lib/providerOptions";
 import { ControlPillMenu } from "../../components/ControlPill";
-import type { ActiveTurnComposerAction } from "@t3tools/client-runtime/state/composer-dispatch";
+import type { ActiveTurnComposerAction } from "@yantrix/client-runtime/state/composer-dispatch";
 import type { FollowUpBehavior } from "../../lib/followUpBehavior";
 import {
   resolveComposerSendPresentation,
@@ -156,7 +156,7 @@ export interface ThreadComposerProps {
   readonly selectedThread: EnvironmentThreadShell;
   readonly reportedModelSelection?: ModelSelection | null;
   readonly hasCompactableConversation: boolean;
-  readonly serverConfig: T3ServerConfig | null;
+  readonly serverConfig: YantrixServerConfig | null;
   readonly queueCount: number;
   readonly activeThreadBusy: boolean;
   readonly canStopThread: boolean;
@@ -459,7 +459,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
     });
   };
   const { onSendMessage, onChangeDraftMessage, onShowUsageLimits } = props;
-  // T3 owns /usage-limits only where Limits has data for the selected provider;
+  // Yantrix owns /usage-limits only where Limits has data for the selected provider;
   // elsewhere the name stays the provider's own and is sent through untouched.
   const usageLimitsOffered =
     selectedProviderStatus !== null &&
@@ -620,7 +620,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
         armAgentAwarenessLiveActivityForLocalWork({
           environmentId: props.environmentId,
           threadTitle: props.selectedThread.title,
-          projectTitle: props.environmentLabel ?? "T3 Code",
+          projectTitle: props.environmentLabel ?? "Yantrix",
         });
       } finally {
         inFlightThreadIdsRef.current.delete(threadKey);
@@ -1036,7 +1036,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                 ))}
                 {stripAttachments.length > 3 ? (
                   <View className="size-[30px] items-center justify-center rounded-lg bg-subtle-strong">
-                    <Text className="text-foreground-muted text-2xs font-t3-bold">
+                    <Text className="text-foreground-muted text-2xs font-yantrix-bold">
                       +{stripAttachments.length - 3}
                     </Text>
                   </View>

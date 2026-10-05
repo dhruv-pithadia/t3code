@@ -34,10 +34,10 @@ interface JsonRpcMessage {
   readonly headers?: ReadonlyArray<unknown>;
 }
 
-const encodedTranscript = process.env.T3_ACP_REPLAY_TRANSCRIPT;
-const transcriptPath = process.env.T3_ACP_REPLAY_TRANSCRIPT_PATH;
-const statusPath = process.env.T3_ACP_REPLAY_STATUS_PATH;
-const replayWorkspace = process.env.T3_ACP_REPLAY_WORKSPACE ?? process.cwd();
+const encodedTranscript = process.env.YANTRIX_ACP_REPLAY_TRANSCRIPT;
+const transcriptPath = process.env.YANTRIX_ACP_REPLAY_TRANSCRIPT_PATH;
+const statusPath = process.env.YANTRIX_ACP_REPLAY_STATUS_PATH;
+const replayWorkspace = process.env.YANTRIX_ACP_REPLAY_WORKSPACE ?? process.cwd();
 
 if ((encodedTranscript === undefined && transcriptPath === undefined) || statusPath === undefined) {
   process.stderr.write("ACP replay requires transcript and status environment variables.\n");
@@ -57,8 +57,9 @@ const pendingClientRequestIds = new Map<string, string | number>();
 const pendingAgentRequestMethods = new Map<string, string>();
 
 function writeStatus(failure?: unknown): void {
+  const temporaryPath = `${replayStatusPath}.tmp`;
   NodeFS.writeFileSync(
-    replayStatusPath,
+    temporaryPath,
     JSON.stringify({
       scenario: transcript.scenario,
       cursor,
@@ -67,6 +68,7 @@ function writeStatus(failure?: unknown): void {
     }),
     "utf8",
   );
+  NodeFS.renameSync(temporaryPath, replayStatusPath);
 }
 
 function stableStringify(value: unknown): string {
@@ -184,10 +186,13 @@ function materializeInbound(value: unknown): unknown {
   );
 }
 
+// Persist each frame before sending it: a client can stop the child as soon as
+// it receives the final reply, including while a later synchronous write runs.
 function emitInbound(recorded: LogicalFrame): void {
   const frame = materializeInbound(recorded) as LogicalFrame;
   switch (frame.kind) {
     case "notification":
+      advance();
       send({
         jsonrpc: "2.0",
         method: frame.method,
@@ -198,6 +203,7 @@ function emitInbound(recorded: LogicalFrame): void {
       const id = nextAgentRequestId;
       nextAgentRequestId += 1;
       pendingAgentRequestMethods.set(String(id), frame.method);
+      advance();
       send({
         jsonrpc: "2.0",
         id,
@@ -214,6 +220,7 @@ function emitInbound(recorded: LogicalFrame): void {
         return;
       }
       pendingClientRequestIds.delete(frame.method);
+      advance();
       send({
         jsonrpc: "2.0",
         id,
@@ -248,7 +255,6 @@ function flushInbound(): void {
     }
     emitInbound(frame);
     if (stopped) return;
-    advance();
   }
 }
 

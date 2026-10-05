@@ -11,7 +11,7 @@ import { QuestionAnswerHistory } from "./QuestionAnswerHistory";
 import {
   getQuestionAnswerPreview,
   hasQuestionAnswer,
-} from "@t3tools/client-runtime/work-log/user-input";
+} from "@yantrix/client-runtime/work-log/user-input";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { type AppSymbolName, SymbolView } from "../../components/AppSymbol";
@@ -47,15 +47,15 @@ import {
   type RunId,
   type ThreadId,
   type ToolActivityIcon,
-} from "@t3tools/contracts";
+} from "@yantrix/contracts";
 import { useAtomValue } from "@effect/atom-react";
-import { scopeThreadRef } from "@t3tools/client-runtime/environment";
+import { scopeThreadRef } from "@yantrix/client-runtime/environment";
 import { environmentThreadDetails, threadEnvironment } from "../../state/threads";
 import { useAtomCommand } from "../../state/use-atom-command";
-import { toolActivityFaviconUrl } from "@t3tools/shared/favicon";
+import { toolActivityFaviconUrl } from "@yantrix/shared/favicon";
 
 import { AppText as Text } from "../../components/AppText";
-import { T3Wordmark } from "../../components/T3Wordmark";
+import { YantrixWordmark } from "../../components/YantrixWordmark";
 import { cn } from "../../lib/cn";
 import { THREAD_WORK_ROW_MIN_HEIGHT, type deriveThreadWorkLogSizing } from "../../lib/layout";
 import {
@@ -64,7 +64,7 @@ import {
   type ThreadFeedActivity,
   workEntryRowLabel,
 } from "../../lib/threadActivity";
-import { toolCallLines, turnItemOutputText } from "@t3tools/client-runtime/work-log/item-detail";
+import { toolCallLines, turnItemOutputText } from "@yantrix/client-runtime/work-log/item-detail";
 import { useTurnItemDetail } from "../../state/queries";
 import {
   resolveThreadWorkGroupInitialScroll,
@@ -76,9 +76,9 @@ import {
   toolGroupAction,
   type ToolGroupSummaryKind,
   workEntryViewedImagePath,
-} from "@t3tools/client-runtime/work-log/presentation";
-import { resolveWorkGroupScrollAnchor } from "@t3tools/client-runtime/work-log/scroll-anchor";
-import { notificationChildThreadId } from "@t3tools/client-runtime/state/thread-execution";
+} from "@yantrix/client-runtime/work-log/presentation";
+import { resolveWorkGroupScrollAnchor } from "@yantrix/client-runtime/work-log/scroll-anchor";
+import { notificationChildThreadId } from "@yantrix/client-runtime/state/thread-execution";
 import type { MarkdownImageRenderer } from "../../native/SelectableMarkdownText";
 import Animated, {
   cancelAnimation,
@@ -104,7 +104,7 @@ export const THREAD_DISCLOSURE_TRANSITION_MS = 180;
 const WORK_LOG_LAYOUT_TRANSITION = LinearTransition.duration(THREAD_DISCLOSURE_TRANSITION_MS);
 const WORK_LOG_DETAIL_ENTER_TRANSITION = FadeIn.duration(140);
 const WORK_LOG_DETAIL_EXIT_TRANSITION = FadeOut.duration(120);
-type WorkContentIcon = AppSymbolName | "browser" | "device" | "t3-code" | "pull-request";
+type WorkContentIcon = AppSymbolName | "browser" | "device" | "yantrix" | "pull-request";
 
 function WorkLogIcon(props: {
   readonly icon: WorkContentIcon;
@@ -113,9 +113,12 @@ function WorkLogIcon(props: {
   readonly highlighted?: boolean;
 }) {
   const colorClassName = props.highlighted ? "accent-foreground" : props.colorClassName;
-  if (props.icon === "t3-code") {
+  if (props.icon === "yantrix") {
     return (
-      <T3Wordmark height={10} {...(colorClassName ? { colorClassName } : { color: props.color })} />
+      <YantrixWordmark
+        height={10}
+        {...(colorClassName ? { colorClassName } : { color: props.color })}
+      />
     );
   }
   return (
@@ -817,7 +820,7 @@ function WorkspacePreparationRetryButton(props: {
       style={{ opacity: busy ? 0.5 : 1 }}
     >
       <SymbolView name="arrow.clockwise" size={13} tintColorClassName="accent-icon" />
-      <Text className="font-t3-medium text-sm text-foreground">Retry</Text>
+      <Text className="font-yantrix-medium text-sm text-foreground">Retry</Text>
     </Pressable>
   );
 }
@@ -879,14 +882,14 @@ const ThreadWorkLogRow = memo(function ThreadWorkLogRow(
             <Text
               className={
                 warning
-                  ? "min-w-0 flex-1 font-t3-medium text-sm text-warning-foreground"
-                  : "min-w-0 flex-1 font-t3-medium text-sm text-adaptive-rose-600-400"
+                  ? "min-w-0 flex-1 font-yantrix-medium text-sm text-warning-foreground"
+                  : "min-w-0 flex-1 font-yantrix-medium text-sm text-adaptive-rose-600-400"
               }
             >
               {label}
             </Text>
             {props.copied ? (
-              <Text className="pr-1 font-t3-medium text-3xs text-adaptive-emerald-600-400">
+              <Text className="pr-1 font-yantrix-medium text-3xs text-adaptive-emerald-600-400">
                 Copied
               </Text>
             ) : null}
@@ -1075,7 +1078,7 @@ const ThreadWorkLogRow = memo(function ThreadWorkLogRow(
 
         <View className="shrink-0 flex-row items-center gap-px">
           {props.copied ? (
-            <Text className="pr-1 font-t3-medium text-3xs text-adaptive-emerald-600-400">
+            <Text className="pr-1 font-yantrix-medium text-3xs text-adaptive-emerald-600-400">
               Copied
             </Text>
           ) : null}
@@ -1191,9 +1194,9 @@ export function ThreadWorkGroupToggle(props: {
   readonly iconSubtleColor: import("react-native").ColorValue;
   readonly summary: string;
   readonly summaryKind: ToolGroupSummaryKind;
-  readonly summaryToolIcon?: "browser" | "device" | "t3-code" | "pull-request" | "brain";
+  readonly summaryToolIcon?: "browser" | "device" | "yantrix" | "pull-request" | "brain";
   readonly themeAppearance: "light" | "dark";
-  readonly toolSurface?: import("@t3tools/contracts").ToolActivitySurface;
+  readonly toolSurface?: import("@yantrix/contracts").ToolActivitySurface;
   readonly toolIcon?: ToolActivityIcon;
   readonly hasFailure: boolean;
   readonly shimmer: boolean;
@@ -1308,7 +1311,7 @@ export const ThreadAgentSpawnCard = memo(function ThreadAgentSpawnCard(props: {
           <View className="min-w-0 flex-1 gap-0.5">
             <Text
               key={props.rowSizing.textSizeKey}
-              className="font-t3-medium text-sm text-foreground"
+              className="font-yantrix-medium text-sm text-foreground"
               numberOfLines={1}
             >
               {summary.title}

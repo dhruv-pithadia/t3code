@@ -5,7 +5,7 @@ import * as Layer from "effect/Layer";
 import { Argument, Command } from "effect/unstable/cli";
 import * as CliError from "effect/unstable/cli/CliError";
 
-import * as NetService from "@t3tools/shared/Net";
+import * as NetService from "@yantrix/shared/Net";
 import packageJson from "../package.json" with { type: "json" };
 import { acpMcpBridgeCommand, acpMcpCallCommand } from "./cli/acpMcpBridge.ts";
 import { authCommand } from "./cli/auth.ts";
@@ -30,7 +30,7 @@ import { triageCommand } from "./cli/triage.ts";
 const CliRuntimeLayer = Layer.mergeAll(NodeServices.layer, NetService.layer);
 
 const connectPublicConfigMissingMessage =
-  "T3 Connect commands are unavailable: this build is missing T3 Connect public configuration.";
+  "Yantrix Connect commands are unavailable: this build is missing Yantrix Connect public configuration.";
 
 class ConnectPublicConfigMissingError extends CliError.UserError {
   override get message() {
@@ -41,12 +41,12 @@ class ConnectPublicConfigMissingError extends CliError.UserError {
 const connectUnavailableCommand = Command.make("connect", {
   command: Argument.String("command").pipe(Argument.variadic),
 }).pipe(
-  Command.withDescription("T3 Connect is unavailable in builds without public configuration."),
+  Command.withDescription("Yantrix Connect is unavailable in builds without public configuration."),
   Command.unlisted,
   Command.withHandler(() =>
     Effect.fail(
       new CliError.ShowHelp({
-        commandPath: ["t3", "connect"],
+        commandPath: ["yantrix", "connect"],
         errors: [new ConnectPublicConfigMissingError({ cause: connectPublicConfigMissingMessage })],
       }),
     ),
@@ -54,8 +54,8 @@ const connectUnavailableCommand = Command.make("connect", {
 );
 
 export const makeCli = ({ cloudEnabled = hasCloudPublicConfig } = {}) =>
-  Command.make("t3", { ...sharedServerCommandFlags }).pipe(
-    Command.withDescription("Run the T3 Code server."),
+  Command.make("yantrix", { ...sharedServerCommandFlags }).pipe(
+    Command.withDescription("Run the Yantrix server."),
     Command.withHandler((flags) => runServerCommand(flags)),
     Command.withSubcommands([
       acpMcpBridgeCommand,

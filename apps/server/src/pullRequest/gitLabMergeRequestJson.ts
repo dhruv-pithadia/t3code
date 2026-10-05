@@ -17,10 +17,10 @@ import type {
   PullRequestReviewThread,
   PullRequestReviewerCandidate,
   PullRequestState,
-} from "@t3tools/contracts";
-import { TrimmedNonEmptyString } from "@t3tools/contracts";
-import { quoteGitPatchPath } from "@t3tools/shared/gitPatchPath";
-import { decodeJsonResult } from "@t3tools/shared/schemaJson";
+} from "@yantrix/contracts";
+import { TrimmedNonEmptyString } from "@yantrix/contracts";
+import { quoteGitPatchPath } from "@yantrix/shared/gitPatchPath";
+import { decodeJsonResult } from "@yantrix/shared/schemaJson";
 
 /**
  * GitLab's REST enums are decoded as plain strings and normalized here: a GitLab release that

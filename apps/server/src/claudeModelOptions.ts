@@ -1,10 +1,10 @@
-import type { ModelSelection } from "@t3tools/contracts";
+import type { ModelSelection } from "@yantrix/contracts";
 import {
   getModelSelectionBooleanOptionValue,
   getModelSelectionStringOptionValue,
   getProviderOptionDescriptors,
   resolvePromptInjectedEffort,
-} from "@t3tools/shared/model";
+} from "@yantrix/shared/model";
 
 import {
   BUNDLED_CLAUDE_MODEL_CATALOG,
