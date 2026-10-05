@@ -52,6 +52,7 @@ import { layer as threadForkServiceLayer } from "./ThreadForkService.ts";
 import { layer as turnItemPositionStoreLayer } from "./TurnItemPositionStore.ts";
 import { layer as scheduledTaskServiceLayer } from "../scheduledTasks/ScheduledTaskService.ts";
 import * as FeatureTaskServiceModule from "../featureTasks/FeatureTaskService.ts";
+import * as FeatureTaskWorkspaceServiceModule from "../featureTasks/FeatureTaskWorkspaceService.ts";
 
 const featureTaskServiceLayer = FeatureTaskServiceModule.layer;
 
@@ -99,6 +100,9 @@ export const ProjectServiceLayerLive = projectServiceLayer.pipe(
       legacyV1ThreadImporterProvided,
     ),
   ),
+);
+const featureTaskWorkspaceServiceProvided = FeatureTaskWorkspaceServiceModule.layer.pipe(
+  Layer.provideMerge(featureTaskServiceLayer),
 );
 
 const providerEventIngestorProvided = providerEventIngestorLayer.pipe(
@@ -160,7 +164,7 @@ const providerTurnStartServiceProvided = providerTurnStartServiceLayer.pipe(
       providerAuthServiceProvided,
       runExecutionServiceProvided,
       runtimePolicyProvided,
-      featureTaskServiceLayer,
+      featureTaskWorkspaceServiceProvided,
     ),
   ),
 );
@@ -307,7 +311,7 @@ export const OrchestrationV2LayerLive = Layer.mergeAll(
   providerSessionManagerProvided,
   providerAuthServiceProvided,
   providerRuntimeRecoveryProvided,
-  featureTaskServiceLayer,
+  featureTaskWorkspaceServiceProvided,
   projectionMaintenanceProvided,
   legacyV1ThreadImporterProvided,
 );

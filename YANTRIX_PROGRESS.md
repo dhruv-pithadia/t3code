@@ -17,19 +17,19 @@ foundations. Yantrix's additions extend those capabilities.
 
 ## Progress ledger
 
-| ID     | Addition                          | Category               | Status   | What it adds                                                                                                                                                     | Implementation record                                     |
-| ------ | --------------------------------- | ---------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| YF-001 | Persistent feature tasks          | Product feature        | Merged   | A durable objective, acceptance criteria, decisions, next action, and handoff shared across linked conversations and restarts.                                   | [PR #4](https://github.com/dhruv-pithadia/yantrix/pull/4) |
-| YF-002 | Independent development workspace | Development foundation | Merged   | Checkout-local application data, separate development identity and ports, and disabled updates for working on Yantrix alongside an installed T3 Code app.        | [PR #1](https://github.com/dhruv-pithadia/yantrix/pull/1) |
-| YF-003 | Yantrix product identity          | Branding foundation    | Merged   | Yantrix naming, assets, package and application identities, and configuration defaults. This establishes the fork's identity rather than a new agent capability. | [PR #3](https://github.com/dhruv-pithadia/yantrix/pull/3) |
-| YF-004 | Task-owned workspaces             | Product feature        | Building | One durable task workspace and branch shared by linked conversations, delivery state, and safe recovery when the workspace is unavailable or inconsistent.       | Current task branch: `feat/task-workspaces`               |
+| ID     | Addition                          | Category               | Status           | What it adds                                                                                                                                                     | Implementation record                                     |
+| ------ | --------------------------------- | ---------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| YF-001 | Persistent feature tasks          | Product feature        | Merged           | A durable objective, acceptance criteria, decisions, next action, and handoff shared across linked conversations and restarts.                                   | [PR #4](https://github.com/dhruv-pithadia/yantrix/pull/4) |
+| YF-002 | Independent development workspace | Development foundation | Merged           | Checkout-local application data, separate development identity and ports, and disabled updates for working on Yantrix alongside an installed T3 Code app.        | [PR #1](https://github.com/dhruv-pithadia/yantrix/pull/1) |
+| YF-003 | Yantrix product identity          | Branding foundation    | Merged           | Yantrix naming, assets, package and application identities, and configuration defaults. This establishes the fork's identity rather than a new agent capability. | [PR #3](https://github.com/dhruv-pithadia/yantrix/pull/3) |
+| YF-004 | Task-owned workspaces             | Product feature        | Ready for review | One durable task workspace and branch shared by linked conversations, delivery state, and safe recovery when the workspace is unavailable or inconsistent.       | Current task branch: `feat/task-workspaces`               |
 
 [PR #2](https://github.com/dhruv-pithadia/yantrix/pull/2) preserved the repository
 setup and product direction in documentation. It is supporting work, not an
 additional product feature.
 
 **Current position:** the first new product feature is merged in PR #4 on 5 October 2026;
-two supporting foundations are merged. Task-owned workspaces are being built next. A merged change is not automatically a
+two supporting foundations are merged. Task-owned workspaces are implemented and validated, awaiting PR review. A merged change is not automatically a
 published release. No published Yantrix release is recorded here yet.
 
 ## YF-001: persistent feature tasks
@@ -65,6 +65,37 @@ workspace and PR workflows are reused.
 
 PR #4 merged on 5 October 2026. Persistent feature tasks are done and merged;
 a published release containing them has not yet been recorded.
+
+## YF-004: task-owned workspaces
+
+**Difference:** a feature task owns a saved Git worktree and branch. New linked
+conversations use that checkout rather than choosing their workspace separately.
+
+| Capability              | What someone can do                                                                                                              |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Isolated feature work   | Set up a separate worktree and branch when starting a task, or explicitly adopt a compatible registered worktree.                |
+| Conversation continuity | Start fresh conversations in the same checkout and resume linked conversations after restarting Yantrix.                         |
+| Delivery visibility     | Read the branch's pull request, check results, and merge state separately from the task's progress notes.                        |
+| Safe recovery           | Restore a missing checkout from its saved branch commits, inspect mismatches, and explicitly choose another compatible worktree. |
+| Workspace ownership     | Prevent incompatible links and simultaneous agent work in a shared task checkout.                                                |
+
+**Boundaries:** delivery information depends on the source-control host and remains
+unknown when it cannot be verified. Recovery cannot reconstruct missing uncommitted
+files. Workspaces are retained when conversations are unlinked or tasks archived.
+This feature does not merge pull requests or automatically delete worktrees.
+
+**Evidence:** 159 focused tests passed across workspace ownership, recovery, delivery
+freshness, provider start guards, authorization, MCP, and shared client behavior.
+Targeted lint, formatting, server/contracts/web/mobile/client-runtime typechecks,
+and the production web build passed. Headless Chromium verified restart continuity,
+new linked conversations, branch mismatch launch blocking, committed recovery,
+foreign-worktree refusal, offline edit preservation and reconnect retry, and responsive
+web at 390px without overflow or browser page errors.
+
+Native mobile was typechecked but not verified in a simulator. The browser fixture
+had no matching pull request; changing PR/check states are covered by focused service
+tests. Implementation is ready for review on `feat/task-workspaces`; CI and the
+implementation record will be recorded on its PR.
 
 ## Keeping this ledger current
 

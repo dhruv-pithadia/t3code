@@ -120,3 +120,57 @@ export function useUpdateFeatureTask() {
 export function useReadFeatureTask() {
   return useAtomCommand(serverEnvironment.readFeatureTask, { label: "read feature task" });
 }
+
+export function useFeatureTaskWorkspace(
+  environmentId: EnvironmentId | null,
+  id: FeatureTaskId | null,
+) {
+  const query = useEnvironmentQuery(
+    environmentId !== null && id !== null
+      ? serverEnvironment.inspectFeatureTaskWorkspace({ environmentId, input: { id } })
+      : null,
+  );
+  return { ...query, workspace: query.data };
+}
+
+export function useFeatureTaskDelivery(
+  environmentId: EnvironmentId | null,
+  id: FeatureTaskId | null,
+) {
+  const query = useEnvironmentQuery(
+    environmentId !== null && id !== null
+      ? serverEnvironment.getFeatureTaskDelivery({ environmentId, input: { id } })
+      : null,
+  );
+  return { ...query, delivery: query.data };
+}
+
+export function useReadFeatureTaskWorkspace() {
+  return useAtomCommand(serverEnvironment.readFeatureTaskWorkspace, {
+    label: "inspect task workspace",
+    reportFailure: false,
+  });
+}
+
+export function useEnsureFeatureTaskWorkspace() {
+  return useAtomCommand(serverEnvironment.ensureFeatureTaskWorkspace, {
+    label: "prepare task workspace",
+    reportFailure: false,
+  });
+}
+
+export function useAttachFeatureTaskWorkspace() {
+  return useAtomCommand(serverEnvironment.attachFeatureTaskWorkspace, {
+    label: "attach task workspace",
+    reportFailure: false,
+  });
+}
+
+/** Older hosts do not advertise task workspaces; every workspace call is skipped for them. */
+export function useFeatureTaskWorkspacesSupported(environmentId: EnvironmentId | null): boolean {
+  const serverConfigs = useAtomValue(environmentServerConfigsAtom);
+  return (
+    environmentId !== null &&
+    serverConfigs.get(environmentId)?.environment.capabilities.featureTaskWorkspaces === true
+  );
+}

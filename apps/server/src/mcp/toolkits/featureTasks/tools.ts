@@ -5,11 +5,18 @@ import {
   NonNegativeInt,
   FeatureTaskUpdateInput,
   OrchestratorMcpFailure,
+  FeatureTaskWorkspaceInput,
+  FeatureTaskWorkspaceAttachInput,
+  FeatureTaskWorkspaceResult,
+  FeatureTaskDeliveryInput,
+  FeatureTaskDelivery,
 } from "@yantrix/contracts";
 import * as Schema from "effect/Schema";
 import { Tool, Toolkit } from "effect/unstable/ai";
 
 import * as FeatureTasks from "../../../featureTasks/FeatureTaskService.ts";
+import * as FeatureTaskWorkspaces from "../../../featureTasks/FeatureTaskWorkspaceService.ts";
+import * as FeatureTaskDeliveryModule from "../../../featureTasks/FeatureTaskDeliveryService.ts";
 import * as ThreadManagement from "../../../orchestration-v2/ThreadManagementService.ts";
 import * as McpInvocationContext from "../../McpInvocationContext.ts";
 
@@ -20,6 +27,8 @@ const shared = {
     McpInvocationContext.McpInvocationContext,
     ThreadManagement.ThreadManagementService,
     FeatureTasks.FeatureTaskService,
+    FeatureTaskWorkspaces.FeatureTaskWorkspaceService,
+    FeatureTaskDeliveryModule.FeatureTaskDeliveryService,
   ],
 };
 
@@ -75,4 +84,49 @@ const Update = Tool.make("yantrix_feature_task_update", {
   success: FeatureTask,
 }).annotate(Tool.Destructive, true);
 
-export const FeatureTasksToolkit = Toolkit.make(List, Read, Create, Update);
+const WorkspaceInspect = Tool.make("yantrix_feature_task_workspace_inspect", {
+  ...shared,
+  description:
+    "Inspect the saved task checkout and branch identity. Reports missing, mismatched, or conflicting workspaces without changing them.",
+  parameters: FeatureTaskWorkspaceInput,
+  success: FeatureTaskWorkspaceResult,
+})
+  .annotate(Tool.Readonly, true)
+  .annotate(Tool.Destructive, false);
+
+const WorkspaceEnsure = Tool.make("yantrix_feature_task_workspace_ensure", {
+  ...shared,
+  description:
+    "Create the task's own stable Git worktree, or restore its saved branch at the recorded path. It refuses work if linked conversations use a different checkout or the path/branch is ambiguous.",
+  parameters: FeatureTaskWorkspaceInput,
+  success: FeatureTaskWorkspaceResult,
+}).annotate(Tool.Destructive, true);
+
+const WorkspaceAttach = Tool.make("yantrix_feature_task_workspace_attach", {
+  ...shared,
+  description:
+    "Explicitly bind a task to an existing registered worktree after repository and branch identity checks. Linked conversations must already use that exact checkout.",
+  parameters: FeatureTaskWorkspaceAttachInput,
+  success: FeatureTaskWorkspaceResult,
+}).annotate(Tool.Destructive, true);
+
+const Delivery = Tool.make("yantrix_feature_task_delivery", {
+  ...shared,
+  description:
+    "Refresh the task's actual pull request, CI checks, and merge state. This is live delivery evidence and is independent from the task's progress status.",
+  parameters: FeatureTaskDeliveryInput,
+  success: FeatureTaskDelivery,
+})
+  .annotate(Tool.Readonly, true)
+  .annotate(Tool.Destructive, false);
+
+export const FeatureTasksToolkit = Toolkit.make(
+  List,
+  Read,
+  Create,
+  Update,
+  WorkspaceInspect,
+  WorkspaceEnsure,
+  WorkspaceAttach,
+  Delivery,
+);

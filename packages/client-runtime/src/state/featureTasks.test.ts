@@ -5,6 +5,8 @@ import {
   ProviderInstanceId,
   ThreadId,
   type FeatureTask,
+  type FeatureTaskWorkspaceBinding,
+  type FeatureTaskWorkspaceResult,
   type OrchestrationV2ThreadLaunchResult,
 } from "@yantrix/contracts";
 import { describe, expect, it } from "vite-plus/test";
@@ -15,6 +17,10 @@ import {
   linkFeatureTaskConversation,
   type FeatureTaskConversationCommands,
 } from "./featureTasks.ts";
+import {
+  FeatureTaskWorkspaceBlockedError,
+  FeatureTaskWorkspaceUnsupportedError,
+} from "./featureTaskWorkspace.ts";
 
 const taskId = FeatureTaskId.make("feature-task:one");
 const projectId = ProjectId.make("project:one");
@@ -47,11 +53,22 @@ const launchInput = {
   modelSelection: { instanceId: ProviderInstanceId.make("codex"), model: "test-model" },
   runtimeMode: "full-access",
   interactionMode: "default",
-  workspaceStrategy: { type: "root" },
 } satisfies Omit<
   Parameters<FeatureTaskConversationCommands["launchThread"]>[0],
-  "commandId" | "threadId" | "initialMessage"
+  "commandId" | "threadId" | "initialMessage" | "workspaceStrategy"
 >;
+
+const binding: FeatureTaskWorkspaceBinding = {
+  repoPath: "/repo",
+  worktreePath: "/repo-worktrees/task-one",
+  branch: "task/one",
+  createdAt: "2026-10-05T00:00:00.000Z",
+};
+const readyWorkspace: FeatureTaskWorkspaceResult = {
+  state: "ready",
+  binding,
+  recoveryAvailable: false,
+};
 
 const launchResult: OrchestrationV2ThreadLaunchResult = {
   threadId,
@@ -60,6 +77,141 @@ const launchResult: OrchestrationV2ThreadLaunchResult = {
 };
 
 describe("feature task conversation linking", () => {
+  it("launches inside the task binding and ignores sibling conversation workspaces", async () => {
+    const commands = makeCommands(makeTask());
+    const launchedWith: unknown[] = [];
+    commands.launchThread = async (input) => {
+      commands.launchCalls += 1;
+      launchedWith.push(input.workspaceStrategy);
+      return launchResult;
+    };
+    const result = await launchFeatureTaskConversation(commands, createInput());
+    expect(result.status).toBe("linked");
+    expect(result.workspace).toEqual(binding);
+    expect(launchedWith).toEqual([
+      { type: "existing_worktree", worktreePath: binding.worktreePath, branch: binding.branch },
+    ]);
+    expect(commands.ensureCalls).toBe(0);
+  });
+
+  it("keeps the legacy strategy for an unbound task on a host without task workspaces", async () => {
+    const commands = makeCommands(makeTask());
+    delete commands.workspace;
+    const launchedWith: unknown[] = [];
+    commands.launchThread = async (input) => {
+      commands.launchCalls += 1;
+      launchedWith.push(input.workspaceStrategy);
+      return launchResult;
+    };
+    const legacyWorkspaceStrategy = { type: "root", branch: "feature/legacy" } as const;
+    const result = await launchFeatureTaskConversation(
+      commands,
+      createInput({ legacyWorkspaceStrategy }),
+    );
+    expect(result.status).toBe("linked");
+    expect(result.workspace).toBeNull();
+    expect(launchedWith).toEqual([legacyWorkspaceStrategy]);
+  });
+
+  it("never launches a bound task through a host that cannot verify its workspace", async () => {
+    const commands = makeCommands(makeTask({ workspace: binding }));
+    delete commands.workspace;
+    await expect(
+      launchFeatureTaskConversation(
+        commands,
+        createInput({ legacyWorkspaceStrategy: { type: "root" } }),
+      ),
+    ).rejects.toBeInstanceOf(FeatureTaskWorkspaceUnsupportedError);
+    expect(commands.launchCalls).toBe(0);
+  });
+
+  it("refuses a host without task workspaces when no legacy strategy was given", async () => {
+    const commands = makeCommands(makeTask());
+    delete commands.workspace;
+    await expect(launchFeatureTaskConversation(commands, createInput())).rejects.toBeInstanceOf(
+      FeatureTaskWorkspaceUnsupportedError,
+    );
+    expect(commands.launchCalls).toBe(0);
+  });
+
+  it("ignores a legacy strategy when the host supports task workspaces", async () => {
+    const commands = makeCommands(makeTask());
+    const launchedWith: unknown[] = [];
+    commands.launchThread = async (input) => {
+      launchedWith.push(input.workspaceStrategy);
+      return launchResult;
+    };
+    await launchFeatureTaskConversation(
+      commands,
+      createInput({ legacyWorkspaceStrategy: { type: "root" } }),
+    );
+    expect(launchedWith).toEqual([
+      { type: "existing_worktree", worktreePath: binding.worktreePath, branch: binding.branch },
+    ]);
+  });
+
+  it("provisions an unbound task before creating the conversation", async () => {
+    const commands = makeCommands(makeTask());
+    const order: string[] = [];
+    commands.inspectImpl = async () => ({
+      state: "unbound",
+      binding: null,
+      recoveryAvailable: false,
+    });
+    commands.ensureImpl = async () => {
+      order.push("ensure");
+      return readyWorkspace;
+    };
+    commands.launchThreadImpl = async () => {
+      order.push("launch");
+      return launchResult;
+    };
+    await launchFeatureTaskConversation(commands, createInput());
+    expect(order).toEqual(["ensure", "launch"]);
+  });
+
+  it("never launches or provisions when the workspace needs manual repair", async () => {
+    for (const state of ["branch_mismatch", "conflict"] as const) {
+      const commands = makeCommands(makeTask());
+      commands.inspectImpl = async () => ({ state, binding, recoveryAvailable: true });
+      await expect(launchFeatureTaskConversation(commands, createInput())).rejects.toBeInstanceOf(
+        FeatureTaskWorkspaceBlockedError,
+      );
+      expect(commands.ensureCalls).toBe(0);
+      expect(commands.launchCalls).toBe(0);
+    }
+  });
+
+  it("restores a missing worktree only when the server says recovery is available", async () => {
+    const recoverable = makeCommands(makeTask());
+    recoverable.inspectImpl = async () => ({ state: "missing", binding, recoveryAvailable: true });
+    await launchFeatureTaskConversation(recoverable, createInput());
+    expect(recoverable.ensureCalls).toBe(1);
+    expect(recoverable.launchCalls).toBe(1);
+
+    const stuck = makeCommands(makeTask());
+    stuck.inspectImpl = async () => ({ state: "missing", binding, recoveryAvailable: false });
+    await expect(launchFeatureTaskConversation(stuck, createInput())).rejects.toMatchObject({
+      state: "missing",
+    });
+    expect(stuck.ensureCalls).toBe(0);
+    expect(stuck.launchCalls).toBe(0);
+  });
+
+  it("does not launch when provisioning does not end ready", async () => {
+    const commands = makeCommands(makeTask());
+    commands.inspectImpl = async () => ({
+      state: "unbound",
+      binding: null,
+      recoveryAvailable: false,
+    });
+    commands.ensureImpl = async () => ({ state: "conflict", binding, recoveryAvailable: false });
+    await expect(launchFeatureTaskConversation(commands, createInput())).rejects.toMatchObject({
+      state: "conflict",
+    });
+    expect(commands.launchCalls).toBe(0);
+  });
+
   it("checks that the task is active and belongs to the selected project before launching", async () => {
     const archivedCommands = makeCommands(makeTask({ archivedAt: "2026-10-05T00:00:00.000Z" }));
     await expect(
@@ -149,6 +301,9 @@ function makeCommands(initialTask: FeatureTask) {
   const commands: FeatureTaskConversationCommands & {
     launchCalls: number;
     updateCalls: number;
+    ensureCalls: number;
+    inspectImpl: () => Promise<FeatureTaskWorkspaceResult>;
+    ensureImpl: () => Promise<FeatureTaskWorkspaceResult>;
     getTaskImpl: () => Promise<FeatureTask>;
     launchThreadImpl: () => Promise<OrchestrationV2ThreadLaunchResult>;
     updateTaskImpl: (
@@ -157,6 +312,16 @@ function makeCommands(initialTask: FeatureTask) {
   } = {
     launchCalls: 0,
     updateCalls: 0,
+    ensureCalls: 0,
+    inspectImpl: async () => readyWorkspace,
+    ensureImpl: async () => readyWorkspace,
+    workspace: {
+      inspectWorkspace: () => commands.inspectImpl(),
+      ensureWorkspace: () => {
+        commands.ensureCalls += 1;
+        return commands.ensureImpl();
+      },
+    },
     getTaskImpl: async () => initialTask,
     launchThreadImpl: async () => launchResult,
     updateTaskImpl: async () => initialTask,

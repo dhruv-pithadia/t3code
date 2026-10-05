@@ -42,6 +42,8 @@ import * as NodePtyAdapter from "./terminal/NodePtyAdapter.ts";
 import { pullRequestHttpApiLayer } from "./pullRequest/http.ts";
 import * as PullRequestProviderRegistry from "./pullRequest/PullRequestProviderRegistry.ts";
 import * as PullRequestService from "./pullRequest/PullRequestService.ts";
+import * as FeatureTaskDeliveryService from "./featureTasks/FeatureTaskDeliveryService.ts";
+import * as FeatureTaskService from "./featureTasks/FeatureTaskService.ts";
 import * as SqlitePersistence from "./persistence/Layers/Sqlite.ts";
 import * as PullRequestFilesViewed from "./persistence/PullRequestFilesViewed.ts";
 import * as ServerLifecycleEvents from "./serverLifecycleEvents.ts";
@@ -349,6 +351,13 @@ const GitWorkflowLayerLive = GitWorkflowService.layer.pipe(
   Layer.provideMerge(GitLayerLive),
 );
 
+const FeatureTaskDeliveryLayerLive = FeatureTaskDeliveryService.layer.pipe(
+  Layer.provideMerge(FeatureTaskService.layer),
+  Layer.provideMerge(GitManagerLayerLive),
+  Layer.provideMerge(PullRequestServiceLive),
+  Layer.provide(ProjectServiceLayerLive),
+);
+
 const SourceControlRepositoryServiceLayerLive = SourceControlRepositoryService.layer.pipe(
   Layer.provideMerge(GitVcsDriver.layer),
   Layer.provideMerge(SourceControlProviderRegistryLayerLive),
@@ -460,6 +469,7 @@ const OrchestrationV2RuntimeLayerLive = OrchestrationV2ProductionLayerLive.pipe(
 const OrchestrationApplicationLayerLive = CheckpointDiffQuery.layer.pipe(
   Layer.provideMerge(CheckpointStoreLayerLive),
   Layer.provideMerge(OrchestrationV2RuntimeLayerLive),
+  Layer.provideMerge(FeatureTaskDeliveryLayerLive),
 );
 
 // Automatic thread settlement (#8600): a server-owned sweep evaluates

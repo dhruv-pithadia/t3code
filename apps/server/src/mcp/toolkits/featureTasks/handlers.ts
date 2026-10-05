@@ -2,6 +2,8 @@ import { OrchestratorMcpFailure } from "@yantrix/contracts";
 import * as Effect from "effect/Effect";
 
 import * as FeatureTasks from "../../../featureTasks/FeatureTaskService.ts";
+import * as FeatureTaskWorkspaces from "../../../featureTasks/FeatureTaskWorkspaceService.ts";
+import * as FeatureTaskDelivery from "../../../featureTasks/FeatureTaskDeliveryService.ts";
 import { readCaller, readMutationCaller, unavailable } from "../../threadAccess.ts";
 import { FeatureTasksToolkit } from "./tools.ts";
 
@@ -73,5 +75,53 @@ export const FeatureTasksHandlersLive = FeatureTasksToolkit.toLayer({
             }),
         ),
       )).task;
+    }),
+  yantrix_feature_task_workspace_inspect: (input) =>
+    Effect.gen(function* () {
+      const { caller } = yield* readCaller();
+      const tasks = yield* FeatureTasks.FeatureTaskService;
+      const task = yield* tasks.get({ id: input.id }).pipe(
+        Effect.map(({ task }) => task),
+        Effect.mapError(missing),
+      );
+      if (task.projectId !== caller.projectId) return yield* missing();
+      const workspaces = yield* FeatureTaskWorkspaces.FeatureTaskWorkspaceService;
+      return yield* workspaces.inspect(input).pipe(Effect.mapError(unavailable));
+    }),
+  yantrix_feature_task_workspace_ensure: (input) =>
+    Effect.gen(function* () {
+      const { caller } = yield* readMutationCaller();
+      const tasks = yield* FeatureTasks.FeatureTaskService;
+      const task = yield* tasks.get({ id: input.id }).pipe(
+        Effect.map(({ task }) => task),
+        Effect.mapError(missing),
+      );
+      if (task.projectId !== caller.projectId) return yield* missing();
+      const workspaces = yield* FeatureTaskWorkspaces.FeatureTaskWorkspaceService;
+      return yield* workspaces.ensure(input).pipe(Effect.mapError(unavailable));
+    }),
+  yantrix_feature_task_workspace_attach: (input) =>
+    Effect.gen(function* () {
+      const { caller } = yield* readMutationCaller();
+      const tasks = yield* FeatureTasks.FeatureTaskService;
+      const task = yield* tasks.get({ id: input.id }).pipe(
+        Effect.map(({ task }) => task),
+        Effect.mapError(missing),
+      );
+      if (task.projectId !== caller.projectId) return yield* missing();
+      const workspaces = yield* FeatureTaskWorkspaces.FeatureTaskWorkspaceService;
+      return yield* workspaces.attach(input).pipe(Effect.mapError(unavailable));
+    }),
+  yantrix_feature_task_delivery: (input) =>
+    Effect.gen(function* () {
+      const { caller } = yield* readCaller();
+      const tasks = yield* FeatureTasks.FeatureTaskService;
+      const task = yield* tasks.get({ id: input.id }).pipe(
+        Effect.map(({ task }) => task),
+        Effect.mapError(missing),
+      );
+      if (task.projectId !== caller.projectId) return yield* missing();
+      const delivery = yield* FeatureTaskDelivery.FeatureTaskDeliveryService;
+      return yield* delivery.get(input).pipe(Effect.mapError(unavailable));
     }),
 });

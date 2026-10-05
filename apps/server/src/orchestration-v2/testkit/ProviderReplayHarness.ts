@@ -1,4 +1,5 @@
 import * as FeatureTasks from "../../featureTasks/FeatureTaskService.ts";
+import * as FeatureTaskWorkspaces from "../../featureTasks/FeatureTaskWorkspaceService.ts";
 import * as OtelEnvironment from "@yantrix/shared/otelEnvironment";
 import { DEFAULT_SIGNAL_EXPORT } from "@yantrix/shared/observability";
 import * as NodeServices from "@effect/platform-node/NodeServices";
@@ -366,6 +367,9 @@ export function makeOrchestratorV2ReplayLayerWithRegistry<Error>(
     Layer.provide(
       Layer.mergeAll(
         FeatureTasks.layer.pipe(Layer.provide(databaseLayer)),
+        Layer.mock(FeatureTaskWorkspaces.FeatureTaskWorkspaceService)({
+          assertThreadWorkspace: () => Effect.void,
+        }),
         contextHandoffServiceProvided,
         eventSinkProvided,
         IdAllocator.layer,

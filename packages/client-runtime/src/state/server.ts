@@ -1097,6 +1097,32 @@ export function createServerEnvironmentAtoms<R, E>(
       label: "environment-data:server:feature-task:read",
       tag: WS_METHODS.featureTasksGet,
     }),
+    /** Read-only check of a task's worktree and branch against its stored binding. */
+    inspectFeatureTaskWorkspace: createEnvironmentRpcQueryAtomFamily(runtime, {
+      label: "environment-data:server:feature-task:workspace:inspect",
+      tag: WS_METHODS.featureTasksWorkspaceInspect,
+      staleTimeMs: 0,
+      idleTtlMs: 0,
+    }),
+    readFeatureTaskWorkspace: createEnvironmentRpcCommand(runtime, {
+      label: "environment-data:server:feature-task:workspace:read",
+      tag: WS_METHODS.featureTasksWorkspaceInspect,
+    }),
+    ensureFeatureTaskWorkspace: createEnvironmentRpcCommand(runtime, {
+      label: "environment-data:server:feature-task:workspace:ensure",
+      tag: WS_METHODS.featureTasksWorkspaceEnsure,
+    }),
+    attachFeatureTaskWorkspace: createEnvironmentRpcCommand(runtime, {
+      label: "environment-data:server:feature-task:workspace:attach",
+      tag: WS_METHODS.featureTasksWorkspaceAttach,
+    }),
+    /** PR, checks, and merge state as reported by the host. Never derived from task status. */
+    getFeatureTaskDelivery: createEnvironmentRpcQueryAtomFamily(runtime, {
+      label: "environment-data:server:feature-task:delivery:get",
+      tag: WS_METHODS.featureTasksDeliveryGet,
+      staleTimeMs: 0,
+      idleTtlMs: 0,
+    }),
     // A cold transcript scan is measured in seconds, so keep the result around
     // long enough that switching windows or re-rendering does not rescan.
     usageSummary: createEnvironmentRpcQueryAtomFamily(runtime, {

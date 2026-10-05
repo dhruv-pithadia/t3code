@@ -1,10 +1,12 @@
 import * as FeatureTasks from "../featureTasks/FeatureTaskService.ts";
+import * as FeatureTaskWorkspaces from "../featureTasks/FeatureTaskWorkspaceService.ts";
 import { expect, it, vi } from "vite-plus/test";
 import { it as effectIt } from "@effect/vitest";
 import {
   CheckpointScopeId,
   FeatureTaskId,
   type FeatureTask,
+  FeatureTaskError,
   MessageId,
   NodeId,
   ProviderSessionId,
@@ -96,6 +98,9 @@ it("does not commit running state when inherited background routing cannot be re
     Layer.provide(
       Layer.mergeAll(
         Layer.mock(FeatureTasks.FeatureTaskService)({ readForThread: () => Effect.succeed(null) }),
+        Layer.mock(FeatureTaskWorkspaces.FeatureTaskWorkspaceService)({
+          assertThreadWorkspace: () => Effect.void,
+        }),
         Layer.mock(ContextHandoffService.ContextHandoffServiceV2)({}),
         Layer.mock(EventSink.EventSinkV2)({ writeIfRunCurrent }),
         IdAllocator.layer,
@@ -176,6 +181,7 @@ function makeLocalCommandHarness(input: {
   readonly writeFailure?: unknown;
   /** Loads the thread and starts the run, then fails every later state read. */
   readonly failReadsAfterRunning?: boolean;
+  readonly workspaceValidationFailure?: FeatureTaskError;
 }) {
   const now = DateTime.makeUnsafe("2026-09-04T12:00:00Z");
   const threadId = ThreadId.make("thread-native-account-command");
@@ -494,6 +500,12 @@ function makeLocalCommandHarness(input: {
         Layer.mock(FeatureTasks.FeatureTaskService)({
           readForThread: () => Effect.succeed(input.featureTask ?? null),
         }),
+        Layer.mock(FeatureTaskWorkspaces.FeatureTaskWorkspaceService)({
+          assertThreadWorkspace: () =>
+            input.workspaceValidationFailure === undefined
+              ? Effect.void
+              : Effect.fail(input.workspaceValidationFailure),
+        }),
         Layer.mock(ContextHandoffService.ContextHandoffServiceV2)({
           prepareProviderHandoff: () => Effect.die("history read must fail first"),
         }),
@@ -560,6 +572,32 @@ function makeLocalCommandHarness(input: {
     }).pipe(Effect.provide(layer)),
   };
 }
+
+effectIt.effect("terminalizes a starting run when its feature task workspace does not match", () =>
+  Effect.gen(function* () {
+    const harness = makeLocalCommandHarness({
+      text: "Continue",
+      workspaceValidationFailure: new FeatureTaskError({
+        code: "conflict",
+        message: "The linked task workspace has changed.",
+      }),
+    });
+
+    yield* harness.start;
+
+    expect(harness.open).not.toHaveBeenCalled();
+    expect(harness.startRootRun).not.toHaveBeenCalled();
+    expect(harness.writeIfRunCurrent).toHaveBeenCalledWith(
+      expect.objectContaining({ expectedStatus: "starting" }),
+    );
+    expect(harness.projection().runs.at(-1)).toMatchObject({ status: "failed", startedAt: null });
+    expect(harness.projection().attempts[0]).toMatchObject({ status: "failed", startedAt: null });
+    expect(harness.projection().turnItems.at(-1)).toMatchObject({
+      type: "error",
+      title: "Feature task workspace needs attention",
+    });
+  }),
+);
 
 effectIt.effect("terminalizes a starting run when its provider session cannot open", () =>
   Effect.gen(function* () {

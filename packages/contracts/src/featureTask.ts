@@ -31,6 +31,48 @@ export const FeatureTaskStatus = Schema.Literals([
 ]);
 export type FeatureTaskStatus = typeof FeatureTaskStatus.Type;
 
+/** The stable filesystem and branch identity provisioned for a feature task. */
+export const FeatureTaskWorkspaceBinding = Schema.Struct({
+  repoPath: TrimmedNonEmptyString,
+  worktreePath: TrimmedNonEmptyString,
+  branch: TrimmedNonEmptyString,
+  createdAt: IsoDateTime,
+});
+export type FeatureTaskWorkspaceBinding = typeof FeatureTaskWorkspaceBinding.Type;
+
+export const FeatureTaskWorkspaceState = Schema.Literals([
+  "unbound",
+  "ready",
+  "missing",
+  "branch_mismatch",
+  "conflict",
+]);
+export type FeatureTaskWorkspaceState = typeof FeatureTaskWorkspaceState.Type;
+
+export const FeatureTaskWorkspaceResult = Schema.Struct({
+  state: FeatureTaskWorkspaceState,
+  binding: Schema.NullOr(FeatureTaskWorkspaceBinding),
+  recoveryAvailable: Schema.Boolean,
+});
+export type FeatureTaskWorkspaceResult = typeof FeatureTaskWorkspaceResult.Type;
+
+export const FeatureTaskDelivery = Schema.Struct({
+  pullRequest: Schema.NullOr(
+    Schema.Struct({
+      number: NonNegativeInt,
+      title: Schema.String,
+      url: Schema.String,
+      state: Schema.Literals(["open", "closed", "merged"]),
+      headBranch: Schema.String,
+      baseBranch: Schema.String,
+    }),
+  ),
+  checks: Schema.Literals(["unknown", "pending", "passing", "failing"]),
+  mergeState: Schema.Literals(["unknown", "open", "merged", "closed"]),
+  updatedAt: Schema.NullOr(IsoDateTime),
+});
+export type FeatureTaskDelivery = typeof FeatureTaskDelivery.Type;
+
 export const FeatureTask = Schema.Struct({
   id: FeatureTaskId,
   projectId: ProjectId,
@@ -41,6 +83,8 @@ export const FeatureTask = Schema.Struct({
   nextAction: TaskText,
   handoff: TaskText,
   status: FeatureTaskStatus,
+  /** Optional for wire compatibility with servers predating task workspaces. */
+  workspace: Schema.optional(Schema.NullOr(FeatureTaskWorkspaceBinding)),
   threadIds: TaskThreadIds,
   archivedAt: Schema.NullOr(IsoDateTime),
   version: NonNegativeInt.check(Schema.isGreaterThanOrEqualTo(1)),
@@ -88,6 +132,17 @@ export const FeatureTaskUpdateInput = Schema.Struct({
   patch: FeatureTaskPatch,
 });
 export type FeatureTaskUpdateInput = typeof FeatureTaskUpdateInput.Type;
+
+export const FeatureTaskWorkspaceInput = Schema.Struct({ id: FeatureTaskId });
+export type FeatureTaskWorkspaceInput = typeof FeatureTaskWorkspaceInput.Type;
+export const FeatureTaskWorkspaceAttachInput = Schema.Struct({
+  id: FeatureTaskId,
+  worktreePath: TrimmedNonEmptyString,
+});
+export type FeatureTaskWorkspaceAttachInput = typeof FeatureTaskWorkspaceAttachInput.Type;
+export const FeatureTaskWorkspaceResultSchema = FeatureTaskWorkspaceResult;
+export const FeatureTaskDeliveryInput = Schema.Struct({ id: FeatureTaskId });
+export type FeatureTaskDeliveryInput = typeof FeatureTaskDeliveryInput.Type;
 
 export class FeatureTaskError extends Schema.TaggedError<FeatureTaskError>()("FeatureTaskError", {
   code: Schema.Literals(["not_found", "conflict", "invalid_link", "storage"]),

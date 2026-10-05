@@ -20,6 +20,7 @@ import {
   type FeatureTaskId,
   type FeatureTaskStatus,
   type OrchestrationV2ThreadLaunchInput,
+  type OrchestrationV2ThreadLaunchWorkspaceStrategy,
   type ThreadId,
 } from "@yantrix/contracts";
 import { scopeThreadRef } from "@yantrix/client-runtime/environment";
@@ -27,14 +28,29 @@ import { resolveThreadCurrentPullRequestLink } from "@yantrix/shared/threadPullR
 import {
   launchFeatureTaskConversation,
   linkFeatureTaskConversation,
+  type FeatureTaskLaunchInput,
 } from "@yantrix/client-runtime/state/feature-tasks";
+import {
+  classifyLinkedThreadWorkspace,
+  describeFeatureTaskError,
+  FeatureTaskWorkspaceBlockedError,
+  legacyFeatureTaskWorkspaceStrategy,
+  resolveFeatureTaskWorkspace,
+  latestResumableTaskThread,
+  launchBlockedByWorkspace,
+} from "@yantrix/client-runtime/state/feature-task-workspace";
 
 import { useProjects, useThreadShells } from "../../state/entities";
 import {
+  useEnsureFeatureTaskWorkspace,
   useFeatureTask,
+  useFeatureTaskDelivery,
   useFeatureTasks,
   useFeatureTaskEnvironments,
+  useFeatureTaskWorkspace,
+  useFeatureTaskWorkspacesSupported,
   useReadFeatureTask,
+  useReadFeatureTaskWorkspace,
   useUpdateFeatureTask,
 } from "../../state/featureTasks";
 import { useAtomCommand } from "../../state/use-atom-command";
@@ -61,6 +77,9 @@ import { SidebarInset } from "../ui/sidebar";
 import { TaskEditorDialog } from "./TaskEditorDialog";
 import { stackedThreadToast, toastManager } from "../ui/toast";
 import { latestAvailableTaskThread, selectFeatureTaskConversationModel } from "./TaskPage.logic";
+import { TaskDeliveryCard } from "./TaskDeliveryCard";
+import { TaskToneChip } from "./TaskToneChip";
+import { TaskWorkspaceCard } from "./TaskWorkspaceCard";
 
 const STATUS_META: Record<FeatureTaskStatus, { label: string; className: string }> = {
   requested: { label: "Requested", className: "border-border text-muted-foreground" },
@@ -231,6 +250,9 @@ export function TasksListPage() {
                   </span>
                   <span className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-2xs text-muted-foreground/80">
                     <span>{projectName(projects, environmentId, task.projectId)}</span>
+                    {task.workspace ? (
+                      <span className="font-mono">{task.workspace.branch}</span>
+                    ) : null}
                     <span>
                       {task.threadIds.length}{" "}
                       {task.threadIds.length === 1 ? "conversation" : "conversations"}
@@ -280,6 +302,12 @@ export function TaskDetailPage({
   const threads = useThreadShells();
   const update = useUpdateFeatureTask();
   const readTask = useReadFeatureTask();
+  const readWorkspace = useReadFeatureTaskWorkspace();
+  const ensureWorkspace = useEnsureFeatureTaskWorkspace();
+  const workspacesSupported = useFeatureTaskWorkspacesSupported(environmentId);
+  const workspaceEnvironmentId = workspacesSupported ? environmentId : null;
+  const workspaceQuery = useFeatureTaskWorkspace(workspaceEnvironmentId, taskId);
+  const deliveryQuery = useFeatureTaskDelivery(workspaceEnvironmentId, taskId);
   const launchThread = useAtomCommand(orchestrationEnvironment.v2.launchThread, {
     label: "start task conversation",
   });
@@ -290,10 +318,8 @@ export function TaskDetailPage({
   const pendingLaunchRef = useRef<{
     readonly threadId: ThreadId;
     readonly commandId: ReturnType<typeof CommandId.make>;
-    readonly launchInput: Omit<
-      OrchestrationV2ThreadLaunchInput,
-      "commandId" | "threadId" | "initialMessage"
-    >;
+    readonly launchInput: FeatureTaskLaunchInput;
+    readonly legacyWorkspaceStrategy: OrchestrationV2ThreadLaunchWorkspaceStrategy;
   } | null>(null);
   const project = task
     ? projects.find((item) => item.environmentId === environmentId && item.id === task.projectId)
@@ -333,6 +359,19 @@ export function TaskDetailPage({
         : [],
     [environmentId, task, threads],
   );
+  const binding = task?.workspace ?? workspaceQuery.workspace?.binding ?? null;
+  const resumable = useMemo(
+    () => latestResumableTaskThread(binding, linkedThreads),
+    [binding, linkedThreads],
+  );
+  // A task that owns a workspace cannot be worked on through a host that cannot verify it.
+  const launchBlocked = workspacesSupported
+    ? launchBlockedByWorkspace(
+        workspaceQuery.workspace,
+        workspaceQuery.error !== null,
+        workspaceQuery.isPending,
+      )
+    : binding !== null;
   const candidates = useMemo(
     () =>
       task
@@ -356,6 +395,22 @@ export function TaskDetailPage({
         if (result._tag === "Failure") throw squashAtomCommandFailure(result);
         return result.value.task;
       },
+      ...(workspacesSupported
+        ? {
+            workspace: {
+              inspectWorkspace: async ({ id }: { id: FeatureTaskId }) => {
+                const result = await readWorkspace({ environmentId, input: { id } });
+                if (result._tag === "Failure") throw squashAtomCommandFailure(result);
+                return result.value;
+              },
+              ensureWorkspace: async ({ id }: { id: FeatureTaskId }) => {
+                const result = await ensureWorkspace({ environmentId, input: { id } });
+                if (result._tag === "Failure") throw squashAtomCommandFailure(result);
+                return result.value;
+              },
+            },
+          }
+        : {}),
       launchThread: async (input: OrchestrationV2ThreadLaunchInput) => {
         const result = await launchThread({ environmentId, input });
         if (result._tag === "Failure") {
@@ -369,7 +424,15 @@ export function TaskDetailPage({
         return result.value.task;
       },
     }),
-    [environmentId, launchThread, readTask, update],
+    [
+      ensureWorkspace,
+      environmentId,
+      launchThread,
+      readTask,
+      readWorkspace,
+      update,
+      workspacesSupported,
+    ],
   );
 
   const refreshTask = query.refresh;
@@ -423,16 +486,6 @@ export function TaskDetailPage({
       );
       return;
     }
-    const workspaceStrategy = latestLinkedThread?.worktreePath
-      ? {
-          type: "existing_worktree" as const,
-          worktreePath: latestLinkedThread.worktreePath,
-          ...(latestLinkedThread.branch ? { branch: latestLinkedThread.branch } : {}),
-        }
-      : {
-          type: "root" as const,
-          ...(latestLinkedThread?.branch ? { branch: latestLinkedThread.branch } : {}),
-        };
     const launchInput = pendingLaunch?.launchInput ?? {
       projectId: task.projectId,
       title: task.title,
@@ -440,9 +493,11 @@ export function TaskDetailPage({
       modelSelection,
       runtimeMode: latestLinkedThread?.runtimeMode ?? projectSettings.defaultRuntimeMode,
       interactionMode: latestLinkedThread?.interactionMode ?? "default",
-      workspaceStrategy,
     };
-    pendingLaunchRef.current = { ...launchIds, launchInput };
+    const legacyWorkspaceStrategy =
+      pendingLaunch?.legacyWorkspaceStrategy ??
+      legacyFeatureTaskWorkspaceStrategy(latestLinkedThread);
+    pendingLaunchRef.current = { ...launchIds, launchInput, legacyWorkspaceStrategy };
     let result;
     try {
       result = await launchFeatureTaskConversation(taskConversationCommands, {
@@ -450,20 +505,28 @@ export function TaskDetailPage({
         threadId: launchIds.threadId,
         commandId: launchIds.commandId,
         launchInput,
+        legacyWorkspaceStrategy,
       });
     } catch (error) {
       setBusy(false);
+      // A blocked workspace is shown with its repair controls in the Workspace card.
+      if (error instanceof FeatureTaskWorkspaceBlockedError) pendingLaunchRef.current = null;
+      workspaceQuery.refresh();
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Could not start conversation",
-          description: error instanceof Error ? error.message : String(error),
+          title:
+            error instanceof FeatureTaskWorkspaceBlockedError
+              ? "Task workspace needs attention"
+              : "Could not start conversation",
+          description: describeFeatureTaskError(error),
         }),
       );
       return;
     }
     pendingLaunchRef.current = null;
     setBusy(false);
+    workspaceQuery.refresh();
     if (result.status === "needs_link") {
       setLinkError(
         `Conversation started (${result.launch.threadId}) but could not be linked. Retry linking it below.`,
@@ -475,6 +538,34 @@ export function TaskDetailPage({
     void navigate({
       to: "/$environmentId/$threadId",
       params: buildThreadRouteParams(scopeThreadRef(environmentId, result.launch.threadId)),
+    });
+  };
+
+  /**
+   * On a host with task workspaces, make sure the workspace is usable before
+   * opening the conversation so a missing folder is restored (or reported)
+   * instead of the conversation running in a path that is gone. Reading other
+   * linked conversations from the list stays plain navigation.
+   */
+  const resumeConversation = async () => {
+    if (!task || !resumable || busy) return;
+    const workspaceCommands = taskConversationCommands.workspace;
+    if (workspaceCommands) {
+      setBusy(true);
+      setLinkError(null);
+      try {
+        await resolveFeatureTaskWorkspace(workspaceCommands, task.id);
+      } catch (error) {
+        setLinkError(describeFeatureTaskError(error));
+        return;
+      } finally {
+        setBusy(false);
+        workspaceQuery.refresh();
+      }
+    }
+    void navigate({
+      to: "/$environmentId/$threadId",
+      params: buildThreadRouteParams(scopeThreadRef(environmentId, resumable.threadId)),
     });
   };
 
@@ -579,30 +670,25 @@ export function TaskDetailPage({
               <span className="hidden sm:inline">Archive</span>
             </Button>
           )}
-          {linkedThreads.some(({ thread }) => thread !== null) ? (
+          {resumable ? (
             <Button
               size="sm"
-              onClick={() => {
-                const latest = latestAvailableTaskThread(linkedThreads);
-                if (latest)
-                  void navigate({
-                    to: "/$environmentId/$threadId",
-                    params: buildThreadRouteParams(scopeThreadRef(environmentId, latest.threadId)),
-                  });
-              }}
+              onClick={() => void resumeConversation()}
               aria-label="Resume task conversation"
-              disabled={busy}
+              disabled={busy || launchBlocked}
             >
               <MessageSquareTextIcon />
               <span className="hidden sm:inline">Resume</span>
             </Button>
-          ) : task.threadIds.length === 0 ? (
+          ) : task.threadIds.length === 0 ||
+            (binding !== null && linkedThreads.some(({ thread }) => thread !== null)) ? (
             <Button
               size="sm"
               aria-label={busy ? "Starting conversation" : "Start conversation"}
               onClick={() => void startConversation()}
               disabled={
                 busy ||
+                launchBlocked ||
                 !project ||
                 task.archivedAt !== null ||
                 (!defaultModelSelection && !linkedThreads.some(({ thread }) => thread !== null))
@@ -680,6 +766,26 @@ export function TaskDetailPage({
             ) : null}
           </div>
           <aside className="grid content-start gap-6">
+            {workspacesSupported ? (
+              <>
+                <TaskWorkspaceCard
+                  environmentId={environmentId}
+                  task={task}
+                  workspace={workspaceQuery.workspace}
+                  error={workspaceQuery.error}
+                  isPending={workspaceQuery.isPending}
+                  archived={task.archivedAt !== null}
+                  onRefresh={workspaceQuery.refresh}
+                />
+                <TaskDeliveryCard
+                  hasWorkspace={binding !== null}
+                  delivery={deliveryQuery.delivery}
+                  error={deliveryQuery.error}
+                  isPending={deliveryQuery.isPending}
+                  onRefresh={deliveryQuery.refresh}
+                />
+              </>
+            ) : null}
             <section className="rounded-xl border border-border/70 bg-card p-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold">Conversations</h2>
@@ -705,8 +811,14 @@ export function TaskDetailPage({
                           >
                             {thread.title || "Untitled conversation"}
                           </button>
-                          <span className="mt-1 block text-xs text-muted-foreground">
+                          <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                             {formatUpdatedAt(thread.updatedAt)}
+                            {classifyLinkedThreadWorkspace(binding, thread) === "different" ? (
+                              <TaskToneChip tone="pending">Different workspace</TaskToneChip>
+                            ) : null}
+                            {classifyLinkedThreadWorkspace(binding, thread) === "unverified" ? (
+                              <TaskToneChip tone="unknown">Branch unknown</TaskToneChip>
+                            ) : null}
                           </span>
                           {resolveThreadCurrentPullRequestLink(thread.pullRequests) ? (
                             <a
@@ -755,6 +867,18 @@ export function TaskDetailPage({
                   conversation, or start a fresh one below to continue with this task.
                 </p>
               ) : null}
+              {binding !== null &&
+              linkedThreads.some(({ thread }) =>
+                ["different", "unverified"].includes(
+                  classifyLinkedThreadWorkspace(binding, thread),
+                ),
+              ) ? (
+                <p className="mt-3 rounded-lg bg-muted/45 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+                  {resumable
+                    ? "Conversations marked Different workspace or Branch unknown keep their own checkout and are never moved. Resume continues in the task workspace."
+                    : "None of the linked conversations are confirmed to be in the task workspace. They keep their own checkout and are never moved. Start a new conversation to continue there."}
+                </p>
+              ) : null}
               {candidates.length ? (
                 <div className="mt-3 flex items-center gap-2">
                   <select
@@ -795,19 +919,28 @@ export function TaskDetailPage({
                 </p>
               ) : null}
             </section>
-            <section className="rounded-xl border border-border/70 bg-card p-4">
-              <h2 className="text-sm font-semibold">Workspace</h2>
-              <p className="mt-2 text-sm">{project?.title ?? "Workspace unavailable"}</p>
-              <p className="mt-1 break-all font-mono text-2xs leading-relaxed text-muted-foreground">
-                {project?.workspaceRoot ?? "The project is unavailable in this session."}
-              </p>
-            </section>
+            {!workspacesSupported ? (
+              <section className="rounded-xl border border-border/70 bg-card p-4">
+                <h2 className="text-sm font-semibold">Workspace</h2>
+                <p className="mt-2 text-sm">{project?.title ?? "Workspace unavailable"}</p>
+                <p className="mt-1 break-all font-mono text-2xs leading-relaxed text-muted-foreground">
+                  {project?.workspaceRoot ?? "The project is unavailable in this session."}
+                </p>
+                {binding ? (
+                  <p role="alert" className="mt-3 text-xs leading-relaxed text-destructive">
+                    This task has its own workspace, but this server cannot verify it. Update the
+                    server to start or resume work.
+                  </p>
+                ) : null}
+              </section>
+            ) : null}
             {task.threadIds.length ? (
               <Button
                 variant="outline"
                 className="w-full"
                 disabled={
                   busy ||
+                  launchBlocked ||
                   !project ||
                   task.archivedAt !== null ||
                   (!defaultModelSelection && !linkedThreads.some(({ thread }) => thread !== null))
