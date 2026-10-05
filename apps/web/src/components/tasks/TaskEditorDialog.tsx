@@ -69,6 +69,7 @@ export function TaskEditorDialog({
   const { environments } = useEnvironments();
   const supportedEnvironmentIds = useFeatureTaskEnvironments();
   const [environmentId, setEnvironmentId] = useState(initialEnvironmentId);
+  const [openingTask] = useState(() => (task ? { id: task.id, version: task.version } : null));
   const availableProjects = useMemo(
     () =>
       projects.filter(
@@ -105,12 +106,12 @@ export function TaskEditorDialog({
     }
     setValidationError(null);
     setSaving(true);
-    const result = task
+    const result = openingTask
       ? await update({
           environmentId,
           input: {
-            id: task.id,
-            expectedVersion: task.version,
+            id: openingTask.id,
+            expectedVersion: openingTask.version,
             patch: {
               title: title.trim(),
               objective: objective.trim(),
@@ -138,12 +139,24 @@ export function TaskEditorDialog({
         });
     setSaving(false);
     if (result._tag === "Failure") {
+      const failure = squashAtomCommandFailure(result);
+      if (
+        typeof failure === "object" &&
+        failure !== null &&
+        "code" in failure &&
+        failure.code === "conflict"
+      ) {
+        setValidationError(
+          "This task changed after you opened the editor. Your edits are still here. Close and reopen the editor to load the latest values before saving.",
+        );
+        return;
+      }
       if (!isAtomCommandInterrupted(result)) {
         toastManager.add(
           stackedThreadToast({
             type: "error",
             title: task ? "Could not update task" : "Could not create task",
-            description: String(squashAtomCommandFailure(result)),
+            description: String(failure),
           }),
         );
       }

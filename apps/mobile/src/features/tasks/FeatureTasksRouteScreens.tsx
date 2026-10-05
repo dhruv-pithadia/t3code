@@ -3,6 +3,7 @@ import {
   DEFAULT_PROVIDER_INTERACTION_MODE,
   DEFAULT_RUNTIME_MODE,
   FeatureTaskId,
+  FeatureTaskError,
   DEFAULT_SERVER_SETTINGS,
   ThreadId,
   type OrchestrationV2ThreadLaunchResult,
@@ -594,7 +595,10 @@ function FeatureTaskEditorForm(props: {
   readonly projects: ReadonlyArray<EnvironmentProject>;
   readonly supportedEnvironmentIds: ReadonlyArray<EnvironmentId>;
 }) {
-  const { task } = props;
+  // Keep the revision opened by this form. The live task list can advance
+  // while these inputs are being edited; saving against that newer revision
+  // would silently overwrite concurrent changes.
+  const [task] = useState(props.task);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const [projectKey, setProjectKey] = useState(
@@ -720,7 +724,14 @@ function FeatureTaskEditorForm(props: {
         });
       }
     } catch (error) {
-      Alert.alert("Could not save feature task", errorMessage(error));
+      if (isFeatureTaskConflict(error)) {
+        Alert.alert(
+          "Task changed",
+          "Your edits are still here. This task changed after you opened it. Close this editor and reopen the task to load the latest version before saving.",
+        );
+      } else {
+        Alert.alert("Could not save feature task", errorMessage(error));
+      }
     } finally {
       setSaving(false);
     }
@@ -874,4 +885,8 @@ function ProjectChoice(props: {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Try again.";
+}
+
+function isFeatureTaskConflict(error: unknown): boolean {
+  return error instanceof FeatureTaskError && error.code === "conflict";
 }

@@ -13,7 +13,7 @@ layer("055_OrchestrationV2", (it) => {
     Effect.sync(() => {
       assert.deepStrictEqual(
         migrationEntries.map(([id]) => id),
-        Array.from({ length: 56 }, (_, index) => index + 1),
+        Array.from({ length: 57 }, (_, index) => index + 1),
       );
     }),
   );
@@ -28,6 +28,7 @@ layer("055_OrchestrationV2", (it) => {
         [54, "ProjectionThreadsAutoSettleDisabledAt"],
         [55, "OrchestrationV2"],
         [56, "RemoveRedundantProjectionIndexes"],
+        [57, "FeatureTasks"],
       ]);
       assert.deepStrictEqual(yield* runMigrations(), []);
 
@@ -50,6 +51,7 @@ layer("055_OrchestrationV2", (it) => {
         { migration_id: 54, name: "ProjectionThreadsAutoSettleDisabledAt" },
         { migration_id: 55, name: "OrchestrationV2" },
         { migration_id: 56, name: "RemoveRedundantProjectionIndexes" },
+        { migration_id: 57, name: "FeatureTasks" },
       ]);
 
       const tables = yield* sql<{ readonly name: string }>`
@@ -65,13 +67,17 @@ layer("055_OrchestrationV2", (it) => {
             'orchestration_v2_projection_provider_session_bindings',
             'orchestration_v2_thread_launch_workflows',
             'orchestration_v2_legacy_imports',
-            'scheduled_tasks'
+            'scheduled_tasks',
+            'feature_tasks',
+            'feature_task_threads'
           )
         ORDER BY name
       `;
       assert.deepStrictEqual(
         tables.map(({ name }) => name),
         [
+          "feature_task_threads",
+          "feature_tasks",
           "orchestration_v2_effect_outbox",
           "orchestration_v2_legacy_imports",
           "orchestration_v2_projection_metadata",
@@ -96,11 +102,23 @@ layer("055_OrchestrationV2", (it) => {
       const subagentColumns = yield* sql<{ readonly name: string }>`
         PRAGMA table_info(orchestration_v2_projection_subagents)
       `;
+      const featureTaskColumns = yield* sql<{ readonly name: string }>`
+        PRAGMA table_info(feature_tasks)
+      `;
+      const featureTaskThreadColumns = yield* sql<{ readonly name: string }>`
+        PRAGMA table_info(feature_task_threads)
+      `;
       assert.ok(eventColumns.some(({ name }) => name === "application_event_version"));
       assert.ok(receiptColumns.some(({ name }) => name === "command_type"));
       assert.ok(threadColumns.some(({ name }) => name === "provider_instance_id"));
       assert.ok(subagentColumns.some(({ name }) => name === "driver"));
       assert.ok(subagentColumns.some(({ name }) => name === "provider_instance_id"));
+      assert.ok(featureTaskColumns.some(({ name }) => name === "create_payload_json"));
+      assert.ok(featureTaskColumns.some(({ name }) => name === "acceptance_criteria_json"));
+      assert.ok(featureTaskColumns.some(({ name }) => name === "version"));
+      assert.ok(featureTaskThreadColumns.some(({ name }) => name === "thread_id"));
+      assert.ok(featureTaskThreadColumns.some(({ name }) => name === "task_id"));
+      assert.ok(featureTaskThreadColumns.some(({ name }) => name === "position"));
 
       const indexes = yield* sql<{ readonly name: string }>`
         SELECT name
