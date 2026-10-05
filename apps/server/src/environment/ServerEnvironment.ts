@@ -245,6 +245,7 @@ export const make = Effect.gen(function* () {
       threadPullRequests: true,
       featureTasks: true,
       featureTaskWorkspaces: true,
+      featureTaskDependencies: true,
       threadPullRequestWatch: true,
       pullRequestStackActions: true,
       threadPullRequestLinking: true,

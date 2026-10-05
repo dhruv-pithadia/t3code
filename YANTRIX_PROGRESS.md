@@ -17,19 +17,21 @@ foundations. Yantrix's additions extend those capabilities.
 
 ## Progress ledger
 
-| ID     | Addition                          | Category               | Status           | What it adds                                                                                                                                                     | Implementation record                                     |
-| ------ | --------------------------------- | ---------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| YF-001 | Persistent feature tasks          | Product feature        | Merged           | A durable objective, acceptance criteria, decisions, next action, and handoff shared across linked conversations and restarts.                                   | [PR #4](https://github.com/dhruv-pithadia/yantrix/pull/4) |
-| YF-002 | Independent development workspace | Development foundation | Merged           | Checkout-local application data, separate development identity and ports, and disabled updates for working on Yantrix alongside an installed upstream app.       | [PR #1](https://github.com/dhruv-pithadia/yantrix/pull/1) |
-| YF-003 | Yantrix product identity          | Branding foundation    | Merged           | Yantrix naming, assets, package and application identities, and configuration defaults. This establishes the fork's identity rather than a new agent capability. | [PR #3](https://github.com/dhruv-pithadia/yantrix/pull/3) |
-| YF-004 | Task-owned workspaces             | Product feature        | Ready for review | One durable task workspace and branch shared by linked conversations, delivery state, and safe recovery when the workspace is unavailable or inconsistent.       | [PR #5](https://github.com/dhruv-pithadia/yantrix/pull/5) |
+| ID     | Addition                          | Category               | Status | What it adds                                                                                                                                                     | Implementation record                                     |
+| ------ | --------------------------------- | ---------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| YF-001 | Persistent feature tasks          | Product feature        | Merged | A durable objective, acceptance criteria, decisions, next action, and handoff shared across linked conversations and restarts.                                   | [PR #4](https://github.com/dhruv-pithadia/yantrix/pull/4) |
+| YF-002 | Independent development workspace | Development foundation | Merged | Checkout-local application data, separate development identity and ports, and disabled updates for working on Yantrix alongside an installed upstream app.       | [PR #1](https://github.com/dhruv-pithadia/yantrix/pull/1) |
+| YF-003 | Yantrix product identity          | Branding foundation    | Merged | Yantrix naming, assets, package and application identities, and configuration defaults. This establishes the fork's identity rather than a new agent capability. | [PR #3](https://github.com/dhruv-pithadia/yantrix/pull/3) |
+| YF-004 | Task-owned workspaces             | Product feature        | Merged | One durable task workspace and branch shared by linked conversations, delivery state, and safe recovery when the workspace is unavailable or inconsistent.       | [PR #5](https://github.com/dhruv-pithadia/yantrix/pull/5) |
+
+| YF-005 | Task prerequisites | Product feature | Draft | Explicit dependencies, verified prerequisite merges, and inherited workspaces and handoffs. | This task branch |
 
 [PR #2](https://github.com/dhruv-pithadia/yantrix/pull/2) preserved the repository
 setup and product direction in documentation. It is supporting work, not an
 additional product feature.
 
-**Current position:** the first new product feature is merged in PR #4 on 5 October 2026;
-two supporting foundations are merged. Task-owned workspaces are implemented and validated, awaiting PR review. A merged change is not automatically a
+**Current position:** persistent feature tasks (PR #4) and task-owned workspaces (PR #5)
+are merged as of 5 October 2026, alongside two supporting foundations. Dependency-aware tasks are implemented in a draft pending final visual verification. A merged change is not automatically a
 published release. No published Yantrix release is recorded here yet.
 
 ## YF-001: persistent feature tasks
@@ -97,7 +99,31 @@ visibility preferences, and repair drafts retained across collapse and resizing.
 Native mobile was typechecked but not verified in a simulator. The browser fixture
 had no matching pull request; changing PR/check states are covered by focused service
 tests. Implementation is recorded in [PR #5](https://github.com/dhruv-pithadia/yantrix/pull/5).
-It remains unmerged; CI results and browser screenshots are tracked on the PR.
+PR #5 merged on 5 October 2026. CI results and browser screenshots are tracked on the PR.
+
+## YF-005: task prerequisites
+
+**Status:** Draft, pending remaining visual verification.
+
+Tasks can explicitly depend on other tasks in the same project. Links survive restarts and reject
+cycles. Web and mobile editors expose prerequisites; shared RPC and MCP paths enforce them.
+Workspace checks and provider starts verify GitHub merge commits against a freshly fetched
+`origin` default branch. Dependent work starts from that commit, while existing checkouts that
+lack prerequisite merges remain blocked until integrated. Saved prerequisite handoffs accompany
+linked agent turns. Work never starts or merges automatically.
+
+**Boundaries:** GitHub `origin` repositories and default-branch merges only. No stacked branches,
+background scheduler, automatic inference of dependencies, automatic integration, or cleanup.
+Refresh or reopen to observe an external merge; agent starts always recheck.
+
+**Evidence:** 84 focused tests pass, including real Git workspace checks, squash-merge ancestry,
+PR target-branch configuration, cycle rejection, cross-project rejection, unavailable/closed PRs,
+existing-work preservation, and prerequisite context delivery. The live private calculator
+experiment kept addition blocked until keypad PR #1 merged with user approval, then provisioned
+addition at the verified merge commit after restarting the server. Three calculator tests pass.
+Browser interaction verified prerequisite selection, blocked launch, and keypad entry. Screenshot
+capture failed and the collaborative browser disconnected before addition and responsive checks;
+native mobile is typechecked only. The calculator addition PR remains draft and unmerged.
 
 ## Keeping this ledger current
 

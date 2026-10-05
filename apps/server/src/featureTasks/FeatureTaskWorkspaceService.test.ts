@@ -18,6 +18,7 @@ import * as NodeSqliteClient from "@yantrix/shared/nodeSqliteClient";
 
 import * as ServerConfig from "../config.ts";
 import { runMigrations } from "../persistence/Migrations.ts";
+import * as Dependencies from "./FeatureTaskDependencyService.ts";
 import * as FeatureTasks from "./FeatureTaskService.ts";
 import * as FeatureTaskWorkspaces from "./FeatureTaskWorkspaceService.ts";
 import * as GitVcsDriver from "../vcs/GitVcsDriver.ts";
@@ -83,6 +84,11 @@ const baseLayer = Layer.mergeAll(
   configLayer,
 );
 const testLayer = FeatureTaskWorkspaces.layer.pipe(
+  Layer.provideMerge(
+    Layer.succeed(Dependencies.FeatureTaskDependencyService, {
+      check: () => Effect.succeed({ dependencies: [], baseCommit: null, baseBranch: null }),
+    }),
+  ),
   Layer.provideMerge(FeatureTasks.layer),
   Layer.provideMerge(baseLayer),
 );

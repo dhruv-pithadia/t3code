@@ -23,6 +23,7 @@ export interface FeatureTaskConversationCommands {
    * means the host cannot provision or verify task workspaces at all.
    */
   readonly workspace?: FeatureTaskWorkspaceCommands;
+  readonly dependencyChecksSupported?: boolean;
   readonly getTask: (input: FeatureTaskGetInput) => Promise<FeatureTask>;
   readonly launchThread: (
     input: OrchestrationV2ThreadLaunchInput,
@@ -109,6 +110,10 @@ export async function launchFeatureTaskConversation(
 
   let workspace: FeatureTaskWorkspaceBinding | null = null;
   let workspaceStrategy: OrchestrationV2ThreadLaunchWorkspaceStrategy;
+  if ((task.dependencyIds?.length ?? 0) > 0 && !commands.dependencyChecksSupported)
+    throw new FeatureTaskWorkspaceUnsupportedError(
+      "Update this server before starting work with prerequisites.",
+    );
   if (commands.workspace) {
     workspace = await resolveFeatureTaskWorkspace(commands.workspace, input.taskId);
     workspaceStrategy = workspaceStrategyForBinding(workspace);

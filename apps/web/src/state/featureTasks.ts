@@ -174,3 +174,11 @@ export function useFeatureTaskWorkspacesSupported(environmentId: EnvironmentId |
     serverConfigs.get(environmentId)?.environment.capabilities.featureTaskWorkspaces === true
   );
 }
+
+export function useFeatureTaskDependenciesSupported(environmentId: EnvironmentId | null): boolean {
+  const serverConfigs = useAtomValue(environmentServerConfigsAtom);
+  return (
+    environmentId !== null &&
+    serverConfigs.get(environmentId)?.environment.capabilities.featureTaskDependencies === true
+  );
+}

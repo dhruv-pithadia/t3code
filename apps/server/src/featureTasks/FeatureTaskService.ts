@@ -54,6 +54,7 @@ interface FeatureTaskRow {
   readonly objective: string;
   readonly acceptanceCriteria: string;
   readonly decisions: string;
+  readonly dependencyIds: string;
   readonly nextAction: string;
   readonly handoff: string;
   readonly status: string;
@@ -94,6 +95,9 @@ const decodeTaskRow = Effect.fn("FeatureTaskService.decodeTaskRow")(function* (
     objective: row.objective,
     acceptanceCriteria,
     decisions,
+    dependencyIds: yield* decodeList(row.dependencyIds).pipe(
+      Effect.mapError(() => storageError(id)),
+    ),
     nextAction: row.nextAction,
     handoff: row.handoff,
     status: row.status,
@@ -130,6 +134,7 @@ export const layer = Layer.effect(
         const rows = yield* sql<FeatureTaskRow>`
           SELECT task_id AS id, project_id AS projectId, title, objective,
             acceptance_criteria_json AS acceptanceCriteria, decisions_json AS decisions,
+            dependency_ids_json AS dependencyIds,
             next_action AS nextAction, handoff, status, archived_at AS archivedAt,
             version, created_at AS createdAt, updated_at AS updatedAt,
             workspace_repo_path AS workspaceRepoPath, workspace_worktree_path AS workspaceWorktreePath,
@@ -162,6 +167,7 @@ export const layer = Layer.effect(
             ? yield* sql<FeatureTaskRow>`
               SELECT task_id AS id, project_id AS projectId, title, objective,
                 acceptance_criteria_json AS acceptanceCriteria, decisions_json AS decisions,
+            dependency_ids_json AS dependencyIds,
                 next_action AS nextAction, handoff, status, archived_at AS archivedAt,
                 version, created_at AS createdAt, updated_at AS updatedAt,
                 workspace_repo_path AS workspaceRepoPath, workspace_worktree_path AS workspaceWorktreePath,
@@ -171,6 +177,7 @@ export const layer = Layer.effect(
             : yield* sql<FeatureTaskRow>`
               SELECT task_id AS id, project_id AS projectId, title, objective,
                 acceptance_criteria_json AS acceptanceCriteria, decisions_json AS decisions,
+            dependency_ids_json AS dependencyIds,
                 next_action AS nextAction, handoff, status, archived_at AS archivedAt,
                 version, created_at AS createdAt, updated_at AS updatedAt,
                 workspace_repo_path AS workspaceRepoPath, workspace_worktree_path AS workspaceWorktreePath,
@@ -274,6 +281,44 @@ export const layer = Layer.effect(
         }
       });
 
+    const validateDependencies = (
+      projectId: ProjectId,
+      taskId: FeatureTaskId,
+      ids: ReadonlyArray<FeatureTaskId>,
+    ) =>
+      Effect.gen(function* () {
+        if (new Set(ids).size !== ids.length || ids.includes(taskId))
+          return yield* toError(
+            "invalid_link",
+            "Prerequisites must be unique and cannot include this task.",
+            taskId,
+          );
+        const { tasks } = yield* listForProject(projectId);
+        const byId = new Map(tasks.map((task) => [task.id, task]));
+        for (const id of ids) {
+          if (!byId.has(id))
+            return yield* toError(
+              "invalid_link",
+              "Prerequisites must exist in the same project.",
+              taskId,
+            );
+        }
+        const pending = [...ids];
+        const visited = new Set<FeatureTaskId>();
+        while (pending.length > 0) {
+          const id = pending.pop()!;
+          if (id === taskId)
+            return yield* toError(
+              "invalid_link",
+              "This prerequisite would create a dependency cycle.",
+              taskId,
+            );
+          if (visited.has(id)) continue;
+          visited.add(id);
+          pending.push(...(byId.get(id)?.dependencyIds ?? []));
+        }
+      });
+
     const saveLinks = (taskId: FeatureTaskId, threadIds: ReadonlyArray<ThreadId>) =>
       Effect.gen(function* () {
         yield* sql`DELETE FROM feature_task_threads WHERE task_id = ${taskId}`;
@@ -341,16 +386,17 @@ export const layer = Layer.effect(
                 );
               }
               yield* validateProject(input.projectId);
+              yield* validateDependencies(input.projectId, input.id, input.dependencyIds ?? []);
               yield* validateThreads(input.projectId, input.threadIds, input.id);
               const now = yield* nowIso;
               yield* sql`
           INSERT INTO feature_tasks (
             task_id, create_payload_json, project_id, title, objective, acceptance_criteria_json, decisions_json,
-            next_action, handoff, status, archived_at, version, created_at, updated_at
+            next_action, handoff, status, archived_at, version, created_at, updated_at, dependency_ids_json
           ) VALUES (
             ${input.id}, ${encodeCreateInput(input)}, ${input.projectId}, ${input.title}, ${input.objective},
             ${encodeList(input.acceptanceCriteria)}, ${encodeList(input.decisions)},
-            ${input.nextAction}, ${input.handoff}, 'requested', NULL, 1, ${now}, ${now}
+            ${input.nextAction}, ${input.handoff}, 'requested', NULL, 1, ${now}, ${now}, ${encodeList(input.dependencyIds ?? [])}
           )
         `;
               yield* saveLinks(input.id, input.threadIds);
@@ -385,6 +431,26 @@ export const layer = Layer.effect(
                 );
               }
               const patch = input.patch;
+              if (patch.dependencyIds !== undefined) {
+                yield* validateDependencies(current.projectId, input.id, patch.dependencyIds);
+                const previous = current.dependencyIds ?? [];
+                const changed =
+                  previous.length !== patch.dependencyIds.length ||
+                  patch.dependencyIds.some((id) => !previous.includes(id));
+                if (changed) {
+                  const active = yield* sql`SELECT 1 FROM orchestration_v2_projection_runs runs
+                    JOIN orchestration_v2_projection_threads threads ON runs.thread_id = threads.thread_id
+                    LEFT JOIN feature_task_threads links ON links.thread_id = threads.thread_id
+                    WHERE runs.status IN ('starting', 'running') AND (links.task_id = ${input.id}
+                      OR json_extract(threads.payload_json, '$.worktreePath') = ${current.workspace?.worktreePath ?? null}) LIMIT 1`;
+                  if (active.length > 0)
+                    return yield* toError(
+                      "invalid_link",
+                      "Stop active task work before changing prerequisites.",
+                      input.id,
+                    );
+                }
+              }
               const threadIds = patch.threadIds ?? current.threadIds;
               if (patch.threadIds !== undefined)
                 yield* validateThreads(
@@ -410,6 +476,7 @@ export const layer = Layer.effect(
             acceptance_criteria_json = ${encodeList(next.acceptanceCriteria)},
             decisions_json = ${encodeList(next.decisions)}, next_action = ${next.nextAction},
             handoff = ${next.handoff}, status = ${next.status}, archived_at = ${archivedAt},
+            dependency_ids_json = ${encodeList(patch.dependencyIds ?? current.dependencyIds ?? [])},
             version = version + 1, updated_at = ${now}
           WHERE task_id = ${input.id} AND version = ${input.expectedVersion}
           RETURNING task_id AS id

@@ -6,7 +6,9 @@ Yantrix is the approved product name. The temporary mark is a plain Y. Keep the
 existing interface styling and workflows. Feature tasks persist the objective, decisions, next action, and handoff independently
 of chats and provider sessions. Tasks own a durable Git worktree and branch, reused by linked conversations. Workspace
 identity is checked before agent work; delivery facts come from the source-control host.
-Task status remains a progress note rather than proof of verification or merging.
+Task status remains a progress note rather than proof of verification or merging. Task prerequisites
+are explicit same-project links. Dependent starts verify GitHub origin/default-branch merges and
+checkout ancestry; existing work is preserved when integration is required.
 
 Track Yantrix-specific additions and their delivery status in
 [the progress and feature ledger](YANTRIX_PROGRESS.md). Update it with each new feature PR.

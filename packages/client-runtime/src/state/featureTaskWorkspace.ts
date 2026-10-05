@@ -130,6 +130,8 @@ export async function resolveFeatureTaskWorkspace(
   taskId: FeatureTaskId,
 ): Promise<FeatureTaskWorkspaceBinding> {
   const inspected = await commands.inspectWorkspace({ id: taskId });
+  if (inspected.dependencies?.some((item) => item.state !== "merged"))
+    throw new FeatureTaskWorkspaceBlockedError(inspected);
   if (inspected.state === "ready" && inspected.binding !== null) return inspected.binding;
 
   const canProvision =
@@ -253,6 +255,17 @@ export function describeFeatureTaskWorkspace(
 ): WorkspaceDescription {
   const branch = result.binding?.branch;
   switch (result.state) {
+    case "dependencies_blocked":
+      return {
+        label: "Waiting on prerequisites",
+        tone: "pending",
+        detail:
+          result.dependencies
+            ?.filter((item) => item.state !== "merged")
+            .map((item) => `${item.title}: ${item.message}`)
+            .join(" ") || "Verify prerequisite merges before starting work.",
+        actions: ["recheck"],
+      };
     case "ready":
       return {
         label: "Ready",

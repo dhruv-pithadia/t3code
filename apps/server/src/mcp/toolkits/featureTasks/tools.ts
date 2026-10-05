@@ -49,6 +49,7 @@ const List = Tool.make("yantrix_feature_task_list", {
         version: FeatureTask.fields.version,
         archivedAt: FeatureTask.fields.archivedAt,
         threadIds: FeatureTask.fields.threadIds,
+        dependencyIds: FeatureTask.fields.dependencyIds,
       }),
     ),
     nextCursor: Schema.NullOr(NonNegativeInt),
@@ -71,7 +72,7 @@ const { projectId: _projectId, ...createFields } = FeatureTaskCreateInput.fields
 const Create = Tool.make("yantrix_feature_task_create", {
   ...shared,
   description:
-    "Create a persistent feature task in the calling project. Supply a stable unique id and reuse the same input when retrying. Set threadIds to link existing conversations in this project, or [] for an unlinked task. This saves intent without starting agent work or merging code.",
+    "Create a persistent feature task in the calling project. Supply a stable unique id and reuse the same input when retrying. Set threadIds to link existing conversations in this project, or [] for an unlinked task. Set dependencyIds to prerequisite task IDs in this project when the requested work depends on them. This saves intent without starting agent work or merging code.",
   parameters: Schema.Struct(createFields),
   success: FeatureTask,
 }).annotate(Tool.Destructive, true);
@@ -79,7 +80,7 @@ const Create = Tool.make("yantrix_feature_task_create", {
 const Update = Tool.make("yantrix_feature_task_update", {
   ...shared,
   description:
-    "Update a persistent task's objective, acceptance criteria, decisions, next action, handoff, status, conversation links, or archive state in the calling project. Supply the latest expectedVersion; stale edits are rejected. Array fields replace the entire array. Archive is reversible. Record verified evidence in the handoff, and retain human merge approval.",
+    "Update a persistent task's objective, acceptance criteria, decisions, next action, handoff, status, conversation links, prerequisite dependencyIds, or archive state in the calling project. Supply the latest expectedVersion; stale edits are rejected. Array fields replace the entire array. Archive is reversible. Record verified evidence in the handoff, and retain human merge approval.",
   parameters: FeatureTaskUpdateInput,
   success: FeatureTask,
 }).annotate(Tool.Destructive, true);
@@ -87,7 +88,7 @@ const Update = Tool.make("yantrix_feature_task_update", {
 const WorkspaceInspect = Tool.make("yantrix_feature_task_workspace_inspect", {
   ...shared,
   description:
-    "Inspect the saved task checkout and branch identity. Reports missing, mismatched, or conflicting workspaces without changing them.",
+    "Inspect the saved task checkout and branch identity. Reports missing, mismatched, or conflicting workspaces and verifies prerequisite merges. May fetch Git refs, but never changes checkout files.",
   parameters: FeatureTaskWorkspaceInput,
   success: FeatureTaskWorkspaceResult,
 })

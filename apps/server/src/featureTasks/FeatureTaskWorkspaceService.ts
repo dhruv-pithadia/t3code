@@ -17,6 +17,7 @@ import * as SqlClient from "effect/unstable/sql/SqlClient";
 
 import * as ServerConfig from "../config.ts";
 import * as GitWorkflow from "../git/GitWorkflowService.ts";
+import * as Dependencies from "./FeatureTaskDependencyService.ts";
 import * as FeatureTasks from "./FeatureTaskService.ts";
 import { makeKeyedSerialExecutor } from "../orchestration-v2/KeyedSerialExecutor.ts";
 
@@ -56,6 +57,7 @@ export const layer = Layer.effect(
   Effect.gen(function* () {
     const sql = yield* SqlClient.SqlClient;
     const tasks = yield* FeatureTasks.FeatureTaskService;
+    const dependencies = yield* Dependencies.FeatureTaskDependencyService;
     const git = yield* GitWorkflow.GitWorkflowService;
     const config = yield* ServerConfig.ServerConfig;
     const fs = yield* FileSystem.FileSystem;
@@ -181,14 +183,28 @@ export const layer = Layer.effect(
       });
 
     const inspect: FeatureTaskWorkspaceService["Service"]["inspect"] = ({ id }) =>
-      getTask(id).pipe(
-        Effect.flatMap((task) =>
-          task.workspace === undefined || task.workspace === null
-            ? Effect.succeed({ state: "unbound" as const, binding: null, recoveryAvailable: true })
-            : inspectBinding(id, task.workspace),
-        ),
-        Effect.mapError((cause) => (isFeatureTaskError(cause) ? cause : storage(id))),
-      );
+      Effect.gen(function* () {
+        const task = yield* getTask(id);
+        const health = task.workspace
+          ? yield* inspectBinding(id, task.workspace)
+          : { state: "unbound" as const, binding: null, recoveryAvailable: true };
+        if ((task.dependencyIds?.length ?? 0) === 0) return health;
+        const candidate = yield* bindingFor(id);
+        const checked = yield* dependencies.check({
+          task,
+          repoPath: candidate.repoPath,
+          ...(health.state === "ready" && task.workspace
+            ? { worktreePath: task.workspace.worktreePath }
+            : {}),
+        });
+        return {
+          ...health,
+          dependencies: checked.dependencies,
+          ...(checked.dependencies.some((item) => item.state !== "merged")
+            ? { state: "dependencies_blocked" as const }
+            : {}),
+        };
+      }).pipe(Effect.mapError((cause) => (isFeatureTaskError(cause) ? cause : storage(id))));
 
     const bindingFor = Effect.fn("FeatureTaskWorkspaceService.bindingFor")(function* (
       id: FeatureTaskId,
@@ -225,6 +241,21 @@ export const layer = Layer.effect(
         id,
         Effect.gen(function* () {
           const initial = yield* getTask(id);
+          const dependencyCandidate = yield* bindingFor(id);
+          const dependencyCheck = yield* dependencies.check({
+            task: initial,
+            repoPath: dependencyCandidate.repoPath,
+            ...(initial.workspace && (yield* fs.exists(initial.workspace.worktreePath))
+              ? { worktreePath: initial.workspace.worktreePath }
+              : {}),
+          });
+          if (dependencyCheck.dependencies.some((item) => item.state !== "merged"))
+            return {
+              state: "dependencies_blocked" as const,
+              binding: initial.workspace ?? null,
+              recoveryAvailable: false,
+              dependencies: dependencyCheck.dependencies,
+            };
           if (initial.archivedAt !== null)
             return yield* conflict(
               id,
@@ -306,7 +337,7 @@ export const layer = Layer.effect(
                   ),
                 );
             }
-            return yield* inspectBinding(id, initial.workspace);
+            return yield* inspect({ id });
           }
           const candidate = yield* bindingFor(id);
           if (candidate.task.archivedAt !== null)
@@ -377,9 +408,13 @@ export const layer = Layer.effect(
                   );
               }
             } else {
-              const baseBranch = yield* git
-                .checkedOutBranch(candidate.repoPath)
-                .pipe(Effect.mapError(() => conflict(id, "The project is not a Git repository.")));
+              const baseBranch =
+                dependencyCheck.baseCommit ??
+                (yield* git
+                  .checkedOutBranch(candidate.repoPath)
+                  .pipe(
+                    Effect.mapError(() => conflict(id, "The project is not a Git repository.")),
+                  ));
               if (baseBranch === null)
                 return yield* conflict(
                   id,
@@ -390,7 +425,7 @@ export const layer = Layer.effect(
                   cwd: candidate.repoPath,
                   refName: baseBranch,
                   newRefName: candidate.branch,
-                  baseRefName: baseBranch,
+                  baseRefName: dependencyCheck.baseBranch ?? baseBranch,
                   path: candidate.worktreePath,
                 })
                 .pipe(
@@ -409,7 +444,9 @@ export const layer = Layer.effect(
           if (result.state !== "ready")
             return yield* conflict(id, "The provisioned task workspace failed its identity check.");
           const saved = yield* tasks.saveWorkspaceBinding({ id, binding: result.binding! });
-          return { ...result, binding: saved.task.workspace! };
+          return (saved.task.dependencyIds?.length ?? 0) > 0
+            ? yield* inspect({ id })
+            : { ...result, binding: saved.task.workspace! };
         }).pipe(
           Effect.tapError((cause) =>
             Effect.logError("Feature task workspace ensure failed", { taskId: id, cause }),
@@ -504,11 +541,13 @@ export const layer = Layer.effect(
             );
           }
           const saved = yield* tasks.saveWorkspaceBinding({ id, binding });
-          return {
-            state: "ready" as const,
-            binding: saved.task.workspace!,
-            recoveryAvailable: true,
-          };
+          return (saved.task.dependencyIds?.length ?? 0) > 0
+            ? yield* inspect({ id })
+            : {
+                state: "ready" as const,
+                binding: saved.task.workspace!,
+                recoveryAvailable: true,
+              };
         }).pipe(Effect.mapError((cause) => (isFeatureTaskError(cause) ? cause : storage(id)))),
       ),
     );
@@ -563,7 +602,22 @@ export const layer = Layer.effect(
                     }
                     return null;
                   });
-            if (owner === null) return;
+            if (owner === null) {
+              if (linkedTask && (linkedTask.dependencyIds?.length ?? 0) > 0)
+                return yield* conflict(
+                  linkedTask.id,
+                  "Set up the task workspace before starting dependent work.",
+                );
+              return;
+            }
+            const ownerTask = yield* getTask(owner.id);
+            const checked = yield* dependencies.check({
+              task: ownerTask,
+              repoPath: owner.repoPath,
+              worktreePath: owner.worktreePath,
+            });
+            const blocked = checked.dependencies.find((item) => item.state !== "merged");
+            if (blocked) return yield* conflict(owner.id, `${blocked.title}: ${blocked.message}`);
             if (linkedTask !== null && linkedTask.id !== owner.id) {
               return yield* conflict(taskId!, "This checkout belongs to another feature task.");
             }

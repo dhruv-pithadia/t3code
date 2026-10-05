@@ -212,6 +212,30 @@ export function TaskWorkspacePane({
           Checking the workspace. Starting work is paused until this finishes.
         </p>
       ) : null}
+      {workspace?.dependencies && workspace.dependencies.length > 0 ? (
+        <div className="mt-3 grid gap-2" aria-label="Prerequisite status">
+          <p className="text-xs font-medium">Prerequisites</p>
+          {workspace.dependencies.map((item) => (
+            <div key={item.id} className="grid gap-1 text-xs">
+              <span className="font-medium">{item.title}</span>
+              <span className="text-muted-foreground">
+                {unverified ? "Last known: " : ""}
+                {item.message}
+              </span>
+              {item.pullRequestUrl ? (
+                <a
+                  href={item.pullRequestUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  View pull request
+                </a>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
       {binding ? (
         <dl className="mt-3 grid grid-cols-[4.25rem_minmax(0,1fr)] gap-x-3 gap-y-2 text-xs">
           <dt className="text-muted-foreground">Worktree</dt>
@@ -222,7 +246,7 @@ export function TaskWorkspacePane({
           <dd className="min-w-0 break-all font-mono text-2xs leading-relaxed">{binding.branch}</dd>
         </dl>
       ) : null}
-      {description && !unverified && !healthy ? (
+      {description && !unverified && !healthy && workspace?.state !== "dependencies_blocked" ? (
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{description.detail}</p>
       ) : null}
       {error ? (

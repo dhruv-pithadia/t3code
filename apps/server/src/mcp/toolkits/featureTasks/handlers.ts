@@ -26,13 +26,14 @@ export const FeatureTasksHandlersLive = FeatureTasksToolkit.toLayer({
       return {
         tasks: all
           .slice(cursor, cursor + limit)
-          .map(({ id, title, status, version, archivedAt, threadIds }) => ({
+          .map(({ id, title, status, version, archivedAt, threadIds, dependencyIds }) => ({
             id,
             title,
             status,
             version,
             archivedAt,
             threadIds,
+            ...(dependencyIds ? { dependencyIds } : {}),
           })),
         nextCursor: cursor + limit < all.length ? cursor + limit : null,
       };

@@ -77,6 +77,44 @@ const launchResult: OrchestrationV2ThreadLaunchResult = {
 };
 
 describe("feature task conversation linking", () => {
+  it("refuses dependent work on an older host even if its checkout is ready", async () => {
+    const commands = makeCommands(
+      makeTask({ dependencyIds: [FeatureTaskId.make("prerequisite")] }),
+    );
+    await expect(launchFeatureTaskConversation(commands, createInput())).rejects.toBeInstanceOf(
+      FeatureTaskWorkspaceUnsupportedError,
+    );
+    expect(commands.launchCalls).toBe(0);
+  });
+
+  it("does not create a conversation while a prerequisite is waiting", async () => {
+    const commands = makeCommands(
+      makeTask({ dependencyIds: [FeatureTaskId.make("prerequisite")] }),
+    );
+    commands.inspectImpl = async () => ({
+      state: "dependencies_blocked",
+      binding: null,
+      recoveryAvailable: false,
+      dependencies: [
+        {
+          id: FeatureTaskId.make("prerequisite"),
+          title: "Keypad",
+          state: "waiting",
+          message: "Waiting for merge.",
+          pullRequestUrl: null,
+        },
+      ],
+    });
+    await expect(
+      launchFeatureTaskConversation(
+        { ...commands, dependencyChecksSupported: true },
+        createInput(),
+      ),
+    ).rejects.toBeInstanceOf(FeatureTaskWorkspaceBlockedError);
+    expect(commands.launchCalls).toBe(0);
+    expect(commands.ensureCalls).toBe(0);
+  });
+
   it("launches inside the task binding and ignores sibling conversation workspaces", async () => {
     const commands = makeCommands(makeTask());
     const launchedWith: unknown[] = [];

@@ -165,6 +165,7 @@ it("does not commit running state when inherited background routing cannot be re
 function makeLocalCommandHarness(input: {
   readonly text: string;
   readonly featureTask?: FeatureTask;
+  readonly prerequisite?: FeatureTask;
   readonly previousNativeSession?: boolean;
   readonly previousMessages?: ReadonlyArray<string>;
   readonly logoutFailure?: string;
@@ -499,6 +500,7 @@ function makeLocalCommandHarness(input: {
       Layer.mergeAll(
         Layer.mock(FeatureTasks.FeatureTaskService)({
           readForThread: () => Effect.succeed(input.featureTask ?? null),
+          get: () => Effect.succeed({ task: input.prerequisite! }),
         }),
         Layer.mock(FeatureTaskWorkspaces.FeatureTaskWorkspaceService)({
           assertThreadWorkspace: () =>
@@ -908,6 +910,7 @@ effectIt.effect(
     Effect.gen(function* () {
       const featureTask: FeatureTask = {
         id: FeatureTaskId.make("resume-task"),
+        dependencyIds: [FeatureTaskId.make("keypad")],
         projectId: ProjectId.make("project-native-account-command"),
         title: "Persistent tasks",
         objective: "Keep feature intent across restarts",
@@ -926,6 +929,13 @@ effectIt.effect(
         text: "Continue",
         failReadsAfterRunning: true,
         featureTask,
+        prerequisite: {
+          ...featureTask,
+          id: FeatureTaskId.make("keypad"),
+          dependencyIds: [],
+          handoff: "Keypad renders digits; no operators were added.",
+          archivedAt: "2026-10-05T01:00:00.000Z",
+        },
       });
       yield* harness.start;
       expect(harness.startRootRun).toHaveBeenCalledOnce();
@@ -933,6 +943,7 @@ effectIt.effect(
       expect(delivered).toContain(featureTask.objective);
       expect(delivered).toContain(featureTask.nextAction);
       expect(delivered).toContain(featureTask.handoff);
+      expect(delivered).toContain("Keypad renders digits; no operators were added.");
       expect(delivered).toContain("User message:\nContinue");
       expect(delivered).toContain('"version":2');
     }),
