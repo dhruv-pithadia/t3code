@@ -2,8 +2,13 @@
 
 ## Product direction
 
-Yantrix is the approved product name. The temporary mark is a plain Y. Keep the
-existing interface styling and workflows. Feature tasks persist the objective, decisions, next action, and handoff independently
+Yantrix is the approved product name. The temporary mark is a plain Y. Use the
+existing visual system. The next workflow is project-first: an ongoing project
+coordinator conversation automatically routes feature work, manages worker sessions,
+and prepares workspaces. Users should not have to manage chats or fill task forms.
+The agreed scope, build order, and acceptance criteria are in [MVP.md](MVP.md).
+Start that implementation after PR 6 is verified merged into `main`; it is planned,
+not part of PR 6. Feature tasks persist the objective, decisions, next action, and handoff independently
 of chats and provider sessions. Tasks own a durable Git worktree and branch, reused by linked conversations. Workspace
 identity is checked before agent work; delivery facts come from the source-control host.
 Task status remains a progress note rather than proof of verification or merging. Task prerequisites
