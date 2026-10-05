@@ -84,13 +84,15 @@ unknown when it cannot be verified. Recovery cannot reconstruct missing uncommit
 files. Workspaces are retained when conversations are unlinked or tasks archived.
 This feature does not merge pull requests or automatically delete worktrees.
 
-**Evidence:** 184 focused tests passed across workspace ownership, recovery, delivery
+**Evidence:** 192 focused tests passed across workspace ownership, recovery, delivery
 freshness, provider start guards, authorization, MCP, and shared client behavior.
 Targeted lint, formatting, server/contracts/web/mobile/client-runtime typechecks,
 and the production web build passed. Headless Chromium verified restart continuity,
 new linked conversations, branch mismatch launch blocking, committed recovery,
 foreign-worktree refusal, offline edit preservation and reconnect retry, and responsive
-web at 390px without overflow or browser page errors.
+web at 390px without overflow or browser page errors. The collapsible task inspector
+was also verified for viewport bounds, independent scrolling, keyboard tabs, saved
+visibility preferences, and repair drafts retained across collapse and resizing.
 
 Native mobile was typechecked but not verified in a simulator. The browser fixture
 had no matching pull request; changing PR/check states are covered by focused service
