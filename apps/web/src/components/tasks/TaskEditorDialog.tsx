@@ -10,6 +10,8 @@ import { useProjects } from "../../state/entities";
 import { useEnvironments } from "../../state/environments";
 import {
   useCreateFeatureTask,
+  useFeatureTasks,
+  useFeatureTaskDependenciesSupported,
   useFeatureTaskEnvironments,
   useUpdateFeatureTask,
 } from "../../state/featureTasks";
@@ -23,6 +25,7 @@ import {
   DialogPopup,
   DialogTitle,
 } from "../ui/dialog";
+import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { describeFeatureTaskError } from "@yantrix/client-runtime/state/feature-task-workspace";
@@ -82,6 +85,15 @@ export function TaskEditorDialog({
   const [projectId, setProjectId] = useState<ProjectId>(
     task?.projectId ?? initialProjectId ?? availableProjects[0]?.id ?? ("" as ProjectId),
   );
+  const dependenciesSupported = useFeatureTaskDependenciesSupported(environmentId);
+  const allTasks = useFeatureTasks(projectId);
+  const candidates =
+    allTasks.values
+      .find((value) => value.environmentId === environmentId)
+      ?.tasks.filter((item) => item.id !== task?.id) ?? [];
+  const [dependencyIds, setDependencyIds] = useState<ReadonlyArray<FeatureTaskId>>(
+    task?.dependencyIds ?? [],
+  );
   const [title, setTitle] = useState(task?.title ?? "");
   const [objective, setObjective] = useState(task?.objective ?? "");
   const [acceptanceCriteria, setAcceptanceCriteria] = useState(
@@ -120,6 +132,7 @@ export function TaskEditorDialog({
               nextAction: nextAction.trim(),
               handoff: handoff.trim(),
               status,
+              ...(dependenciesSupported ? { dependencyIds } : {}),
             },
           },
         })
@@ -135,6 +148,7 @@ export function TaskEditorDialog({
             nextAction: nextAction.trim(),
             handoff: handoff.trim(),
             threadIds: [],
+            ...(dependenciesSupported ? { dependencyIds } : {}),
           },
         });
     setSaving(false);
@@ -187,6 +201,7 @@ export function TaskEditorDialog({
                   onChange={(event) => {
                     const nextEnvironmentId = event.currentTarget.value as EnvironmentId;
                     setEnvironmentId(nextEnvironmentId);
+                    setDependencyIds([]);
                     const nextProject = projects.find(
                       (candidate) => candidate.environmentId === nextEnvironmentId,
                     );
@@ -207,7 +222,10 @@ export function TaskEditorDialog({
                 <select
                   className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/24"
                   value={projectId}
-                  onChange={(event) => setProjectId(event.currentTarget.value as ProjectId)}
+                  onChange={(event) => {
+                    setProjectId(event.currentTarget.value as ProjectId);
+                    setDependencyIds([]);
+                  }}
                   disabled={availableProjects.length < 2}
                 >
                   {availableProjects.map((item) => (
@@ -247,6 +265,43 @@ export function TaskEditorDialog({
                 placeholder="The behavior is visible to the user\nThe work survives a restart"
               />
             </Field>
+            {dependenciesSupported ? (
+              <fieldset className="grid gap-2">
+                <legend className="text-sm font-medium">Prerequisites</legend>
+                <p className="text-xs text-muted-foreground">
+                  This task waits until selected tasks merge into the default branch.
+                </p>
+                <div className="max-h-40 overflow-y-auto">
+                  {candidates.map((candidate) => (
+                    <label key={candidate.id} className="flex min-h-11 items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={dependencyIds.includes(candidate.id)}
+                        onCheckedChange={(checked) =>
+                          setDependencyIds(
+                            checked
+                              ? [...dependencyIds, candidate.id]
+                              : dependencyIds.filter((id) => id !== candidate.id),
+                          )
+                        }
+                      />
+                      <span className="min-w-0 break-words">
+                        {candidate.title}
+                        {candidate.archivedAt ? " (archived)" : ""}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {allTasks.error ? (
+                  <p role="alert" className="text-xs text-destructive">
+                    Could not load prerequisites. Your selection is preserved.
+                  </p>
+                ) : candidates.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    No other tasks in this project yet.
+                  </p>
+                ) : null}
+              </fieldset>
+            ) : null}
             <Field label="Decisions" hint="One item per line">
               <Textarea
                 aria-label="Decisions"

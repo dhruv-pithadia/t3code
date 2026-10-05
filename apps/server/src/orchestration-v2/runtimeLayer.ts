@@ -1,3 +1,8 @@
+import * as GitHubCli from "../sourceControl/GitHubCli.ts";
+import * as GitVcsDriver from "../vcs/GitVcsDriver.ts";
+import * as SourceControlRateLimit from "../sourceControl/SourceControlRateLimit.ts";
+import * as VcsProcess from "../vcs/VcsProcess.ts";
+import * as FeatureTaskDependencies from "../featureTasks/FeatureTaskDependencyService.ts";
 import * as UsageLimitRecoveryWorker from "./UsageLimitRecoveryWorker.ts";
 import * as Scheduler from "../scheduling/Scheduler.ts";
 import * as Layer from "effect/Layer";
@@ -101,7 +106,17 @@ export const ProjectServiceLayerLive = projectServiceLayer.pipe(
     ),
   ),
 );
+
 const featureTaskWorkspaceServiceProvided = FeatureTaskWorkspaceServiceModule.layer.pipe(
+  Layer.provide(
+    FeatureTaskDependencies.layer.pipe(
+      Layer.provide(featureTaskServiceLayer),
+      Layer.provide(GitVcsDriver.layer),
+      Layer.provide(GitHubCli.layer),
+      Layer.provide(SourceControlRateLimit.layer),
+      Layer.provide(VcsProcess.layer),
+    ),
+  ),
   Layer.provideMerge(featureTaskServiceLayer),
 );
 

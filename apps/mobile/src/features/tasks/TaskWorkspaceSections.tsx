@@ -98,6 +98,15 @@ export function TaskWorkspaceSection(props: {
             <Text className="text-sm text-foreground-muted">Checking workspace</Text>
           </View>
         ) : null}
+        {props.workspace?.dependencies?.map((item) => (
+          <View key={item.id} className="gap-1">
+            <Text className="text-sm font-yantrix-medium">{item.title}</Text>
+            <Text className="text-xs text-foreground-muted">
+              {unverified ? "Last known: " : ""}
+              {item.message}
+            </Text>
+          </View>
+        ))}
         {binding ? (
           <View className="gap-2">
             <View>

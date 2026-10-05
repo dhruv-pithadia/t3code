@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useEffect, useCallback, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -49,6 +49,7 @@ import {
   useFeatureTaskEnvironments,
   useFeatureTaskWorkspace,
   useFeatureTaskWorkspacesSupported,
+  useFeatureTaskDependenciesSupported,
   useReadFeatureTask,
   useReadFeatureTaskWorkspace,
   useUpdateFeatureTask,
@@ -329,6 +330,7 @@ function TaskDetail({
   const readTask = useReadFeatureTask();
   const readWorkspace = useReadFeatureTaskWorkspace();
   const ensureWorkspace = useEnsureFeatureTaskWorkspace();
+  const dependenciesSupported = useFeatureTaskDependenciesSupported(environmentId);
   const workspacesSupported = useFeatureTaskWorkspacesSupported(environmentId);
   const workspaceEnvironmentId = workspacesSupported ? environmentId : null;
   const workspaceQuery = useFeatureTaskWorkspace(workspaceEnvironmentId, taskId);
@@ -384,19 +386,29 @@ function TaskDetail({
         : [],
     [environmentId, task, threads],
   );
+  const dependencyKey = (task?.dependencyIds ?? []).join("\n");
+  const refreshDependencyWorkspace = workspaceQuery.refresh;
+  const previousDependencyKey = useRef(dependencyKey);
+  useEffect(() => {
+    if (previousDependencyKey.current === dependencyKey) return;
+    previousDependencyKey.current = dependencyKey;
+    refreshDependencyWorkspace();
+  }, [dependencyKey, refreshDependencyWorkspace]);
   const binding = task?.workspace ?? workspaceQuery.workspace?.binding ?? null;
   const resumable = useMemo(
     () => latestResumableTaskThread(binding, linkedThreads),
     [binding, linkedThreads],
   );
   // A task that owns a workspace cannot be worked on through a host that cannot verify it.
-  const launchBlocked = workspacesSupported
-    ? launchBlockedByWorkspace(
-        workspaceQuery.workspace,
-        workspaceQuery.error !== null,
-        workspaceQuery.isPending,
-      )
-    : binding !== null;
+  const launchBlocked =
+    ((task?.dependencyIds?.length ?? 0) > 0 && !dependenciesSupported) ||
+    (workspacesSupported
+      ? launchBlockedByWorkspace(
+          workspaceQuery.workspace,
+          workspaceQuery.error !== null,
+          workspaceQuery.isPending,
+        )
+      : binding !== null);
 
   // The inspector docks beside the task on wide viewports and opens as a sheet otherwise.
   // Only an explicit toggle while docked is saved; the sheet is transient so resizing never rewrites it.
@@ -469,6 +481,7 @@ function TaskDetail({
       },
       ...(workspacesSupported
         ? {
+            dependencyChecksSupported: dependenciesSupported,
             workspace: {
               inspectWorkspace: async ({ id }: { id: FeatureTaskId }) => {
                 const result = await readWorkspace({ environmentId, input: { id } });
@@ -504,6 +517,7 @@ function TaskDetail({
       readWorkspace,
       update,
       workspacesSupported,
+      dependenciesSupported,
     ],
   );
 
@@ -1023,6 +1037,7 @@ function TaskDetail({
           onSaved={() => {
             setEditorOpen(false);
             query.refresh();
+            workspaceQuery.refresh();
           }}
         />
       ) : null}

@@ -977,7 +977,32 @@ export const layer: Layer.Layer<
         RunExecutionService.canRouteRelatedSubagent(subagent.status),
       );
       const task = yield* featureTasks.readForThread(projection.thread.id);
-      const taskContext = task === null ? "" : formatFeatureTaskContext(task);
+      const prerequisiteContexts =
+        task === null
+          ? []
+          : yield* Effect.forEach(task.dependencyIds ?? [], (id) =>
+              featureTasks
+                .get({ id })
+                .pipe(
+                  Effect.map(({ task: prerequisite }) =>
+                    formatFeatureTaskContext({ ...prerequisite, archivedAt: null }),
+                  ),
+                ),
+            );
+      const taskContext =
+        task === null
+          ? ""
+          : [
+              formatFeatureTaskContext(task),
+              ...(prerequisiteContexts.length > 0
+                ? [
+                    "Prerequisite task handoffs (saved notes, not independent verification):",
+                    ...prerequisiteContexts,
+                  ]
+                : []),
+            ]
+              .join("\n\n")
+              .slice(0, 32_000);
       const composerText = projectComposerContextForProvider({
         text: message.text,
         records: message.context?.records ?? [],

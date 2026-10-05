@@ -46,10 +46,21 @@ export const FeatureTaskWorkspaceState = Schema.Literals([
   "missing",
   "branch_mismatch",
   "conflict",
+  "dependencies_blocked",
 ]);
 export type FeatureTaskWorkspaceState = typeof FeatureTaskWorkspaceState.Type;
 
+export const FeatureTaskDependencyCheck = Schema.Struct({
+  id: FeatureTaskId,
+  title: Schema.String,
+  state: Schema.Literals(["waiting", "merged", "unknown", "integration_required"]),
+  message: Schema.String,
+  pullRequestUrl: Schema.NullOr(Schema.String),
+});
+export type FeatureTaskDependencyCheck = typeof FeatureTaskDependencyCheck.Type;
+
 export const FeatureTaskWorkspaceResult = Schema.Struct({
+  dependencies: Schema.optional(Schema.Array(FeatureTaskDependencyCheck)),
   state: FeatureTaskWorkspaceState,
   binding: Schema.NullOr(FeatureTaskWorkspaceBinding),
   recoveryAvailable: Schema.Boolean,
@@ -85,6 +96,7 @@ export const FeatureTask = Schema.Struct({
   status: FeatureTaskStatus,
   /** Optional for wire compatibility with servers predating task workspaces. */
   workspace: Schema.optional(Schema.NullOr(FeatureTaskWorkspaceBinding)),
+  dependencyIds: Schema.optional(Schema.Array(FeatureTaskId).check(Schema.isMaxLength(20))),
   threadIds: TaskThreadIds,
   archivedAt: Schema.NullOr(IsoDateTime),
   version: NonNegativeInt.check(Schema.isGreaterThanOrEqualTo(1)),
@@ -101,6 +113,7 @@ export const FeatureTaskPatch = Schema.Struct({
   nextAction: Schema.optional(TaskText),
   handoff: Schema.optional(TaskText),
   status: Schema.optional(FeatureTaskStatus),
+  dependencyIds: Schema.optional(Schema.Array(FeatureTaskId).check(Schema.isMaxLength(20))),
   threadIds: Schema.optional(TaskThreadIds),
   archived: Schema.optional(Schema.Boolean),
 });
@@ -123,6 +136,7 @@ export const FeatureTaskCreateInput = Schema.Struct({
   decisions: TaskList,
   nextAction: TaskText,
   handoff: TaskText,
+  dependencyIds: Schema.optional(Schema.Array(FeatureTaskId).check(Schema.isMaxLength(20))),
   threadIds: TaskThreadIds,
 });
 export type FeatureTaskCreateInput = typeof FeatureTaskCreateInput.Type;

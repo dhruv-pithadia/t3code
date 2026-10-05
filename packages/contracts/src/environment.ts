@@ -175,6 +175,7 @@ export const ExecutionEnvironmentCapabilities = Schema.Struct({
   featureTasks: Schema.optionalKey(Schema.Boolean),
   /** Server can provision durable task workspaces and report their live health. */
   featureTaskWorkspaces: Schema.optionalKey(Schema.Boolean),
+  featureTaskDependencies: Schema.optionalKey(Schema.Boolean),
   /** Server understands thread.pull-request.watch and wakes agents on pull request changes. */
   threadPullRequestWatch: Schema.optionalKey(Schema.Boolean),
   pullRequestStackActions: Schema.optionalKey(Schema.Boolean),

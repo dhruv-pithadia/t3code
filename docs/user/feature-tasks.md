@@ -15,6 +15,24 @@ Keep the handoff focused on what changed, what was checked, unresolved questions
 happen next. Agents can read and update this record using Yantrix's feature-task tools. Saved
 context can contain mistakes; inspect the actual changes and validation before accepting work.
 
+Choose **Prerequisites** when creating or editing a task to make it wait for other tasks in the
+same project. For example, an addition feature can wait for a calculator keypad. Cycles and
+self-dependencies are rejected. Remove a prerequisite in the editor when the requirement changes;
+stop active task work before editing prerequisites.
+
+The Workspace section checks prerequisites when opened or refreshed and the server checks again
+before agent work. Use **Check again** after merging externally. This first version verifies
+GitHub pull requests against the repository's `origin` and current default branch. Closed,
+ambiguous, unavailable, and non-default-branch merges do not unblock work. A new dependent
+workspace starts from a freshly fetched default-branch commit containing every verified merge,
+including squash merges. An existing checkout must already contain those commits; otherwise
+integrate the default branch yourself and check again. Yantrix preserves local work and never
+resets or rebases it automatically. Dependent work starts only when you choose to start it.
+
+Linked agent turns also receive the saved prerequisite handoffs. These are context notes, not
+independent proof of correctness. Newer clients block launches when a task reports prerequisites but the host lacks support. Prerequisite selection is explicit; mentioning a dependency in prose
+alone does not establish it unless an agent records the link through the task tools.
+
 Task status is a progress note. **Ready for review** does not prove tests passed or confirm a
 merge. The task's **Delivery** section reports its branch's pull request, checks, and merge state
 from the source-control host. Refresh to check again; unavailable information stays unknown.

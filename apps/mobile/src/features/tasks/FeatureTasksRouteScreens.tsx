@@ -19,7 +19,7 @@ import type {
 } from "@yantrix/client-runtime/state/shell";
 import { squashAtomCommandFailure } from "@yantrix/client-runtime/state/runtime";
 import { StaticScreenProps, useNavigation } from "@react-navigation/native";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -187,15 +187,26 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
       ? serverEnvironment.getFeatureTaskDelivery({ environmentId, input: { id: taskId } })
       : null,
   );
+  const dependencyKey = (task?.dependencyIds ?? []).join("\n");
+  const refreshDependencyWorkspace = workspaceQuery.refresh;
+  const previousDependencyKey = useRef(dependencyKey);
+  useEffect(() => {
+    if (previousDependencyKey.current === dependencyKey) return;
+    previousDependencyKey.current = dependencyKey;
+    refreshDependencyWorkspace();
+  }, [dependencyKey, refreshDependencyWorkspace, previousDependencyKey]);
   const binding = task?.workspace ?? workspaceQuery.data?.binding ?? null;
   // A task that owns a workspace cannot be worked on through a host that cannot verify it.
-  const launchBlocked = workspacesSupported
-    ? launchBlockedByWorkspace(
-        workspaceQuery.data,
-        workspaceQuery.error !== null,
-        workspaceQuery.isPending,
-      )
-    : binding !== null;
+  const launchBlocked =
+    ((task?.dependencyIds?.length ?? 0) > 0 &&
+      configForTask?.environment.capabilities.featureTaskDependencies !== true) ||
+    (workspacesSupported
+      ? launchBlockedByWorkspace(
+          workspaceQuery.data,
+          workspaceQuery.error !== null,
+          workspaceQuery.isPending,
+        )
+      : binding !== null);
   const linkedThreads =
     task?.threadIds.flatMap((threadId) => {
       const shell = threads.find(
@@ -251,6 +262,8 @@ export function FeatureTaskDetailRouteScreen({ route }: StaticScreenProps<Featur
   const featureCommands = {
     ...(workspacesSupported
       ? {
+          dependencyChecksSupported:
+            configForTask?.environment.capabilities.featureTaskDependencies === true,
           workspace: {
             inspectWorkspace: async ({ id }: { id: FeatureTaskId }) => {
               const result = await readWorkspace({ environmentId, input: { id } });
@@ -752,6 +765,21 @@ function FeatureTaskEditorForm(props: {
   const chosenProject = props.projects.find(
     (project) => `${project.environmentId}:${project.id}` === effectiveProjectKey,
   );
+  const taskSnapshots = useFeatureTaskSnapshots();
+  const chosenConfig = useEnvironmentServerConfig(
+    chosenProject?.environmentId ?? props.editingEnvironmentId ?? null,
+  );
+  const dependenciesSupported =
+    chosenConfig?.environment.capabilities.featureTaskDependencies === true;
+  const [dependencyIds, setDependencyIds] = useState<ReadonlyArray<FeatureTaskId>>(
+    task?.dependencyIds ?? [],
+  );
+  const candidates = taskSnapshots.tasks.filter(
+    (entry) =>
+      entry.environmentId === (chosenProject?.environmentId ?? props.editingEnvironmentId) &&
+      entry.task.projectId === (task?.projectId ?? chosenProject?.id) &&
+      entry.task.id !== task?.id,
+  );
   const createTask = useAtomCommand(serverEnvironment.createFeatureTask, { reportFailure: false });
   const updateTask = useAtomCommand(serverEnvironment.updateFeatureTask, { reportFailure: false });
   const [title, setTitle] = useState(task?.title ?? "");
@@ -832,6 +860,7 @@ function FeatureTaskEditorForm(props: {
               decisions: splitLines(decisions),
               nextAction: nextAction.trim(),
               handoff: handoff.trim(),
+              ...(dependenciesSupported ? { dependencyIds } : {}),
             },
           },
         });
@@ -852,6 +881,7 @@ function FeatureTaskEditorForm(props: {
             nextAction: nextAction.trim(),
             handoff: handoff.trim(),
             threadIds: [],
+            ...(dependenciesSupported ? { dependencyIds } : {}),
           },
         });
         if (result._tag === "Failure") throw squashAtomCommandFailure(result);
@@ -899,10 +929,42 @@ function FeatureTaskEditorForm(props: {
                     key={`${project.environmentId}:${project.id}`}
                     project={project}
                     selected={effectiveProjectKey === `${project.environmentId}:${project.id}`}
-                    onPress={() => setProjectKey(`${project.environmentId}:${project.id}`)}
+                    onPress={() => {
+                      setProjectKey(`${project.environmentId}:${project.id}`);
+                      setDependencyIds([]);
+                    }}
                   />
                 ))
               )}
+            </View>
+          </SettingsSection>
+        ) : null}
+        {dependenciesSupported ? (
+          <SettingsSection title="Prerequisites">
+            <View className="gap-2 p-4">
+              <Text className="text-sm text-foreground-muted">
+                Wait for these tasks to merge before starting.
+              </Text>
+              {candidates.map(({ task: candidate }) => (
+                <Pressable
+                  key={candidate.id}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: dependencyIds.includes(candidate.id) }}
+                  className="min-h-11 justify-center rounded-xl border border-border px-3"
+                  onPress={() =>
+                    setDependencyIds(
+                      dependencyIds.includes(candidate.id)
+                        ? dependencyIds.filter((id) => id !== candidate.id)
+                        : [...dependencyIds, candidate.id],
+                    )
+                  }
+                >
+                  <Text>
+                    {dependencyIds.includes(candidate.id) ? "Selected: " : ""}
+                    {candidate.title}
+                  </Text>
+                </Pressable>
+              ))}
             </View>
           </SettingsSection>
         ) : null}
