@@ -147,6 +147,10 @@
       "types": "./src/state/entities.ts",
       "default": "./src/state/entities.ts"
     },
+    "./state/feature-tasks": {
+      "types": "./src/state/featureTasks.ts",
+      "default": "./src/state/featureTasks.ts"
+    },
     "./state/filesystem": {
       "types": "./src/state/filesystem.ts",
       "default": "./src/state/filesystem.ts"

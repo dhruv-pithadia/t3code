@@ -316,6 +316,15 @@ import {
   ScheduledTaskMutationResult,
 } from "./scheduledTask.ts";
 import {
+  FeatureTaskCreateInput,
+  FeatureTaskError,
+  FeatureTaskGetInput,
+  FeatureTaskGetResult,
+  FeatureTaskListInput,
+  FeatureTaskListResult,
+  FeatureTaskUpdateInput,
+} from "./featureTask.ts";
+import {
   ProjectCloneActionInput,
   ProjectCloneActionResult,
   ProjectCloneListEvent,
@@ -474,6 +483,11 @@ export const WS_METHODS = {
   scheduledTasksSetEnabled: "scheduledTasks.setEnabled",
   scheduledTasksDelete: "scheduledTasks.delete",
   scheduledTasksRunNow: "scheduledTasks.runNow",
+  featureTasksList: "featureTasks.list",
+  featureTasksSubscribe: "featureTasks.subscribe",
+  featureTasksGet: "featureTasks.get",
+  featureTasksCreate: "featureTasks.create",
+  featureTasksUpdate: "featureTasks.update",
 
   // Cloud environment methods
   cloudGetRelayClientStatus: "cloud.getRelayClientStatus",
@@ -1668,6 +1682,34 @@ const WsScheduledTasksRunNowRpc = Rpc.make(WS_METHODS.scheduledTasksRunNow, {
   error: Schema.Union([ScheduledTaskError, EnvironmentAuthorizationError]),
 });
 
+const FeatureTaskRpcError = Schema.Union([FeatureTaskError, EnvironmentAuthorizationError]);
+const WsFeatureTasksListRpc = Rpc.make(WS_METHODS.featureTasksList, {
+  payload: FeatureTaskListInput,
+  success: FeatureTaskListResult,
+  error: FeatureTaskRpcError,
+});
+const WsFeatureTasksSubscribeRpc = Rpc.make(WS_METHODS.featureTasksSubscribe, {
+  payload: FeatureTaskListInput,
+  success: FeatureTaskListResult,
+  error: FeatureTaskRpcError,
+  stream: true,
+});
+const WsFeatureTasksGetRpc = Rpc.make(WS_METHODS.featureTasksGet, {
+  payload: FeatureTaskGetInput,
+  success: FeatureTaskGetResult,
+  error: FeatureTaskRpcError,
+});
+const WsFeatureTasksCreateRpc = Rpc.make(WS_METHODS.featureTasksCreate, {
+  payload: FeatureTaskCreateInput,
+  success: FeatureTaskGetResult,
+  error: FeatureTaskRpcError,
+});
+const WsFeatureTasksUpdateRpc = Rpc.make(WS_METHODS.featureTasksUpdate, {
+  payload: FeatureTaskUpdateInput,
+  success: FeatureTaskGetResult,
+  error: FeatureTaskRpcError,
+});
+
 const WsSubscribeAuthAccessRpc = Rpc.make(WS_METHODS.subscribeAuthAccess, {
   payload: Schema.Struct({}),
   success: AuthAccessStreamEvent,
@@ -1753,6 +1795,11 @@ export const WsRpcGroup = RpcGroup.make(
   WsScheduledTasksSetEnabledRpc,
   WsScheduledTasksDeleteRpc,
   WsScheduledTasksRunNowRpc,
+  WsFeatureTasksListRpc,
+  WsFeatureTasksSubscribeRpc,
+  WsFeatureTasksGetRpc,
+  WsFeatureTasksCreateRpc,
+  WsFeatureTasksUpdateRpc,
   WsServerReportClientActivityRpc,
   WsServerReportHostPowerStateRpc,
   WsServerGetBackgroundPolicyRpc,

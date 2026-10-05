@@ -1,7 +1,10 @@
+import * as FeatureTasks from "../featureTasks/FeatureTaskService.ts";
 import { expect, it, vi } from "vite-plus/test";
 import { it as effectIt } from "@effect/vitest";
 import {
   CheckpointScopeId,
+  FeatureTaskId,
+  type FeatureTask,
   MessageId,
   NodeId,
   ProviderSessionId,
@@ -92,6 +95,7 @@ it("does not commit running state when inherited background routing cannot be re
   const layer = ProviderTurnStart.layer.pipe(
     Layer.provide(
       Layer.mergeAll(
+        Layer.mock(FeatureTasks.FeatureTaskService)({ readForThread: () => Effect.succeed(null) }),
         Layer.mock(ContextHandoffService.ContextHandoffServiceV2)({}),
         Layer.mock(EventSink.EventSinkV2)({ writeIfRunCurrent }),
         IdAllocator.layer,
@@ -155,6 +159,7 @@ it("does not commit running state when inherited background routing cannot be re
 
 function makeLocalCommandHarness(input: {
   readonly text: string;
+  readonly featureTask?: FeatureTask;
   readonly previousNativeSession?: boolean;
   readonly previousMessages?: ReadonlyArray<string>;
   readonly logoutFailure?: string;
@@ -486,6 +491,9 @@ function makeLocalCommandHarness(input: {
   const layer = ProviderTurnStart.layer.pipe(
     Layer.provide(
       Layer.mergeAll(
+        Layer.mock(FeatureTasks.FeatureTaskService)({
+          readForThread: () => Effect.succeed(input.featureTask ?? null),
+        }),
         Layer.mock(ContextHandoffService.ContextHandoffServiceV2)({
           prepareProviderHandoff: () => Effect.die("history read must fail first"),
         }),
@@ -855,3 +863,39 @@ for (const previousMessages of [[], ["/compact", " /COMPACT "]]) {
       }),
   );
 }
+
+effectIt.effect(
+  "injects the latest linked task handoff when continuing an existing conversation",
+  () =>
+    Effect.gen(function* () {
+      const featureTask: FeatureTask = {
+        id: FeatureTaskId.make("resume-task"),
+        projectId: ProjectId.make("project-native-account-command"),
+        title: "Persistent tasks",
+        objective: "Keep feature intent across restarts",
+        acceptanceCriteria: ["Resume the same workspace"],
+        decisions: ["Explicit merge approval"],
+        nextAction: "Verify reopening the app",
+        handoff: "Persistence implemented; UI verification pending",
+        threadIds: [ThreadId.make("thread-native-account-command")],
+        status: "verifying",
+        archivedAt: null,
+        version: 2,
+        createdAt: "2026-10-05T00:00:00.000Z",
+        updatedAt: "2026-10-05T01:00:00.000Z",
+      };
+      const harness = makeLocalCommandHarness({
+        text: "Continue",
+        failReadsAfterRunning: true,
+        featureTask,
+      });
+      yield* harness.start;
+      expect(harness.startRootRun).toHaveBeenCalledOnce();
+      const delivered = harness.startRootRun.mock.calls[0]![0].message.text;
+      expect(delivered).toContain(featureTask.objective);
+      expect(delivered).toContain(featureTask.nextAction);
+      expect(delivered).toContain(featureTask.handoff);
+      expect(delivered).toContain("User message:\nContinue");
+      expect(delivered).toContain('"version":2');
+    }),
+);

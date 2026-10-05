@@ -1,3 +1,5 @@
+import { formatFeatureTaskContext } from "@yantrix/shared/featureTaskContext";
+import * as FeatureTasks from "../featureTasks/FeatureTaskService.ts";
 import { modelSelectionsEqual } from "@yantrix/shared/model";
 import { projectComposerContextForProvider } from "@yantrix/shared/composerContextReferences";
 import {
@@ -85,6 +87,7 @@ export const layer: Layer.Layer<
   ProviderTurnStartServiceV2,
   never,
   | EventSink.EventSinkV2
+  | FeatureTasks.FeatureTaskService
   | ContextHandoffService.ContextHandoffServiceV2
   | IdAllocator.IdAllocatorV2
   | FileSystem.FileSystem
@@ -99,6 +102,7 @@ export const layer: Layer.Layer<
   ProviderTurnStartServiceV2,
   Effect.gen(function* () {
     const eventSink = yield* EventSink.EventSinkV2;
+    const featureTasks = yield* FeatureTasks.FeatureTaskService;
     const contextHandoffService = yield* ContextHandoffService.ContextHandoffServiceV2;
     const idAllocator = yield* IdAllocator.IdAllocatorV2;
     const fileSystem = yield* FileSystem.FileSystem;
@@ -943,10 +947,14 @@ export const layer: Layer.Layer<
       const routableSubagents = projection.subagents.filter((subagent) =>
         RunExecutionService.canRouteRelatedSubagent(subagent.status),
       );
-      const userText = projectComposerContextForProvider({
+      const task = yield* featureTasks.readForThread(projection.thread.id);
+      const taskContext = task === null ? "" : formatFeatureTaskContext(task);
+      const composerText = projectComposerContextForProvider({
         text: message.text,
         records: message.context?.records ?? [],
       });
+      const userText =
+        taskContext === "" ? composerText : `${taskContext}\n\nUser message:\n${composerText}`;
       // Delivered once: this run's provider turn marks the work as told. A
       // restart continuation is prompted by its own text or resumes natively.
       const noteContinuation = isRestartNoteContinuation(

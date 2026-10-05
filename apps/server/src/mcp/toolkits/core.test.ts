@@ -1,3 +1,4 @@
+import { FeatureTasksToolkit } from "./featureTasks/tools.ts";
 import * as NodeCrypto from "@effect/platform-node/NodeCrypto";
 import { expect, it } from "@effect/vitest";
 import {
@@ -41,6 +42,7 @@ it("publishes unique tool names with reference-free object-root inputs", () => {
   const names = new Set<string>();
   for (const toolkit of [
     OrchestratorToolkit,
+    FeatureTasksToolkit,
     PreviewToolkit,
     WorktreeToolkit,
     ThreadToolkit,

@@ -109,14 +109,11 @@ export function HomeRouteScreen() {
       })),
     [listOptions.projectGroupingMode, projects, selectedEnvironmentId],
   );
-  useEffect(() => {
-    if (
-      selectedProjectKey !== null &&
-      !projectFilterOptions.some((project) => project.key === selectedProjectKey)
-    ) {
-      setSelectedProjectKey(null);
-    }
-  }, [projectFilterOptions, selectedProjectKey]);
+  const effectiveSelectedProjectKey =
+    selectedProjectKey !== null &&
+    projectFilterOptions.some((project) => project.key === selectedProjectKey)
+      ? selectedProjectKey
+      : null;
 
   // In split layouts the persistent sidebar IS the thread list — Home becomes
   // an empty detail pane so selecting a thread never transitions layouts.
@@ -136,6 +133,11 @@ export function HomeRouteScreen() {
               accessibilityLabel="New task"
               icon="square.and.pencil"
               onPress={() => navigation.navigate("NewTaskSheet", { screen: "NewTask" })}
+            />
+            <NativeHeaderToolbar.Button
+              accessibilityLabel="Feature tasks"
+              icon="checklist"
+              onPress={() => navigation.navigate("FeatureTasks")}
             />
           </NativeHeaderToolbar>
         ) : null}
@@ -187,7 +189,7 @@ export function HomeRouteScreen() {
           projects={projectFilterOptions}
           searchQuery={searchQuery}
           selectedEnvironmentId={selectedEnvironmentId}
-          selectedProjectKey={selectedProjectKey}
+          selectedProjectKey={effectiveSelectedProjectKey}
           onEnvironmentChange={setSelectedEnvironmentId}
           onProjectChange={setSelectedProjectKey}
           onOpenEnvironments={() =>
@@ -202,6 +204,7 @@ export function HomeRouteScreen() {
               params: { screen: "Settings" },
             })
           }
+          onOpenTasks={() => navigation.navigate("FeatureTasks")}
           onSearchQueryChange={setSearchQuery}
           onStartNewTask={() => navigation.navigate("NewTaskSheet", { screen: "NewTask" })}
         />
@@ -258,7 +261,7 @@ export function HomeRouteScreen() {
           savedConnectionsById={savedConnectionsById}
           searchQuery={searchQuery}
           selectedEnvironmentId={selectedEnvironmentId}
-          selectedProjectKey={selectedProjectKey}
+          selectedProjectKey={effectiveSelectedProjectKey}
           threads={threads}
         />
       </>
