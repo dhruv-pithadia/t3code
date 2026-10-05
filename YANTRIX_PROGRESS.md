@@ -24,7 +24,7 @@ foundations. Yantrix's additions extend those capabilities.
 | YF-003 | Yantrix product identity          | Branding foundation    | Merged | Yantrix naming, assets, package and application identities, and configuration defaults. This establishes the fork's identity rather than a new agent capability. | [PR #3](https://github.com/dhruv-pithadia/yantrix/pull/3) |
 | YF-004 | Task-owned workspaces             | Product feature        | Merged | One durable task workspace and branch shared by linked conversations, delivery state, and safe recovery when the workspace is unavailable or inconsistent.       | [PR #5](https://github.com/dhruv-pithadia/yantrix/pull/5) |
 
-| YF-005 | Task prerequisites | Product feature | Draft | Explicit dependencies, verified prerequisite merges, and inherited workspaces and handoffs. | This task branch |
+| YF-005 | Task prerequisites | Product feature | Draft | Explicit dependencies, verified prerequisite merges, and inherited workspaces and handoffs. | [PR #6](https://github.com/dhruv-pithadia/yantrix/pull/6) |
 
 [PR #2](https://github.com/dhruv-pithadia/yantrix/pull/2) preserved the repository
 setup and product direction in documentation. It is supporting work, not an
