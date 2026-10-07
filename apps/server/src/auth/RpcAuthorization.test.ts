@@ -84,6 +84,19 @@ describe("RPC authorization scopes", () => {
     );
   });
 
+  it("requires operate access for coordinator dispatch and observation writes", () => {
+    for (const method of [
+      WS_METHODS.coordinatorOpen,
+      WS_METHODS.coordinatorSend,
+      WS_METHODS.coordinatorObserveNotification,
+    ]) {
+      expect(requiredScopeForRpcMethod(method)).toBe(AuthOrchestrationOperateScope);
+    }
+    for (const method of [WS_METHODS.coordinatorRead, WS_METHODS.coordinatorSubscribe]) {
+      expect(requiredScopeForRpcMethod(method)).toBe(AuthOrchestrationReadScope);
+    }
+  });
+
   it("keeps feature task inspection and delivery read-only while guarding workspace mutations", () => {
     expect(requiredScopeForRpcMethod(WS_METHODS.featureTasksWorkspaceInspect)).toBe(
       AuthOrchestrationReadScope,

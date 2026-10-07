@@ -1,3 +1,12 @@
+import {
+  ProjectCoordinatorOpenInput,
+  ProjectCoordinatorReadInput,
+  ProjectCoordinatorSendInput,
+  ProjectCoordinatorSendResult,
+  ProjectCoordinatorSnapshot,
+  ProjectCoordinatorError,
+  ProjectCoordinatorObserveNotificationInput,
+} from "./projectCoordinator.ts";
 import { OrchestrationDispatchCommandError } from "./orchestrationDispatch.ts";
 import {
   ChatGptReconnectProfileInput,
@@ -488,6 +497,11 @@ export const WS_METHODS = {
   scheduledTasksSetEnabled: "scheduledTasks.setEnabled",
   scheduledTasksDelete: "scheduledTasks.delete",
   scheduledTasksRunNow: "scheduledTasks.runNow",
+  coordinatorOpen: "coordinator.open",
+  coordinatorRead: "coordinator.read",
+  coordinatorSubscribe: "coordinator.subscribe",
+  coordinatorSend: "coordinator.send",
+  coordinatorObserveNotification: "coordinator.observeNotification",
   featureTasksList: "featureTasks.list",
   featureTasksSubscribe: "featureTasks.subscribe",
   featureTasksGet: "featureTasks.get",
@@ -1691,6 +1705,34 @@ const WsScheduledTasksRunNowRpc = Rpc.make(WS_METHODS.scheduledTasksRunNow, {
   error: Schema.Union([ScheduledTaskError, EnvironmentAuthorizationError]),
 });
 
+const CoordinatorRpcError = Schema.Union([ProjectCoordinatorError, EnvironmentAuthorizationError]);
+const WsCoordinatorOpenRpc = Rpc.make(WS_METHODS.coordinatorOpen, {
+  payload: ProjectCoordinatorOpenInput,
+  success: ProjectCoordinatorSnapshot,
+  error: CoordinatorRpcError,
+});
+const WsCoordinatorReadRpc = Rpc.make(WS_METHODS.coordinatorRead, {
+  payload: ProjectCoordinatorReadInput,
+  success: ProjectCoordinatorSnapshot,
+  error: CoordinatorRpcError,
+});
+const WsCoordinatorSubscribeRpc = Rpc.make(WS_METHODS.coordinatorSubscribe, {
+  payload: ProjectCoordinatorReadInput,
+  success: ProjectCoordinatorSnapshot,
+  error: CoordinatorRpcError,
+  stream: true,
+});
+const WsCoordinatorSendRpc = Rpc.make(WS_METHODS.coordinatorSend, {
+  payload: ProjectCoordinatorSendInput,
+  success: ProjectCoordinatorSendResult,
+  error: CoordinatorRpcError,
+});
+const WsCoordinatorObserveNotificationRpc = Rpc.make(WS_METHODS.coordinatorObserveNotification, {
+  payload: ProjectCoordinatorObserveNotificationInput,
+  success: ProjectCoordinatorSnapshot,
+  error: CoordinatorRpcError,
+});
+
 const FeatureTaskRpcError = Schema.Union([FeatureTaskError, EnvironmentAuthorizationError]);
 const WsFeatureTasksListRpc = Rpc.make(WS_METHODS.featureTasksList, {
   payload: FeatureTaskListInput,
@@ -1824,6 +1866,11 @@ export const WsRpcGroup = RpcGroup.make(
   WsScheduledTasksSetEnabledRpc,
   WsScheduledTasksDeleteRpc,
   WsScheduledTasksRunNowRpc,
+  WsCoordinatorOpenRpc,
+  WsCoordinatorReadRpc,
+  WsCoordinatorSubscribeRpc,
+  WsCoordinatorSendRpc,
+  WsCoordinatorObserveNotificationRpc,
   WsFeatureTasksListRpc,
   WsFeatureTasksSubscribeRpc,
   WsFeatureTasksGetRpc,

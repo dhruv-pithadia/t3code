@@ -1,3 +1,4 @@
+import * as CoordinatorStore from "../project/ProjectCoordinatorStore.ts";
 import * as FeatureTasks from "../featureTasks/FeatureTaskService.ts";
 import * as FeatureTaskWorkspaces from "../featureTasks/FeatureTaskWorkspaceService.ts";
 import { expect, it, vi } from "vite-plus/test";
@@ -6,6 +7,7 @@ import {
   CheckpointScopeId,
   FeatureTaskId,
   type FeatureTask,
+  type ProjectCoordinatorSnapshot,
   FeatureTaskError,
   MessageId,
   NodeId,
@@ -97,6 +99,9 @@ it("does not commit running state when inherited background routing cannot be re
   const layer = ProviderTurnStart.layer.pipe(
     Layer.provide(
       Layer.mergeAll(
+        Layer.mock(CoordinatorStore.ProjectCoordinatorStore)({
+          readForThread: () => Effect.succeed(null),
+        }),
         Layer.mock(FeatureTasks.FeatureTaskService)({ readForThread: () => Effect.succeed(null) }),
         Layer.mock(FeatureTaskWorkspaces.FeatureTaskWorkspaceService)({
           assertThreadWorkspace: () => Effect.void,
@@ -166,6 +171,7 @@ function makeLocalCommandHarness(input: {
   readonly text: string;
   readonly featureTask?: FeatureTask;
   readonly prerequisite?: FeatureTask;
+  readonly coordinatorSnapshot?: ProjectCoordinatorSnapshot;
   readonly previousNativeSession?: boolean;
   readonly previousMessages?: ReadonlyArray<string>;
   readonly logoutFailure?: string;
@@ -498,6 +504,14 @@ function makeLocalCommandHarness(input: {
   const layer = ProviderTurnStart.layer.pipe(
     Layer.provide(
       Layer.mergeAll(
+        Layer.mock(CoordinatorStore.ProjectCoordinatorStore)({
+          readForThread: () =>
+            Effect.succeed(
+              input.coordinatorSnapshot === undefined
+                ? null
+                : { snapshot: input.coordinatorSnapshot, isCoordinator: false },
+            ),
+        }),
         Layer.mock(FeatureTasks.FeatureTaskService)({
           readForThread: () => Effect.succeed(input.featureTask ?? null),
           get: () => Effect.succeed({ task: input.prerequisite! }),
@@ -947,4 +961,40 @@ effectIt.effect(
       expect(delivered).toContain("User message:\nContinue");
       expect(delivered).toContain('"version":2');
     }),
+);
+
+effectIt.effect("fresh ordinary project turns receive current accepted coordinator decisions", () =>
+  Effect.gen(function* () {
+    const snapshot: ProjectCoordinatorSnapshot = {
+      projectId: ProjectId.make("project-native-account-command"),
+      threadId: ThreadId.make("coordinator-other-thread"),
+      modelSelection: null,
+      contextRevision: 7,
+      decisions: [
+        {
+          id: "keypad-scope",
+          text: "Digits only, no operators.",
+          sourceMessageId: MessageId.make("accepted-source"),
+          version: 2,
+          createdAt: "2026-10-07T00:00:00.000Z",
+          updatedAt: "2026-10-07T01:00:00.000Z",
+        },
+      ],
+      requests: [],
+      notifications: [],
+    };
+    const harness = makeLocalCommandHarness({
+      text: "What should I build?",
+      failReadsAfterRunning: true,
+      coordinatorSnapshot: snapshot,
+    });
+    yield* harness.start;
+    expect(harness.startRootRun).toHaveBeenCalledOnce();
+    const delivered = harness.startRootRun.mock.calls[0]![0].message.text;
+    expect(delivered).toContain("Accepted project direction (revision 7)");
+    expect(delivered).toContain("Digits only, no operators.");
+    expect(delivered).toContain('"version":2');
+    expect(delivered).toContain("User message:\nWhat should I build?");
+    expect(delivered).not.toContain("You are this project's Yantrix coordinator");
+  }),
 );

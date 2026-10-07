@@ -66,6 +66,7 @@ import { useSelectedThreadGitActions } from "../../state/use-selected-thread-git
 import { useSelectedThreadGitState } from "../../state/use-selected-thread-git-state";
 import { useSelectedThreadRequests } from "../../state/use-selected-thread-requests";
 import { useSelectedThreadWorktree } from "../../state/use-selected-thread-worktree";
+import { useCoordinatorForThread } from "../../state/project-coordinator";
 import { useThreadComposerState } from "../../state/use-thread-composer-state";
 import { resolveMergeBackTargetThreadId } from "@yantrix/client-runtime/state/thread-relationships";
 import { resolveLatestMergeBackRun } from "@yantrix/client-runtime/state/thread-workflows";
@@ -484,7 +485,13 @@ function ThreadRouteContent(
 
   /* ─── Native header theming ──────────────────────────────────────── */
   const usesNativeHeaderGlass = NATIVE_LIQUID_GLASS_SUPPORTED;
+  const coordinatorSnapshot = useCoordinatorForThread(
+    selectedThread?.environmentId ?? null,
+    selectedThread?.projectId ?? null,
+    selectedThread?.id ?? null,
+  );
   const headerSubtitle = [
+    coordinatorSnapshot ? "Coordinator" : null,
     selectedThreadProject?.title ?? null,
     selectedEnvironmentConnection?.environmentLabel ?? null,
   ]
@@ -990,6 +997,7 @@ function ThreadRouteContent(
       <View className="flex-1 bg-screen android:overflow-hidden android:rounded-t-[28px] android:bg-thread-canvas">
         <ThreadDetailScreen
           selectedThread={selectedThreadWithDraftSettings ?? selectedThread}
+          coordinatorSnapshot={coordinatorSnapshot}
           contentPresentation={contentPresentation}
           screenTone={connectionTone(routeConnectionState)}
           connectionError={routeConnectionError}

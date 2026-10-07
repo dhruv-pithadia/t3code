@@ -151,6 +151,10 @@
       "types": "./src/state/featureTasks.ts",
       "default": "./src/state/featureTasks.ts"
     },
+    "./state/project-coordinator": {
+      "types": "./src/state/projectCoordinator.ts",
+      "default": "./src/state/projectCoordinator.ts"
+    },
     "./state/feature-task-workspace": {
       "types": "./src/state/featureTaskWorkspace.ts",
       "default": "./src/state/featureTaskWorkspace.ts"

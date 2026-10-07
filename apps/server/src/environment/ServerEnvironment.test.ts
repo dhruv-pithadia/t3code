@@ -99,6 +99,7 @@ it.layer(NodeServices.layer)("ServerEnvironmentLive", (it) => {
         '{"name":"yantrix","version":"0.0.45","bin":{"yantrix":"./dist/bin.mjs"}}',
       );
       yield* fs.symlink(entry, `${prefix}/bin/yantrix`);
+      const canonicalPrefix = yield* fs.realPath(prefix);
       const config = yield* makeServerConfig(baseDir);
       yield* fs.makeDirectory(config.stateDir, { recursive: true });
       for (const mode of ["web", "desktop"] as const) {
@@ -118,7 +119,7 @@ it.layer(NodeServices.layer)("ServerEnvironmentLive", (it) => {
           Effect.provideService(HostProcessEnvironment, {}),
         );
         expect(descriptor.capabilities.serverInstallation).toEqual(
-          mode === "web" ? { kind: "npm-global", prefix } : undefined,
+          mode === "web" ? { kind: "npm-global", prefix: canonicalPrefix } : undefined,
         );
         expect(descriptor.capabilities.serverSelfUpdate).toBe(
           mode === "web" ? undefined : "desktop-managed",

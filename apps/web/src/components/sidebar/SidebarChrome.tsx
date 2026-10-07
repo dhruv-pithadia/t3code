@@ -1,8 +1,15 @@
-import { ArrowLeftIcon, ChartNoAxesColumnIcon, ListChecksIcon, SettingsIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ChartNoAxesColumnIcon,
+  ListChecksIcon,
+  SettingsIcon,
+  WorkflowIcon,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { memo, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 
+import { useCoordinatorEntry } from "../../hooks/useCoordinatorEntry";
 import { useEnvironmentIdentificationMode } from "../../hooks/useSettings";
 import { cn } from "../../lib/utils";
 import { usePullRequestsSupported } from "../../state/environments";
@@ -143,10 +150,12 @@ function SidebarBrandMark({ onBackdrop }: { onBackdrop: boolean }) {
 function SidebarUtilityItem({
   icon,
   label,
+  tooltip = label,
   onClick,
 }: {
   icon: ReactNode;
   label: string;
+  tooltip?: string;
   onClick: () => void;
 }) {
   return (
@@ -159,7 +168,7 @@ function SidebarUtilityItem({
             </SidebarMenuButton>
           }
         />
-        <TooltipPopup side="top">{label}</TooltipPopup>
+        <TooltipPopup side="top">{tooltip}</TooltipPopup>
       </Tooltip>
     </SidebarMenuItem>
   );
@@ -203,6 +212,13 @@ export const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
     void navigate({ to: "/tasks" });
   }, [closeMobileSidebar, navigate]);
 
+  const coordinatorEntry = useCoordinatorEntry();
+  const openCoordinator = coordinatorEntry.open;
+  const handleCoordinatorClick = useCallback(() => {
+    closeMobileSidebar();
+    openCoordinator();
+  }, [closeMobileSidebar, openCoordinator]);
+
   const handleBackClick = useCallback(() => {
     closeMobileSidebar();
     void navigateToMainApp();
@@ -236,6 +252,14 @@ export const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
               icon={<ListChecksIcon />}
               label="Tasks"
               onClick={handleTasksClick}
+            />
+          ) : null}
+          {coordinatorEntry.project ? (
+            <SidebarUtilityItem
+              icon={<WorkflowIcon />}
+              label="Coordinator"
+              tooltip={`Coordinator for ${coordinatorEntry.project.title}`}
+              onClick={handleCoordinatorClick}
             />
           ) : null}
           <SidebarUtilityItem

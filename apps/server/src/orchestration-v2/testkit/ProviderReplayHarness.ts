@@ -1,3 +1,4 @@
+import * as ProjectCoordinatorStore from "../../project/ProjectCoordinatorStore.ts";
 import * as FeatureTasks from "../../featureTasks/FeatureTaskService.ts";
 import * as FeatureTaskWorkspaces from "../../featureTasks/FeatureTaskWorkspaceService.ts";
 import * as OtelEnvironment from "@yantrix/shared/otelEnvironment";
@@ -367,6 +368,7 @@ export function makeOrchestratorV2ReplayLayerWithRegistry<Error>(
     Layer.provide(
       Layer.mergeAll(
         FeatureTasks.layer.pipe(Layer.provide(databaseLayer)),
+        ProjectCoordinatorStore.layer.pipe(Layer.provide(databaseLayer)),
         Layer.mock(FeatureTaskWorkspaces.FeatureTaskWorkspaceService)({
           assertThreadWorkspace: () => Effect.void,
         }),

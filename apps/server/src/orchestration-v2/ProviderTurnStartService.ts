@@ -1,3 +1,5 @@
+import * as ProjectCoordinatorStore from "../project/ProjectCoordinatorStore.ts";
+import { formatProjectCoordinatorContext } from "../project/ProjectCoordinatorContext.ts";
 import { formatFeatureTaskContext } from "@yantrix/shared/featureTaskContext";
 import * as FeatureTasks from "../featureTasks/FeatureTaskService.ts";
 import * as FeatureTaskWorkspaces from "../featureTasks/FeatureTaskWorkspaceService.ts";
@@ -90,6 +92,7 @@ export const layer: Layer.Layer<
   ProviderTurnStartServiceV2,
   never,
   | EventSink.EventSinkV2
+  | ProjectCoordinatorStore.ProjectCoordinatorStore
   | FeatureTasks.FeatureTaskService
   | FeatureTaskWorkspaces.FeatureTaskWorkspaceService
   | ContextHandoffService.ContextHandoffServiceV2
@@ -106,6 +109,7 @@ export const layer: Layer.Layer<
   ProviderTurnStartServiceV2,
   Effect.gen(function* () {
     const eventSink = yield* EventSink.EventSinkV2;
+    const coordinatorStore = yield* ProjectCoordinatorStore.ProjectCoordinatorStore;
     const featureTasks = yield* FeatureTasks.FeatureTaskService;
     const featureTaskWorkspaces = yield* FeatureTaskWorkspaces.FeatureTaskWorkspaceService;
     const contextHandoffService = yield* ContextHandoffService.ContextHandoffServiceV2;
@@ -1007,8 +1011,37 @@ export const layer: Layer.Layer<
         text: message.text,
         records: message.context?.records ?? [],
       });
+      const projectCoordinator = yield* coordinatorStore.readForThread(projection.thread.id);
+      const coordinatorTaskReferences =
+        projectCoordinator?.isCoordinator === true
+          ? (yield* featureTasks.list({ projectId: projection.thread.projectId })).tasks
+              .filter((feature) => feature.archivedAt === null)
+              .map(({ id, title, status, threadIds }) => ({ id, title, status, threadIds }))
+          : [];
+      const coordinatorContext =
+        projectCoordinator === null
+          ? ""
+          : yield* Effect.try({
+              try: () =>
+                formatProjectCoordinatorContext(
+                  projectCoordinator.snapshot,
+                  projectCoordinator.isCoordinator,
+                  message.id,
+                  coordinatorTaskReferences,
+                ),
+              catch: (cause) => new ProviderTurnStartError({ runId: run.id, cause }),
+            });
+      const coordinatorTaskContext =
+        projectCoordinator !== null && task !== null
+          ? "Task objective preserves original user intent. Native coordinator-generated acceptanceCriteria, decisions, nextAction and handoff are planning proposals unless supported by a user source; accepted project direction is recorded separately."
+          : "";
+      const providerContext = [coordinatorContext, coordinatorTaskContext, taskContext]
+        .filter(Boolean)
+        .join("\n\n");
       const userText =
-        taskContext === "" ? composerText : `${taskContext}\n\nUser message:\n${composerText}`;
+        providerContext === ""
+          ? composerText
+          : `${providerContext}\n\nUser message:\n${composerText}`;
       // Delivered once: this run's provider turn marks the work as told. A
       // restart continuation is prompted by its own text or resumes natively.
       const noteContinuation = isRestartNoteContinuation(

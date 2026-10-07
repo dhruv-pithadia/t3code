@@ -38,6 +38,8 @@ import { orchestrationEnvironment } from "../../state/orchestration";
 import { vcsEnvironment } from "../../state/vcs";
 import { useEnvironmentQuery } from "../../state/query";
 import { useFeatureTaskSnapshots } from "../../state/feature-tasks";
+import { useCoordinatorProjects } from "../../state/project-coordinator";
+import { useOpenProjectCoordinator } from "../coordinator/useOpenProjectCoordinator";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { uuidv4 } from "../../lib/uuid";
 import { useHomeThreadSelection } from "../home/home-thread-navigation";
@@ -84,6 +86,9 @@ export function FeatureTasksRouteScreen() {
   const entries = [...snapshots.tasks].sort((left, right) =>
     right.task.updatedAt.localeCompare(left.task.updatedAt),
   );
+  const coordinatorProjects = useCoordinatorProjects();
+  const openCoordinator = useOpenProjectCoordinator();
+  const [openingCoordinatorKey, setOpeningCoordinatorKey] = useState<string | null>(null);
 
   return (
     <>
@@ -106,6 +111,39 @@ export function FeatureTasksRouteScreen() {
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 20 }}
         contentInsetAdjustmentBehavior="automatic"
       >
+        {coordinatorProjects.length > 0 ? (
+          <View className="gap-2">
+            <Text className="px-1 text-xs font-yantrix-semibold uppercase text-foreground-muted">
+              Project coordinator
+            </Text>
+            {coordinatorProjects.map((project) => (
+              <Pressable
+                key={`${project.environmentId}:${project.id}`}
+                accessibilityRole="button"
+                accessibilityLabel={`Open coordinator for ${project.title}`}
+                disabled={openingCoordinatorKey !== null}
+                onPress={() => {
+                  const key = `${project.environmentId}:${project.id}`;
+                  setOpeningCoordinatorKey(key);
+                  void openCoordinator(project).finally(() => setOpeningCoordinatorKey(null));
+                }}
+                className="min-h-11 flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 active:opacity-75"
+              >
+                <View className="min-w-0 flex-1">
+                  <Text className="text-base font-yantrix-bold text-foreground" numberOfLines={1}>
+                    {project.title}
+                  </Text>
+                  <Text className="text-xs text-foreground-muted">
+                    {openingCoordinatorKey === `${project.environmentId}:${project.id}`
+                      ? "Opening..."
+                      : "Plan and hand off work"}
+                  </Text>
+                </View>
+                <SymbolView name="chevron.right" size={15} />
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
         {entries.length === 0 ? (
           <EmptyState
             variant="plain"

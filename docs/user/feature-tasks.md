@@ -6,6 +6,26 @@ want. Start a conversation from the task to create a separate Git worktree and b
 **Set up workspace** first. Every new conversation for that task uses its saved checkout.
 You can also attach a registered worktree from the same repository using **Use another worktree**.
 
+## Work through the project coordinator
+
+Open **Coordinator** for your project and describe the outcome you want. The coordinator can
+answer questions, start a feature in its own workspace, and send follow-ups to that feature's
+worker. You can open the worker conversation or task to inspect the work. Opening the
+coordinator itself does not start agent work.
+
+This first version uses a configured Codex provider and accepts text messages. Keep files and
+other attachments in ordinary conversations. One feature can be active in a project at a time.
+Requests, project decisions, unanswered questions, and worker notifications survive reloads.
+A received request or an ended worker turn does not establish that the code is verified or merged.
+Viewing a question does not resolve it; answer through the coordinator conversation or the
+worker's existing approval controls.
+
+After interruption, check the coordinator's attention items and worker state before continuing.
+Yantrix keeps the saved feature and workspace and does not start a second worker simply because
+it cannot confirm an earlier launch. You retain approval over merges.
+
+## Manage tasks directly
+
 Use **Resume** to return to a linked conversation. The latest saved task context accompanies
 subsequent agent turns, including after reopening Yantrix. You can link another conversation in
 the same project when you need a fresh conversation while retaining the task's intent. Each
