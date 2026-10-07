@@ -1,13 +1,7 @@
 import { useAtomValue } from "@effect/atom-react";
-import type {
-  EnvironmentId,
-  ProjectCoordinatorSnapshot,
-  ProjectId,
-  ThreadId,
-} from "@yantrix/contracts";
+import type { EnvironmentId, ProjectCoordinatorSnapshot, ProjectId } from "@yantrix/contracts";
 import {
   createCoordinatorRequestLedger,
-  isCoordinatorThread,
   sendCoordinatorText,
 } from "@yantrix/client-runtime/state/project-coordinator";
 import { squashAtomCommandFailure } from "@yantrix/client-runtime/state/runtime";
@@ -70,16 +64,6 @@ export function useProjectCoordinator(
   );
 }
 
-/** True when `threadId` is this project's coordinator conversation. */
-export function useIsCoordinatorThread(
-  environmentId: EnvironmentId | null,
-  projectId: ProjectId | null,
-  threadId: ThreadId | null,
-): boolean {
-  const { snapshot } = useProjectCoordinator(environmentId, projectId);
-  return isCoordinatorThread(snapshot, threadId);
-}
-
 const ledgerStorage = (() => {
   try {
     return typeof localStorage === "undefined" ? null : localStorage;
@@ -89,12 +73,12 @@ const ledgerStorage = (() => {
 })();
 
 /** One ledger per app so a retried message keeps its request id across views and reloads. */
-export const coordinatorRequestLedger = createCoordinatorRequestLedger({
+const coordinatorRequestLedger = createCoordinatorRequestLedger({
   createId: () => `coordinator-request:${randomUUID()}`,
   storage: ledgerStorage,
 });
 
-export const coordinatorScopeKey = (environmentId: EnvironmentId, projectId: ProjectId) =>
+const coordinatorScopeKey = (environmentId: EnvironmentId, projectId: ProjectId) =>
   `${environmentId}:${projectId}`;
 
 /** Text-only send through the coordinator inbox. Raw text is persisted before any provider turn. */
