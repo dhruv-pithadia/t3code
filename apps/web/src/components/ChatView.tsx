@@ -417,6 +417,13 @@ import {
   waitForThreadShell,
 } from "../state/entities";
 import { environmentShell } from "../state/shell";
+import {
+  COORDINATOR_TEXT_ONLY_MESSAGE,
+  describeCoordinatorError,
+  isCoordinatorThread,
+} from "@yantrix/client-runtime/state/project-coordinator";
+import { useProjectCoordinator, useSendCoordinatorMessage } from "../state/projectCoordinator";
+import { CoordinatorPanel } from "./coordinator/CoordinatorPanel";
 import { ChatComposer, type ChatComposerHandle } from "./chat/ChatComposer";
 import { createPageScrollController, type PageScrollKey } from "./chat/pageScrollController";
 import { isTimelineScrollTarget } from "./chat/timelineScrollTarget";
@@ -2394,6 +2401,23 @@ export default function ChatView(props: ChatViewProps) {
     [activeThread?.environmentId, activeThread?.projectId],
   );
   const activeProject = useProject(activeProjectRef);
+  // The project's coordinator conversation takes its messages through the
+  // coordinator inbox, which stores the raw text before any provider turn.
+  const coordinatorView = useProjectCoordinator(
+    activeThread?.environmentId ?? null,
+    activeProject?.id ?? null,
+  );
+  const coordinatorSnapshot =
+    isServerThread && isCoordinatorThread(coordinatorView.snapshot, activeThread?.id ?? null)
+      ? coordinatorView.snapshot
+      : null;
+  const sendCoordinatorMessage = useSendCoordinatorMessage();
+  // The inbox takes text only, so disable send up front instead of refusing it afterwards.
+  const coordinatorSendBlockReason =
+    coordinatorSnapshot !== null &&
+    (composerHasNonPromptContent || multipleModelSelections !== null)
+      ? COORDINATOR_TEXT_ONLY_MESSAGE
+      : null;
   // Environment settings with the active project's overrides applied.
   const activeProjectSettings = useMemo(
     () => resolveProjectSettings(settings, activeProject?.id ?? null, activeProject ?? undefined),
@@ -8636,6 +8660,52 @@ export default function ChatView(props: ChatViewProps) {
       }
       return;
     }
+    if (coordinatorSnapshot !== null) {
+      // Every message in the coordinator thread goes through the inbox, ahead of
+      // the slash-command and plan follow-up paths, so the raw wording is stored.
+      // Attachments and context would be dropped there, so keep them in the
+      // composer (the send button is already disabled for them).
+      if (
+        composerImages.length +
+          composerFiles.length +
+          composerTerminalContexts.length +
+          composerPreviewAnnotations.length +
+          composerReviewComments.length +
+          composerThreadContexts.length >
+          0 ||
+        multipleModelSelections !== null
+      ) {
+        setThreadError(activeThread.id, COORDINATOR_TEXT_ONLY_MESSAGE);
+        return;
+      }
+      sendInFlightRef.current = true;
+      try {
+        const outcome = await sendCoordinatorMessage({
+          environmentId: activeThread.environmentId,
+          projectId: coordinatorSnapshot.projectId,
+          text: promptForSend,
+        });
+        if (outcome.status === "sent") {
+          setThreadError(activeThread.id, null);
+          // Leave anything typed while the request was in flight.
+          if (promptRef.current === promptForSend) {
+            promptRef.current = "";
+            clearComposerDraftContent(composerDraftTarget);
+            composerRef.current?.resetCursorState();
+          }
+          if (currentRouteThreadKeyRef.current === routeThreadKey) scrollToEnd();
+        } else if (outcome.status === "failed") {
+          // The draft stays, and sending the same text again reuses the request id.
+          setThreadError(
+            activeThread.id,
+            `Message not sent. ${describeCoordinatorError(outcome.error)} Send again to retry.`,
+          );
+        }
+      } finally {
+        sendInFlightRef.current = false;
+      }
+      return;
+    }
     const {
       trimmedPrompt: trimmed,
       sendableTerminalContexts: sendableComposerTerminalContexts,
@@ -10902,12 +10972,19 @@ export default function ChatView(props: ChatViewProps) {
             activeThreadTitle={activeThread.title}
             activeProject={activeProject ?? null}
             rightPanelOpen={inlineRightPanelOwnsTitleBar}
+            isCoordinator={coordinatorSnapshot !== null}
             onNewThreadInProject={handleNewThreadInActiveProject}
             {...(activeDraftLogicalProjectKey
               ? { onOpenProjectSettings: handleOpenDraftProjectSettings }
               : {})}
           />
         </header>
+        {coordinatorSnapshot !== null ? (
+          <CoordinatorPanel
+            environmentId={activeThread.environmentId}
+            snapshot={coordinatorSnapshot}
+          />
+        ) : null}
 
         {/* Main content area with optional plan sidebar */}
         <div className="relative flex min-h-0 min-w-0 flex-1">
@@ -11203,7 +11280,8 @@ export default function ChatView(props: ChatViewProps) {
                                         ? "Messages loading"
                                         : worktreeSetupBlocksSend
                                           ? "Preparing worktree"
-                                          : projectCloneSendBlockReason
+                                          : (projectCloneSendBlockReason ??
+                                            coordinatorSendBlockReason)
                               }
                               isPreparingWorktree={isPreparingWorktree}
                               queuedRunsControl={
@@ -11223,6 +11301,7 @@ export default function ChatView(props: ChatViewProps) {
                                     environmentId={activeThread.environmentId}
                                     threadId={activeThread.id}
                                     optimisticMessages={optimisticUserMessages}
+                                    editable={coordinatorSnapshot === null}
                                     editingRunId={editingQueuedRun?.runId ?? null}
                                     onEditQueuedRun={beginEditingQueuedRun}
                                     onCancelEdit={cancelEditingQueuedRun}

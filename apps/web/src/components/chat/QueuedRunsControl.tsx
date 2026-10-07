@@ -54,6 +54,8 @@ export function QueuedRunsControl({
   readonly ref?: Ref<QueuedRunsControlHandle>;
   readonly steerShortcutLabel?: string | null;
   readonly editShortcutLabel?: string | null;
+  /** False when sent wording must stay as stored, as in the project coordinator thread. */
+  readonly editable?: boolean;
   readonly environmentId: EnvironmentId;
   readonly threadId: ThreadId;
   readonly optimisticMessages: ReadonlyArray<
@@ -215,7 +217,8 @@ export function QueuedRunsControl({
     // moving the caret inside that draft.
     editLatest(repeat) {
       const latest = queued.at(-1);
-      if (!latest || props.editingRunId !== null || busyRunId !== null) return false;
+      if (!latest || props.editable === false || props.editingRunId !== null || busyRunId !== null)
+        return false;
       if (!repeat) {
         setExpanded(true);
         props.onEditQueuedRun({
@@ -422,7 +425,11 @@ export function QueuedRunsControl({
                                 size="icon-xs"
                                 variant="ghost-muted"
                                 aria-label="Edit queued message"
-                                disabled={item.runId === null || busyRunId !== null}
+                                disabled={
+                                  props.editable === false ||
+                                  item.runId === null ||
+                                  busyRunId !== null
+                                }
                                 onClick={() => {
                                   if (item.runId !== null && item.messageId !== null) {
                                     props.onEditQueuedRun({
@@ -439,7 +446,9 @@ export function QueuedRunsControl({
                             <PencilIcon />
                           </TooltipTrigger>
                           <TooltipPopup>
-                            {`Edit in the composer${item.serverIndex === queued.length - 1 && props.editShortcutLabel ? ` (${props.editShortcutLabel})` : ""}`}
+                            {props.editable === false
+                              ? "Coordinator messages keep their original wording"
+                              : `Edit in the composer${item.serverIndex === queued.length - 1 && props.editShortcutLabel ? ` (${props.editShortcutLabel})` : ""}`}
                           </TooltipPopup>
                         </Tooltip>
                         <Tooltip>

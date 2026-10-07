@@ -1,3 +1,4 @@
+import * as ProjectCoordinator from "./project/ProjectCoordinatorService.ts";
 import { OrchestrationDispatchCommandError } from "@yantrix/contracts";
 import * as Crypto from "effect/Crypto";
 import * as Orchestrator from "./orchestration-v2/Orchestrator.ts";
@@ -1215,6 +1216,7 @@ const makeWsRpcLayer = (
       const threadLaunch = yield* ThreadLaunchService.ThreadLaunchService;
       const providerSessionManager = yield* ProviderSessionManager.ProviderSessionManagerV2;
       const scheduledTasks = yield* ScheduledTasks.ScheduledTaskService;
+      const projectCoordinator = yield* ProjectCoordinator.ProjectCoordinatorService;
       const featureTasks = yield* FeatureTasks.FeatureTaskService;
       const featureTaskWorkspaces = yield* FeatureTaskWorkspaces.FeatureTaskWorkspaceService;
       const featureTaskDelivery = yield* FeatureTaskDelivery.FeatureTaskDeliveryService;
@@ -2080,6 +2082,35 @@ const makeWsRpcLayer = (
             "rpc.aggregate": "scheduledTasks",
             "scheduled_task.id": input.id,
           }),
+        [WS_METHODS.coordinatorOpen]: (input) =>
+          observeRpcEffect(WS_METHODS.coordinatorOpen, projectCoordinator.open(input), {
+            "rpc.aggregate": "projectCoordinator",
+            "coordinator.project_id": input.projectId,
+          }),
+        [WS_METHODS.coordinatorRead]: (input) =>
+          observeRpcEffect(WS_METHODS.coordinatorRead, projectCoordinator.read(input), {
+            "rpc.aggregate": "projectCoordinator",
+            "coordinator.project_id": input.projectId,
+          }),
+        [WS_METHODS.coordinatorSubscribe]: (input) =>
+          observeRpcStream(WS_METHODS.coordinatorSubscribe, projectCoordinator.subscribe(input), {
+            "rpc.aggregate": "projectCoordinator",
+            "coordinator.project_id": input.projectId,
+          }),
+        [WS_METHODS.coordinatorSend]: (input) =>
+          observeRpcEffect(WS_METHODS.coordinatorSend, projectCoordinator.send(input), {
+            "rpc.aggregate": "projectCoordinator",
+            "coordinator.project_id": input.projectId,
+          }),
+        [WS_METHODS.coordinatorObserveNotification]: (input) =>
+          observeRpcEffect(
+            WS_METHODS.coordinatorObserveNotification,
+            projectCoordinator.observeNotification(input),
+            {
+              "rpc.aggregate": "projectCoordinator",
+              "coordinator.project_id": input.projectId,
+            },
+          ),
         [WS_METHODS.featureTasksList]: (input) =>
           observeRpcEffect(WS_METHODS.featureTasksList, featureTasks.list(input), {
             "rpc.aggregate": "featureTasks",

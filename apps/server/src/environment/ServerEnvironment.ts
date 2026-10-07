@@ -244,6 +244,7 @@ export const make = Effect.gen(function* () {
       threadVisitedTracking: true,
       threadPullRequests: true,
       featureTasks: true,
+      projectCoordinator: true,
       featureTaskWorkspaces: true,
       featureTaskDependencies: true,
       threadPullRequestWatch: true,

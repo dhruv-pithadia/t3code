@@ -24,14 +24,16 @@ foundations. Yantrix's additions extend those capabilities.
 | YF-003 | Yantrix product identity          | Branding foundation    | Merged | Yantrix naming, assets, package and application identities, and configuration defaults. This establishes the fork's identity rather than a new agent capability. | [PR #3](https://github.com/dhruv-pithadia/yantrix/pull/3) |
 | YF-004 | Task-owned workspaces             | Product feature        | Merged | One durable task workspace and branch shared by linked conversations, delivery state, and safe recovery when the workspace is unavailable or inconsistent.       | [PR #5](https://github.com/dhruv-pithadia/yantrix/pull/5) |
 
-| YF-005 | Task prerequisites | Product feature | Draft | Explicit dependencies, verified prerequisite merges, and inherited workspaces and handoffs. | [PR #6](https://github.com/dhruv-pithadia/yantrix/pull/6) |
+| YF-005 | Task prerequisites | Product feature | Merged | Explicit dependencies, verified prerequisite merges, and inherited workspaces and handoffs. | [PR #6](https://github.com/dhruv-pithadia/yantrix/pull/6) |
+
+| YF-006 | Native project coordinator | Product feature | Ready for review | Project-scoped intake, task/workspace/worker dispatch, durable follow-ups, accepted decisions, and recovery. | Implementation PR pending |
 
 [PR #2](https://github.com/dhruv-pithadia/yantrix/pull/2) preserved the repository
 setup and product direction in documentation. It is supporting work, not an
 additional product feature.
 
 **Current position:** persistent feature tasks (PR #4) and task-owned workspaces (PR #5)
-are merged as of 5 October 2026, alongside two supporting foundations. Dependency-aware tasks are implemented in a draft pending final visual verification. A merged change is not automatically a
+are merged as of 5 October 2026, alongside two supporting foundations. Task prerequisites (PR #6) merged on 5 October 2026. A merged change is not automatically a
 published release. No published Yantrix release is recorded here yet.
 
 ## YF-001: persistent feature tasks
@@ -103,7 +105,7 @@ PR #5 merged on 5 October 2026. CI results and browser screenshots are tracked o
 
 ## YF-005: task prerequisites
 
-**Status:** Draft, pending remaining visual verification.
+**Status:** Merged in PR #6.
 
 Tasks can explicitly depend on other tasks in the same project. Links survive restarts and reject
 cycles. Web and mobile editors expose prerequisites; shared RPC and MCP paths enforce them.
@@ -124,6 +126,32 @@ addition at the verified merge commit after restarting the server. Three calcula
 Browser interaction verified prerequisite selection, blocked launch, and keypad entry. Screenshot
 capture failed and the collaborative browser disconnected before addition and responsive checks;
 native mobile is typechecked only. The calculator addition PR remains draft and unmerged.
+
+## YF-006: native project coordinator
+
+**Status:** Ready for review; not merged or released.
+
+A project coordinator accepts plain-language requests and uses a Codex provider to reason about
+routing. Implementation work creates one persistent feature, isolated workspace, and worker;
+follow-ups queue on the same worker. Informational requests remain discussions. Original wording,
+request identities, accepted decisions, and pending questions are durable. Fresh project chats
+receive current accepted decisions. Restart reconciliation reuses persisted launch identities and
+reports interrupted work for explicit resumption. Seeing a question does not resolve it.
+
+**Evidence:** 80 focused tests pass across coordinator storage, dispatch, recovery, authorization,
+provider context, and shared client retry behavior. Targeted contracts, server, client-runtime,
+web, and mobile typechecks and lint pass; the production web build passes. Browser verification
+used an isolated calculator repository and a real Codex coordinator/worker: automatic keypad
+execution, same-worker follow-up, information-only discussion, watcher restart with no duplicate
+worker, explicit worker resume, pending decision observation, storage failure retaining the draft,
+attachment refusal, and 390px layout. The resulting calculator has ten digit buttons at least
+48px tall and working digit entry. Screenshots are attached to the implementation PR.
+
+**Boundaries:** Codex and text-only intake, one active feature per project. No parallel scheduler,
+provider failover, automatic merges, or worktree cleanup. Desktop inherits web; native mobile is
+typechecked but has not been exercised on a simulator. The calculator fixture has no remote,
+so its delivery and merge flow were not exercised. An ended worker turn remains evidence to
+inspect, not certification that a feature is complete.
 
 ## Keeping this ledger current
 

@@ -101,6 +101,11 @@ import {
   useSelectedThreadVisibleTurnItems,
 } from "../state/use-thread-detail";
 import { useThreadSelection } from "../state/use-thread-selection";
+import {
+  COORDINATOR_TEXT_ONLY_MESSAGE,
+  describeCoordinatorError,
+} from "@yantrix/client-runtime/state/project-coordinator";
+import { useCoordinatorForThread, useSendCoordinatorMessage } from "./project-coordinator";
 import { enqueueThreadOutboxMessage } from "./thread-outbox";
 import { dispatchingQueuedMessageIdAtom, useThreadOutboxMessages } from "./use-thread-outbox";
 import { threadEnvironment } from "./threads";
@@ -327,6 +332,14 @@ export function useThreadComposerState() {
   const draftAttachments = editedDraft?.attachments ?? [];
   const selectedThreadQueueCount = selectedThreadQueuedMessages.length;
   const selectedThread = selectedThreadShell;
+  // The project's coordinator conversation takes its messages through the
+  // coordinator inbox, which stores the raw text before any provider turn.
+  const coordinator = useCoordinatorForThread(
+    selectedThreadShell?.environmentId ?? null,
+    selectedThreadShell?.projectId ?? null,
+    selectedThreadShell?.id ?? null,
+  );
+  const sendCoordinatorMessage = useSendCoordinatorMessage();
   const modelSelection = selectedDraft?.modelSelection ?? selectedThread?.modelSelection ?? null;
   const runtimeMode = selectedDraft?.runtimeMode ?? selectedThread?.runtimeMode ?? null;
   const selectedProvider = selectedEnvironmentRuntime?.serverConfig?.providers.find(
@@ -584,6 +597,37 @@ export function useThreadComposerState() {
       if (text.length === 0 && attachments.length === 0) {
         return null;
       }
+      if (coordinator !== null) {
+        // Attachments and context would be dropped by the coordinator inbox, so
+        // keep them in the draft instead of sending a lossy message.
+        if (attachments.length > 0 || (draft.context?.records.length ?? 0) > 0) {
+          Alert.alert("Text only", COORDINATOR_TEXT_ONLY_MESSAGE);
+          return null;
+        }
+        const outcome = await sendCoordinatorMessage({
+          environmentId: thread.environmentId,
+          projectId: thread.projectId,
+          // Stored exactly as typed; only the ordinary path trims.
+          text: draft.text,
+        });
+        if (outcome.status === "failed") {
+          // The draft stays, and sending the same text again reuses the request id.
+          Alert.alert(
+            "Message not sent",
+            `${describeCoordinatorError(outcome.error)} Send again to retry.`,
+          );
+          return null;
+        }
+        if (outcome.status !== "sent") return null;
+        // Leave anything typed while the request was in flight.
+        if (getComposerDraftSnapshot(threadKey).text === draft.text) {
+          clearComposerDraftContent(threadKey);
+        }
+        return (
+          outcome.snapshot.requests.find((request) => request.id === outcome.requestId)
+            ?.sourceMessageId ?? null
+        );
+      }
       // A send-failure restore appends with allowOverflow so it never drops the
       // user's files, which can leave the draft over the cap. Sending it anyway
       // would enqueue a message that outbox recovery rejects forever, so block
@@ -716,8 +760,10 @@ export function useThreadComposerState() {
     [
       activeThreadBusy,
       canSteerActiveTurn,
+      coordinator,
       followUpBehavior,
       saveQueuedRunEdit,
+      sendCoordinatorMessage,
       selectedEnvironmentRuntime?.connectionState,
       selectedEnvironmentRuntime?.serverConfig,
       selectedThreadCreation,

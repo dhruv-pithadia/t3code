@@ -32,6 +32,7 @@ it.effect("starts without scanning or rebuilding projection history", () =>
       importLegacyShells: record("import"),
       recover: record("recover").pipe(Effect.as({ closedRequests: 2 })),
       recoverDelegatedTasks: record("delegated"),
+      reconcileCoordinator: record("coordinator"),
       startEffectWorker: record("worker"),
       autoBootstrap: record("bootstrap").pipe(Effect.as({ projectId: "project-1" })),
     });
@@ -42,6 +43,7 @@ it.effect("starts without scanning or rebuilding projection history", () =>
       "import",
       "recover",
       "delegated",
+      "coordinator",
       "worker",
       "bootstrap",
     ]);

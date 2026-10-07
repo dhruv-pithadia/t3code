@@ -64,6 +64,7 @@ import {
   SquarePenIcon,
   SunIcon,
   TextSearchIcon,
+  WorkflowIcon,
 } from "lucide-react";
 import {
   useCallback,
@@ -82,6 +83,7 @@ import { useAtomValue } from "@effect/atom-react";
 
 import { isDesktopLocalConnectionTarget } from "../connection/desktopLocal";
 import { useDesktopLocalBootstraps } from "../connection/useDesktopLocalBootstraps";
+import { useCoordinatorEntry } from "../hooks/useCoordinatorEntry";
 import { useHandleNewThread } from "../hooks/useHandleNewThread";
 import { useOpenPanelPullRequestUrl } from "../hooks/useOpenPanelPullRequestUrl";
 import { writeTextToClipboard } from "../hooks/useCopyToClipboard";
@@ -739,6 +741,7 @@ function OpenCommandPaletteDialog(props: {
   const availableSettingsSearchItems = useAvailableSettingsSearchItems();
   const { activeDraftThread, activeThread, defaultProjectRef, handleNewThread } =
     useHandleNewThread();
+  const coordinatorEntry = useCoordinatorEntry();
   const projects = useProjects();
   const referenceThreadRef =
     pathname === "/pull-requests"
@@ -1916,6 +1919,24 @@ function OpenCommandPaletteDialog(props: {
       icon: <SquarePenIcon className={ITEM_ICON_CLASS} />,
       addonIcon: <SquarePenIcon className={ADDON_ICON_CLASS} />,
       groups: [{ value: "projects", label: "Projects", items: projectThreadItems }],
+    });
+  }
+
+  if (coordinatorEntry.project) {
+    actionItems.push({
+      kind: "action",
+      value: "action:open-project-coordinator",
+      searchTerms: ["coordinator", "project", "plan", "manage", "workers", "tasks"],
+      title: (
+        <>
+          Open coordinator for{" "}
+          <span className="font-semibold">{coordinatorEntry.project.title}</span>
+        </>
+      ),
+      icon: <WorkflowIcon className={ITEM_ICON_CLASS} />,
+      run: async () => {
+        coordinatorEntry.open();
+      },
     });
   }
 

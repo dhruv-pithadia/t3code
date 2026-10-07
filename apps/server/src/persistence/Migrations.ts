@@ -73,6 +73,7 @@ import Migration0056 from "./Migrations/056_RemoveRedundantProjectionIndexes.ts"
 import Migration0057 from "./Migrations/057_FeatureTasks.ts";
 import Migration0059 from "./Migrations/059_FeatureTaskDependencies.ts";
 import Migration0058 from "./Migrations/058_FeatureTaskWorkspaces.ts";
+import Migration0060 from "./Migrations/060_ProjectCoordinator.ts";
 
 /**
  * Migration loader with all migrations defined inline.
@@ -146,6 +147,7 @@ export const migrationEntries = [
   [57, "FeatureTasks", Migration0057],
   [58, "FeatureTaskWorkspaces", Migration0058],
   [59, "FeatureTaskDependencies", Migration0059],
+  [60, "ProjectCoordinator", Migration0060],
 ] as const;
 
 export const migrationManifest = migrationEntries.map(([id, name]) => [id, name] as const);

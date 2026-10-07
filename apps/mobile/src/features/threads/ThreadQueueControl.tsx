@@ -21,7 +21,10 @@ import { ControlPillMenu } from "../../components/ControlPill";
 import { scopedThreadKey } from "../../lib/scopedEntities";
 import { useUniwindTheme } from "../../lib/useUniwindTheme";
 import { nativeHeaderScrollEdgeEffects } from "../../native/StackHeader";
+import { scopeThreadRef } from "@yantrix/client-runtime/environment";
 import { useAssetUrl } from "../../state/assets";
+import { useThreadShell } from "../../state/entities";
+import { useCoordinatorForThread } from "../../state/project-coordinator";
 import { beginQueuedRunEdit, useQueuedRunEdit } from "../../state/queued-run-edit";
 import { environmentThreadDetails, threadEnvironment } from "../../state/threads";
 import { useAtomCommand } from "../../state/use-atom-command";
@@ -58,6 +61,14 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
   const workflow = useThreadQueueWorkflow(target);
   const threadKey = scopedThreadKey(target.environmentId, target.threadId);
   const editing = useQueuedRunEdit(threadKey);
+  // Coordinator messages keep the wording the inbox stored, so they cannot be edited.
+  const threadShell = useThreadShell(scopeThreadRef(target.environmentId, target.threadId));
+  const isCoordinator =
+    useCoordinatorForThread(
+      target.environmentId,
+      threadShell?.projectId ?? null,
+      target.threadId,
+    ) !== null;
   const reorder = useAtomCommand(threadEnvironment.reorderQueuedRun, "reorder queued message");
   const promote = useAtomCommand(threadEnvironment.promoteQueuedRun, "promote queued message");
   const cancel = useAtomCommand(threadEnvironment.cancelQueuedRun, "remove queued message");
@@ -227,6 +238,7 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
           queuedCount: queuedRuns.length,
           text,
         });
+        const canEdit = controls.canEdit && !isCoordinator;
         const title =
           controls.displayText || (attachments.length > 0 ? "Attachments" : "Queued message");
         return (
@@ -340,7 +352,7 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
                     {
                       id: "edit",
                       title: "Edit",
-                      attributes: { disabled: !controls.canEdit },
+                      attributes: { disabled: !canEdit },
                       image: Platform.OS === "ios" ? "pencil" : "edit",
                     },
                     { id: "up", title: "Move up", attributes: { disabled: !controls.canMoveUp } },
@@ -363,7 +375,7 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
                     accessibilityRole="button"
                     accessibilityLabel={title}
                     accessibilityHint="Opens this message in the composer for editing"
-                    disabled={!controls.canEdit}
+                    disabled={!canEdit}
                     onPress={() => void act(run.id, "edit")}
                     className="min-h-14 flex-row items-center gap-2.5 py-2.5 active:opacity-70"
                   >

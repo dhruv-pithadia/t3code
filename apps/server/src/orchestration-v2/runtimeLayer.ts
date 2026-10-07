@@ -1,3 +1,5 @@
+import * as ProjectCoordinator from "../project/ProjectCoordinatorService.ts";
+import * as ProjectCoordinatorStore from "../project/ProjectCoordinatorStore.ts";
 import * as GitHubCli from "../sourceControl/GitHubCli.ts";
 import * as GitVcsDriver from "../vcs/GitVcsDriver.ts";
 import * as SourceControlRateLimit from "../sourceControl/SourceControlRateLimit.ts";
@@ -180,6 +182,7 @@ const providerTurnStartServiceProvided = providerTurnStartServiceLayer.pipe(
       runExecutionServiceProvided,
       runtimePolicyProvided,
       featureTaskWorkspaceServiceProvided,
+      ProjectCoordinatorStore.layer,
     ),
   ),
 );
@@ -276,6 +279,18 @@ const threadLaunchProvided = threadLaunchServiceLayer.pipe(
     ),
   ),
 );
+const projectCoordinatorProvided = ProjectCoordinator.layer.pipe(
+  Layer.provide(
+    Layer.mergeAll(
+      ProjectCoordinatorStore.layer,
+      ProjectServiceLayerLive,
+      threadLaunchProvided,
+      threadManagementProvided,
+      featureTaskWorkspaceServiceProvided,
+      storesLayer,
+    ),
+  ),
+);
 const threadLifecycleProvided = threadLifecycleServiceLayer.pipe(
   Layer.provide(threadManagementProvided),
 );
@@ -336,6 +351,8 @@ export const OrchestrationV2ProductionLayerLive = Layer.mergeAll(
   ProjectServiceLayerLive,
   managedProjectFoldersProvided,
   threadLaunchProvided,
+  projectCoordinatorProvided,
+  ProjectCoordinatorStore.layer,
   threadLifecycleProvided,
   scheduledTaskProvided,
   UsageLimitRecoveryWorker.workerLive.pipe(

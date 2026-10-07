@@ -18,6 +18,7 @@ import type {
   MessageId,
   ModelSelection,
   ProviderApprovalDecision,
+  ProjectCoordinatorSnapshot,
   ProviderInteractionMode,
   RuntimeMode,
   RuntimeRequestId,
@@ -103,6 +104,8 @@ import type {
   ThreadFeedEntry,
   ThreadFeedLatestRun,
 } from "../../lib/threadActivity";
+import { COORDINATOR_TEXT_ONLY_MESSAGE } from "@yantrix/client-runtime/state/project-coordinator";
+import { CoordinatorStatusCard } from "../coordinator/CoordinatorStatusCard";
 import { PendingApprovalCard } from "./PendingApprovalCard";
 import { ComposerFeedback } from "./ComposerFeedback";
 import { ComposerUsageLimits } from "./ComposerUsageLimits";
@@ -138,6 +141,8 @@ export interface ThreadDetailScreenProps {
   readonly worktreeSetup?: WorktreeSetupCardProps | null;
   readonly setupWorkingStartedAt?: string | null;
   readonly selectedThread: EnvironmentThreadShell;
+  /** Set on a project's coordinator conversation, which shows project status above the composer. */
+  readonly coordinatorSnapshot?: ProjectCoordinatorSnapshot | null;
   readonly contentPresentation: ThreadContentPresentation;
   readonly screenTone: StatusTone;
   readonly connectionError: string | null;
@@ -1178,6 +1183,12 @@ export const ThreadDetailScreen = memo(function ThreadDetailScreen(props: Thread
                     />
                   </Animated.View>
                 ) : null}
+                {props.coordinatorSnapshot ? (
+                  <CoordinatorStatusCard
+                    environmentId={props.environmentId}
+                    snapshot={props.coordinatorSnapshot}
+                  />
+                ) : null}
                 <UsageLimitRecoveryCard
                   key={props.selectedThread.latestRun?.runId}
                   thread={props.selectedThread}
@@ -1325,7 +1336,11 @@ export const ThreadDetailScreen = memo(function ThreadDetailScreen(props: Thread
                       // them against a thread id the server may still reject
                       // would strand them in the outbox.
                       sendBlockedReason={
-                        props.creationState?.kind === "preparing" ? "Starting the task…" : null
+                        props.creationState?.kind === "preparing"
+                          ? "Starting the task…"
+                          : props.coordinatorSnapshot && props.draftAttachments.length > 0
+                            ? COORDINATOR_TEXT_ONLY_MESSAGE
+                            : null
                       }
                       draftKey={props.composerDraftKey ?? undefined}
                       followUpBehavior={props.followUpBehavior}

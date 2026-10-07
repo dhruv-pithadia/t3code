@@ -1,3 +1,5 @@
+import { ProjectCoordinatorToolkit } from "./toolkits/coordinator/tools.ts";
+import { ProjectCoordinatorHandlersLive } from "./toolkits/coordinator/handlers.ts";
 import { FeatureTasksToolkit } from "./toolkits/featureTasks/tools.ts";
 import { FeatureTasksHandlersLive } from "./toolkits/featureTasks/handlers.ts";
 import * as NodeCrypto from "node:crypto";
@@ -668,6 +670,10 @@ export const OrchestratorToolkitRegistrationLive = McpServer.toolkit(Orchestrato
   Layer.provide(ThreadMetadataMcpService.layer),
 );
 
+const ProjectCoordinatorToolkitRegistrationLive = McpServer.toolkit(ProjectCoordinatorToolkit).pipe(
+  Layer.provide(ProjectCoordinatorHandlersLive),
+);
+
 const FeatureTasksToolkitRegistrationLive = McpServer.toolkit(FeatureTasksToolkit).pipe(
   Layer.provide(FeatureTasksHandlersLive),
 );
@@ -726,6 +732,7 @@ export const layer = Layer.mergeAll(
   OrchestratorToolkitRegistrationLive,
   ThreadToolkitRegistrationLive,
   FeatureTasksToolkitRegistrationLive,
+  ProjectCoordinatorToolkitRegistrationLive,
   AttachmentRegistrationLive,
   ProjectRegistrationLive,
   EnvironmentRegistrationLive,

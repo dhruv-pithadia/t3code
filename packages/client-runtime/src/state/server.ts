@@ -1087,6 +1087,12 @@ export function createServerEnvironmentAtoms<R, E>(
       tag: WS_METHODS.featureTasksSubscribe,
       idleTtlMs: 0,
     }),
+    /** Live coordinator state for one project: thread binding, requests, decisions, notifications. */
+    coordinatorLive: createEnvironmentRpcSubscriptionAtomFamily(runtime, {
+      label: "environment-data:server:project-coordinator:live",
+      tag: WS_METHODS.coordinatorSubscribe,
+      idleTtlMs: 0,
+    }),
     getFeatureTask: createEnvironmentRpcQueryAtomFamily(runtime, {
       label: "environment-data:server:feature-task:get",
       tag: WS_METHODS.featureTasksGet,
@@ -1326,6 +1332,18 @@ export function createServerEnvironmentAtoms<R, E>(
     runScheduledTaskNow: createEnvironmentRpcCommand(runtime, {
       label: "environment-data:server:scheduled-task:run-now",
       tag: WS_METHODS.scheduledTasksRunNow,
+    }),
+    openProjectCoordinator: createEnvironmentRpcCommand(runtime, {
+      label: "environment-data:server:project-coordinator:open",
+      tag: WS_METHODS.coordinatorOpen,
+    }),
+    sendProjectCoordinator: createEnvironmentRpcCommand(runtime, {
+      label: "environment-data:server:project-coordinator:send",
+      tag: WS_METHODS.coordinatorSend,
+    }),
+    observeProjectCoordinatorNotification: createEnvironmentRpcCommand(runtime, {
+      label: "environment-data:server:project-coordinator:observe-notification",
+      tag: WS_METHODS.coordinatorObserveNotification,
     }),
     createFeatureTask: createEnvironmentRpcCommand(runtime, {
       label: "environment-data:server:feature-task:create",

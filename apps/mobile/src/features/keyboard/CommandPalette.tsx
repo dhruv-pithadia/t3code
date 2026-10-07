@@ -25,6 +25,8 @@ import { cn } from "../../lib/cn";
 import { scopedProjectKey, scopedThreadKey } from "../../lib/scopedEntities";
 import { YantrixKeyboardCommands } from "../../native/YantrixKeyboardCommands";
 import { useProjects, useThreadShell, useThreadShells } from "../../state/entities";
+import { useCoordinatorProjects } from "../../state/project-coordinator";
+import { useOpenProjectCoordinator } from "../coordinator/useOpenProjectCoordinator";
 import { useThreadSearch } from "../../state/queries";
 import { useWorkspaceEnvironments } from "../../state/workspace";
 import { useSavedRemoteConnections } from "../../state/use-remote-environment-registry";
@@ -51,6 +53,7 @@ const ROW_HEIGHT = 50;
 const ACTION_ICONS: Record<string, AppSymbolName> = {
   newTask: "square.and.pencil",
   newThread: "square.and.pencil",
+  coordinator: "person.2",
   addProject: "folder.badge.plus",
   settings: "gearshape",
   appearance: "paintbrush",
@@ -145,6 +148,18 @@ export function CommandPalette(props: {
   const threads = useThreadShells();
   const activeThreadRef = useMemo(() => parseActiveThreadPath(props.pathname), [props.pathname]);
   const activeThread = useThreadShell(activeThreadRef);
+  const coordinatorProjects = useCoordinatorProjects();
+  const openCoordinator = useOpenProjectCoordinator();
+  // The open thread's project when it has a coordinator, else the first project that does.
+  const coordinatorProject =
+    coordinatorProjects.find(
+      (project) =>
+        activeThread !== null &&
+        project.environmentId === activeThread.environmentId &&
+        project.id === activeThread.projectId,
+    ) ??
+    coordinatorProjects[0] ??
+    null;
   const environments = useWorkspaceEnvironments();
   const { savedConnectionsById } = useSavedRemoteConnections();
   const [query, setQuery] = useState("");
@@ -186,6 +201,19 @@ export function CommandPalette(props: {
         searchTerms: ["new task", "chat", "create", "project"],
         run: () => navigation.navigate("NewTaskSheet", { screen: "NewTask" }),
       },
+      ...(coordinatorProject
+        ? [
+            {
+              key: "coordinator",
+              kind: "action" as const,
+              title: `Open coordinator for ${coordinatorProject.title}`,
+              searchTerms: ["coordinator", "project", "plan", "manage", "workers", "tasks"],
+              run: () => {
+                void openCoordinator(coordinatorProject);
+              },
+            },
+          ]
+        : []),
       {
         key: "addProject",
         kind: "action",
@@ -352,7 +380,9 @@ export function CommandPalette(props: {
   }, [
     activeThread,
     activeThreadRef,
+    coordinatorProject,
     navigation,
+    openCoordinator,
     projects,
     runCommand,
     savedConnectionsById,
