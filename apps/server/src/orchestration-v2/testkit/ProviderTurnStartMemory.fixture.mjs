@@ -27,6 +27,7 @@ const [
   Auth,
   FeatureTasks,
   FeatureTaskWorkspaces,
+  CoordinatorStore,
 ] = await Promise.all([
   app("orchestration-v2/ProviderTurnStartService"),
   app("orchestration-v2/ProjectionStore"),
@@ -41,6 +42,7 @@ const [
   app("provider/Services/ProviderAuthService"),
   app("featureTasks/FeatureTaskService"),
   app("featureTasks/FeatureTaskWorkspaceService"),
+  app("project/ProjectCoordinatorStore"),
 ]);
 let current;
 let fullReads = 0;
@@ -58,6 +60,9 @@ const session = {
   compactThread: () => Effect.void,
 };
 const dependencies = Layer.mergeAll(
+  Layer.mock(CoordinatorStore.ProjectCoordinatorStore)({
+    readForThread: () => Effect.succeed(null),
+  }),
   Layer.mock(Handoff.ContextHandoffServiceV2)({}),
   Layer.mock(FeatureTasks.FeatureTaskService)({ readForThread: () => Effect.succeed(null) }),
   Layer.mock(FeatureTaskWorkspaces.FeatureTaskWorkspaceService)({
