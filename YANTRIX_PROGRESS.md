@@ -26,7 +26,7 @@ foundations. Yantrix's additions extend those capabilities.
 
 | YF-005 | Task prerequisites | Product feature | Merged | Explicit dependencies, verified prerequisite merges, and inherited workspaces and handoffs. | [PR #6](https://github.com/dhruv-pithadia/yantrix/pull/6) |
 
-| YF-006 | Native project coordinator | Product feature | Ready for review | Project-scoped intake, task/workspace/worker dispatch, durable follow-ups, accepted decisions, and recovery. | Implementation PR pending |
+| YF-006 | Native project coordinator | Product feature | Ready for review | Project-scoped intake, task/workspace/worker dispatch, durable follow-ups, accepted decisions, and recovery. | [PR #7](https://github.com/dhruv-pithadia/yantrix/pull/7) |
 
 [PR #2](https://github.com/dhruv-pithadia/yantrix/pull/2) preserved the repository
 setup and product direction in documentation. It is supporting work, not an
@@ -129,7 +129,7 @@ native mobile is typechecked only. The calculator addition PR remains draft and 
 
 ## YF-006: native project coordinator
 
-**Status:** Ready for review; not merged or released.
+**Status:** Implementation in [PR #7](https://github.com/dhruv-pithadia/yantrix/pull/7); not merged or released.
 
 A project coordinator accepts plain-language requests and uses a Codex provider to reason about
 routing. Implementation work creates one persistent feature, isolated workspace, and worker;
